@@ -21,3 +21,15 @@
 -- Yaesu FT-897 support for rig-control
 
 local rig = require 'rig'
+
+local function setFrequency()
+end
+
+local function getFrequency()
+end
+
+return {
+	transceiver = 'Yaesu FT-897',
+	setFrequency = setFrequency,
+	getFrequency = getFrequency
+}
