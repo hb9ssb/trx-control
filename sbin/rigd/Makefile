@@ -1,4 +1,4 @@
-SRCS=		rigd.c
+SRCS=		rigd.c rig-control.c client-handler.c luarig.c
 OBJS=		${SRCS:.c=.o}
 
 
