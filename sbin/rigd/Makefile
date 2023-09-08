@@ -6,7 +6,7 @@ MANDIR?=	/usr/share/man
 SBINDIR?=	/usr/sbin
 
 CFLAGS+=	-I../../external/mit/lua/src
-LDFLAGS+=	-L../../lib/liblua -llua
+LDFLAGS+=	-L../../lib/liblua -llua -lm
 
 build:		rigd
 
@@ -17,7 +17,7 @@ clean:
 install:	rigd rigd.8
 
 rigd:		${OBJS}
-		cc ${CFLAGS} ${LDFLAGS} -o rigd ${OBJS} ${LDADD}
+		cc ${CFLAGS} -o rigd ${OBJS} ${LDFLAGS} ${LDADD}
 
 rigd.8:
 		@install -D -m 644 $@ $(DESTDIR)$(MANDIR)/man8/$@
