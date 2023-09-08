@@ -1,6 +1,7 @@
 SUBDIR+=	bin/rigctl \
-		sbin/rigd \
-		rigs
+		lib/liblua \
+		rigs \
+		sbin/rigd
 
 MANDIR?=	/usr/share/man
 
@@ -33,3 +34,5 @@ rig-control.7:
 		@gzip -f $(DESTDIR)$(MANDIR)/man7/$@
 
 # Dependencies
+
+sbin/rigd:	lib/liblua

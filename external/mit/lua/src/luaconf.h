@@ -800,11 +800,5 @@
 /* valid flags for c, p, and s conversions */
 #define L_FMTFLAGSC	"-"
 
-#undef LUA_ROOT
-#define LUA_ROOT	ARCAPOS_ROOT "/"
-
-#undef LUA_CDIR
-#define LUA_CDIR	ARCAPOS_LIBDIR "/lua/" LUA_VDIR "/"
-
 #endif
 

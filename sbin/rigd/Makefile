@@ -5,6 +5,9 @@ OBJS=		${SRCS:.c=.o}
 MANDIR?=	/usr/share/man
 SBINDIR?=	/usr/sbin
 
+CFLAGS+=	-I../../external/mit/lua/src
+LDFLAGS+=	-L../../lib/liblua -llua
+
 build:		rigd
 
 clean:
