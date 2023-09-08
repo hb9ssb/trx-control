@@ -31,6 +31,26 @@ is a daemon to control amateur radio transceivers.
 listens for incoming TCP/IP connections from rig-control compatible clients.
 .
 .
+.SH "SUPPORTED TRANSCEIVERS"
+.PP
+Initially, 
+.IR rigd (8)
+will support the following transceivers:
+.
+.PP
+.TS
+l l l.
+Manufacturor	Model	Driver
+.T&
+l l l.
+_
+HB9SSB	Dummy transceiver	dummy-trx
+Yaesu	FT-710	yaesu-ft-710
+Yaesu	FT-897	yaesu-ft-897
+Yaesu	FT-817	yaesu-ft-817
+.TE
+.
+.
 .SH AUTHORS
 .
 The rig-control software was written by
