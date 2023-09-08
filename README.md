@@ -26,7 +26,7 @@ running frequency or en antry from the "stations heard" queue,
 the transceiver will be tuned to that frequency using rigd(8).
 
 Another client might be the contest logging software, which can
-query rigd(8) for the ferquency and mode of the station that
+query rigd(8) for the frequency and mode of the station that
 is currently being worked.  We have plans to add rig-control
 support to SkookumLogger.
 
