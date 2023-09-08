@@ -1,3 +1,5 @@
+# [WORK IN PROGRESS]
+
 # rig-control
 
 Software to control amateur radio transceivers.
@@ -14,7 +16,7 @@ a corresponding Lua module for a specific transceiver model.
 See https://lua.org and https://lua.msys.ch for more information
 on Lua.
 
-# Background
+## Background
 
 rig-control is the base layer of a larger software system to
 support contesting in "runner" and "search & pounce" mode where
@@ -30,7 +32,7 @@ query rigd(8) for the frequency and mode of the station that
 is currently being worked.  We have plans to add rig-control
 support to SkookumLogger.
 
-# Supported transceivers
+## Supported transceivers
 
 Initially, rig-control will support the following transceivers:
 
@@ -38,7 +40,7 @@ Initially, rig-control will support the following transceivers:
 * Yaesu FT-897
 * Yaesu FT-817
 
-# Protocol
+## Protocol
 
 The protocol between rigd(8) and a client will be simple, but
 is not yet defined in its entity. In any case, one rigd(8)
