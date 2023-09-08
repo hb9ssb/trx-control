@@ -20,17 +20,9 @@
  * IN THE SOFTWARE.
  */
 
-#include <lua.h>
-#include <lauxlib.h>
+#ifndef __RIGD_H__
+#define __RIGD_H__
 
-#include "pathnames.h"
+#define RIGD_VERSION	"1.0.0"
 
-int
-main(int argc, char *argv[])
-{
-	lua_State *L;
-
-	L = luaL_newstate();
-	lua_close(L);
-	return 0;
-}
+#endif /* __RIGD_H__ */

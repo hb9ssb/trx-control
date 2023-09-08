@@ -21,3 +21,38 @@
  */
 
 /* Provide the 'rig' Lua module to transceiver drivers */
+
+#include <lua.h>
+#include <lauxlib.h>
+
+#include "rigd.h"
+
+int
+luarig_version(lua_State *L)
+{
+	lua_pushstring(L, RIGD_VERSION);
+	return 1;
+}
+
+int
+luaopen_rig(lua_State *L)
+{
+	struct luaL_Reg luarig[] = {
+		{ "version",	luarig_version },
+		{ NULL, NULL }
+	};
+
+	luaL_newlib(L, luarig);
+	lua_pushliteral(L, "_COPYRIGHT");
+	lua_pushliteral(L, "Copyright (c) 2023 Marc Balmer HB9SSB");
+	lua_settable(L, -3);
+	lua_pushliteral(L, "_DESCRIPTION");
+	lua_pushliteral(L, "rig-control for Lua");
+	lua_settable(L, -3);
+	lua_pushliteral(L, "_VERSION");
+	lua_pushliteral(L, "rig 1.0.0");
+	lua_settable(L, -3);
+	
+	return 1;
+
+}

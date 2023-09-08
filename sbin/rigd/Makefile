@@ -26,3 +26,6 @@ rigd.8:
 .c.o:
 		cc -O3 -fPIC -c -o $@ ${CFLAGS} $<
 
+rigd.o:		rigd.c rigd.h
+
+luarig.o:	luarig.c rigd.h
