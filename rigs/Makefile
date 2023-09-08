@@ -1,4 +1,5 @@
-RIGS=		yaesu-ft-710.lua \
+RIGS=		dummy-trx.lua \
+		yaesu-ft-710.lua \
 		yaesu-ft-897.lua \
 		yaesu-ft-817.lua
 
