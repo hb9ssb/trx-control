@@ -25,17 +25,21 @@ rig-control \- software to control radio transceivers
 .
 Software to control amateur radio transceivers.
 .
+.
 rig-control consists of
 .IR rigd (8)
 (a daemon to control the transceiver), and,
 .IR rigctl (1)
 (a command line utility to access rigd.)
 .
+.
 .IR rigd (8)
 listens on port 14285 by for incoming connections
 (14285 is the default port, it can be changed).
 .
+.
 rig-control supports IPv4 and IPv6.
+.
 .
 The effective transceiver control is done using Lua modules,
 this way new transceivers can easily be supported by suppliying
