@@ -1,8 +1,6 @@
-# [WORK IN PROGRESS]
-
 # rig-control
 
-Software to control amateur radio transceivers.
+Software to control amateur radio transceivers.  This is work in progress.
 
 rig-control consists of rigd(8), a daemon to control the transceiver,
 and, rigctl(1), a command line utility to access rigd.
@@ -38,6 +36,7 @@ support to SkookumLogger.
 
 Initially, rig-control will support the following transceivers:
 
+* Dummy transceiver for testing purposes
 * Yaesu FT-710
 * Yaesu FT-897
 * Yaesu FT-817
