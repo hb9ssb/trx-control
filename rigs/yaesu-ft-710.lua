@@ -23,6 +23,7 @@
 local rig = require 'rig'
 
 local function initialize()
+	rig.setspeed(38400)
 end
 
 local function setFrequency()

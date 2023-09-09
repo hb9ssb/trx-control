@@ -73,15 +73,18 @@ Initially, rig-control will support the following transceivers:
 .PP
 .TS
 l l l.
-Manufacturor	Model	Driver
+Manufacturor	Model	Driver	CAT Bit Rate
 .T&
 l l l.
 _
-HB9SSB	Dummy transceiver for testing purposes	dummy-trx
-Yaesu	FT-710	yaesu-ft-710
-Yaesu	FT-897	yaesu-ft-897
-Yaesu	FT-817	yaesu-ft-817
+HB9SSB	Dummy transceiver for testing purposes	dummy-trx	n/a
+Yaesu	FT-710	yaesu-ft-710	38400
+Yaesu	FT-897	yaesu-ft-897	38400
+Yaesu	FT-817	yaesu-ft-817	38400
 .TE
+.
+Make sure to set the CAT bit rate to the value expected by
+.IR rigd (8) .
 .
 .
 .SH "PROTOCOL"
