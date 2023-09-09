@@ -22,6 +22,9 @@
 
 local rig = require 'rig'
 
+local function initialize()
+end
+
 local function setFrequency()
 end
 
@@ -30,6 +33,7 @@ end
 
 return {
 	transceiver = 'Yaesu FT-170',
+	initialize = initialize,
 	setFrequency = setFrequency,
 	getFrequency = getFrequency
 }
