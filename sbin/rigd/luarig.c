@@ -27,11 +27,28 @@
 
 #include "rigd.h"
 
-int
+static int
 luarig_version(lua_State *L)
 {
 	lua_pushstring(L, RIGD_VERSION);
 	return 1;
+}
+
+static int
+luarig_setspeed(lua_State *L)
+{
+	return 0;
+}
+
+static int
+luarig_read(lua_State *L)
+{
+	return 0;
+}
+
+static int luarig_write(lua_State *L)
+{
+	return 0;
 }
 
 int
@@ -39,6 +56,9 @@ luaopen_rig(lua_State *L)
 {
 	struct luaL_Reg luarig[] = {
 		{ "version",	luarig_version },
+		{ "setspeed",	luarig_setspeed },
+		{ "read",	luarig_read },
+		{ "write",	luarig_write },
 		{ NULL, NULL }
 	};
 
@@ -54,5 +74,4 @@ luaopen_rig(lua_State *L)
 	lua_settable(L, -3);
 	
 	return 1;
-
 }
