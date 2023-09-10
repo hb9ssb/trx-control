@@ -3,7 +3,7 @@ OBJS=		${SRCS:.c=.o}
 
 
 MANDIR?=	/usr/share/man
-SBINDIR?=	/usr/sbin
+BINDIR?=	/usr/bin
 
 build:		rigctl
 
@@ -12,6 +12,7 @@ clean:
 
 .PHONY: install rigctl.1
 install:	rigctl rigctl.1
+		install -m 755 rigd $(DESTDIR)$(BINDIR)
 
 rigctl:		${OBJS}
 		cc ${CFLAGS} ${LDFLAGS} -o rigctl ${OBJS} ${LDADD}

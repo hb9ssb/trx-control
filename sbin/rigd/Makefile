@@ -15,6 +15,7 @@ clean:
 
 .PHONY: install rigd.8
 install:	rigd rigd.8
+		install -m 755 rigd $(DESTDIR)$(SBINDIR)
 
 rigd:		${OBJS}
 		cc ${CFLAGS} -o rigd ${OBJS} ${LDFLAGS} ${LDADD}

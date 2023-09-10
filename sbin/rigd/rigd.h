@@ -25,4 +25,9 @@
 
 #define RIGD_VERSION	"1.0.0"
 
+typedef struct controller {
+	const char *device;
+	const char *rig_type;
+} controller_t;
+
 #endif /* __RIGD_H__ */

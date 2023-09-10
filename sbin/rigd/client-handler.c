@@ -21,3 +21,25 @@
  */
 
 /* Handle network clients */
+
+#include <err.h>
+#include <pthread.h>
+#include <stdio.h>
+#include <unistd.h>
+
+void *
+client_handler(void *arg)
+{
+	int fd = *(int *)arg;
+	int status;
+
+	status = pthread_detach(pthread_self());
+	if (status)
+		err(1, "can't detach");
+
+	printf("client_handler started\n");
+	sleep(5);
+	printf("client_handler terminating\n");
+	close(fd);
+	return NULL;
+}
