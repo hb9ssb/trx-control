@@ -24,5 +24,6 @@
 #define __RIGD_PATHNAMES_H__
 
 #define PATH_RIGS	"/usr/share/rigd/rigs"
+#define PATH_INIT	"/usr/share/rigd/init.lua"
 
 #endif /* __RIGD_PATHNAMES_H__ */

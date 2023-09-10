@@ -20,17 +20,44 @@
  * IN THE SOFTWARE.
  */
 
+#include <getopt.h>
+#include <pthread.h>
+
 #include <lua.h>
 #include <lauxlib.h>
 
 #include "pathnames.h"
+
+extern int luaopen_rig(lua_State *);
+
+static void
+usage(void)
+{
+	(void)fprintf(stderr, "usage: rigd <device> <rig-type>\n");
+	exit(1);
+}
 
 int
 main(int argc, char *argv[])
 {
 	lua_State *L;
 
+
 	L = luaL_newstate();
+	if (L == NULL) {
+		syslog(LOG_ERR, "cannot initialize Lua state");
+		return -1;
+	}
+	luaL_openlibs(L);
+	lua_getglobal(L, "package");
+	lua_getfield(L, -1, "preload");
+	lua_pushcfunction(L, luaopen_rig);
+	lua_setfield(L, -2, "rig");
+
+	if (!stat(PATH_INIT, NULL))
+		if (luaL_dofile(L, PATH_INIT))
+			syslog(LOG_ERR, "Lua error: %s", lua_tostring(L, -1));
+
 	lua_close(L);
 	return 0;
 }
