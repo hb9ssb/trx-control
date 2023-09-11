@@ -43,6 +43,7 @@
 
 extern int luaopen_trx(lua_State *);
 int trx_control_running = 0;
+int fd = -1;
 
 void *
 trx_control(void *arg)
@@ -50,26 +51,24 @@ trx_control(void *arg)
 	controller_t controller = *(controller_t *)arg;
 	struct termios tty;
 	lua_State *L;
+	int driver_ref;
 	struct stat sb;
 	char trx_driver[PATH_MAX];
-	int fd;
 
+	L = NULL;
 	trx_control_running = 1;
 	pthread_detach(pthread_self());
 
 	if (strchr(controller.trx_type, '/')) {
 		syslog(LOG_ERR, "trx-type must not contain slashes");
-		trx_control_running = 0;
-		return NULL;
+		goto terminate;
 	}
 
 	fd = open(controller.device, O_RDWR);
 	if (fd == -1) {
 		syslog(LOG_ERR, "Can't open CAT device %s: %s",
 		    controller.device, strerror(errno));
-		fd = 0;
-		trx_control_running = 0;
-		return NULL;
+		goto terminate;
 	}
 	if (isatty(fd)) {
 		if (tcgetattr(fd, &tty) < 0)
@@ -87,8 +86,7 @@ trx_control(void *arg)
 	L = luaL_newstate();
 	if (L == NULL) {
 		syslog(LOG_ERR, "cannot initialize Lua state");
-		trx_control_running = 0;
-		return NULL;
+		goto terminate;
 	}
 	luaL_openlibs(L);
 	lua_getglobal(L, "package");
@@ -102,34 +100,47 @@ trx_control(void *arg)
 	if (stat(trx_driver, &sb)) {
 		syslog(LOG_ERR, "driver for trx-type %s not found",
 		    controller.trx_type);
-		trx_control_running = 0;
-		lua_close(L);
-		return NULL;
+		goto terminate;
 	}
 
 	if (luaL_dofile(L, trx_driver)) {
 		syslog(LOG_ERR, "Lua error: %s", lua_tostring(L, -1));
-		trx_control_running = 0;
-		lua_close(L);
-		return NULL;
+		goto terminate;
 	}
+	if (lua_type(L, -1) != LUA_TTABLE) {
+		syslog(LOG_ERR, "trx driver %s did not return a table",
+		    controller.trx_type);
+		goto terminate;
+	} else
+		driver_ref = luaL_ref(L, LUA_REGISTRYINDEX);
 
 	if (!stat(PATH_INIT, &sb)) {
 		if (luaL_dofile(L, PATH_INIT)) {
 			syslog(LOG_ERR, "Lua error: %s", lua_tostring(L, -1));
-			trx_control_running = 0;
-			lua_close(L);
-			return NULL;
+			goto terminate;
 		}
 	}
 
+	lua_geti(L, LUA_REGISTRYINDEX, driver_ref);
+	lua_getfield(L, -1, "initialize");
+	switch (lua_pcall(L, 0, 0, 0)) {
+	case LUA_OK:
+		break;
+	case LUA_ERRRUN:
+	case LUA_ERRMEM:
+	case LUA_ERRERR:
+		syslog(LOG_ERR, "Lua error: %s", lua_tostring(L, -1));
+		break;
+	}
 
 	printf("trx_control started\n");
 
 	sleep(10);
 
+terminate:
 	printf("trx_control terminates\n");
-	lua_close(L);
+	if (L)
+		lua_close(L);
 	trx_control_running = 0;
 	return NULL;
 }

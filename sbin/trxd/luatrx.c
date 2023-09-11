@@ -22,10 +22,15 @@
 
 /* Provide the 'trx' Lua module to transceiver drivers */
 
+#include <termios.h>
+#include <unistd.h>
+
 #include <lua.h>
 #include <lauxlib.h>
 
 #include "trxd.h"
+
+extern int fd;
 
 static int
 luatrx_version(lua_State *L)
@@ -37,7 +42,21 @@ luatrx_version(lua_State *L)
 static int
 luatrx_setspeed(lua_State *L)
 {
-	return 0;
+	struct termios tty;
+
+	if (isatty(fd)) {
+		if (tcgetattr(fd, &tty) < 0) {
+			lua_pushboolean(L, 0);
+		} else {
+			cfsetspeed(&tty, luaL_checkinteger(L, 1));
+			if (tcsetattr(fd, TCSADRAIN, &tty) < 0) {
+				lua_pushboolean(L, 0);
+			} else
+				lua_pushboolean(L, 1);
+		}
+	} else
+		lua_pushboolean(L, 0);
+	return 1;
 }
 
 static int
