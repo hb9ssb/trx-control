@@ -20,58 +20,59 @@
  * IN THE SOFTWARE.
  */
 
-/* Provide the 'rig' Lua module to transceiver drivers */
+/* Provide the 'trx' Lua module to transceiver drivers */
 
 #include <lua.h>
 #include <lauxlib.h>
 
-#include "rigd.h"
+#include "trxd.h"
 
 static int
-luarig_version(lua_State *L)
+luatrx_version(lua_State *L)
 {
-	lua_pushstring(L, RIGD_VERSION);
+	lua_pushstring(L, TRXD_VERSION);
 	return 1;
 }
 
 static int
-luarig_setspeed(lua_State *L)
+luatrx_setspeed(lua_State *L)
 {
 	return 0;
 }
 
 static int
-luarig_read(lua_State *L)
+luatrx_read(lua_State *L)
 {
 	return 0;
 }
 
-static int luarig_write(lua_State *L)
+static int
+luatrx_write(lua_State *L)
 {
 	return 0;
 }
 
 int
-luaopen_rig(lua_State *L)
+luaopen_trx(lua_State *L)
 {
-	struct luaL_Reg luarig[] = {
-		{ "version",	luarig_version },
-		{ "setspeed",	luarig_setspeed },
-		{ "read",	luarig_read },
-		{ "write",	luarig_write },
+	struct luaL_Reg luatrx[] = {
+		{ "version",	luatrx_version },
+		{ "setspeed",	luatrx_setspeed },
+		{ "read",	luatrx_read },
+		{ "write",	luatrx_write },
 		{ NULL, NULL }
 	};
 
-	luaL_newlib(L, luarig);
+	luaL_newlib(L, luatrx);
 	lua_pushliteral(L, "_COPYRIGHT");
 	lua_pushliteral(L, "Copyright (c) 2023 Marc Balmer HB9SSB");
 	lua_settable(L, -3);
 	lua_pushliteral(L, "_DESCRIPTION");
-	lua_pushliteral(L, "rig-control for Lua");
+	lua_pushliteral(L, "trx-control for Lua");
 	lua_settable(L, -3);
 	lua_pushliteral(L, "_VERSION");
-	lua_pushliteral(L, "rig 1.0.0");
+	lua_pushliteral(L, "trx 1.0.0");
 	lua_settable(L, -3);
-	
+
 	return 1;
 }

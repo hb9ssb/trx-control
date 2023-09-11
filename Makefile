@@ -1,7 +1,7 @@
-SUBDIR+=	bin/rigctl \
+SUBDIR+=	bin/trxctl \
 		lib/liblua \
-		rigs \
-		sbin/rigd
+		trx \
+		sbin/trxd
 
 MANDIR?=	/usr/share/man
 
@@ -26,7 +26,7 @@ cleandir: 	subdir
 
 .PHONY: install rig-control.7
 install:	TARGET=install
-install: 	subdir rig-control.7
+install: 	subdir trx-control.7
 	@echo all installed
 
 rig-control.7:

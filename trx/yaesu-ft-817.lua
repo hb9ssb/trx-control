@@ -18,12 +18,12 @@
 -- FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 -- IN THE SOFTWARE.
 
--- Yaesu FT-897 support for rig-control
+-- Yaesu FT-817 support for trx-control
 
-local rig = require 'rig'
+local trx = require 'trx'
 
 local function initialize()
-	rig.setspeed(38400)
+	trx.setspeed(38400)
 end
 
 local function setFrequency()
@@ -33,7 +33,7 @@ local function getFrequency()
 end
 
 return {
-	transceiver = 'Yaesu FT-897',
+	transceiver = 'Yaesu FT-817',
 	initialize = initialize,
 	setFrequency = setFrequency,
 	getFrequency = getFrequency

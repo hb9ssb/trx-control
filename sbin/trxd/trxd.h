@@ -20,10 +20,14 @@
  * IN THE SOFTWARE.
  */
 
-#ifndef __RIGD_PATHNAMES_H__
-#define __RIGD_PATHNAMES_H__
+#ifndef __TRXD_H__
+#define __TRXD_H__
 
-#define PATH_RIGS	"/usr/share/rigd/rigs"
-#define PATH_INIT	"/usr/share/rigd/init.lua"
+#define TRXD_VERSION	"1.0.0"
 
-#endif /* __RIGD_PATHNAMES_H__ */
+typedef struct controller {
+	const char *device;
+	const char *trx_type;
+} controller_t;
+
+#endif /* __TRXD_H__ */

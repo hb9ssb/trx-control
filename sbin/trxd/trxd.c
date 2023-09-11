@@ -38,7 +38,7 @@
 #include <unistd.h>
 
 #include "pathnames.h"
-#include "rigd.h"
+#include "trxd.h"
 
 #define MAXLISTEN	16
 
@@ -46,14 +46,14 @@
 #define LISTEN_PORT	"14285"
 
 extern void *client_handler(void *);
-extern void *rig_control(void *);
+extern void *trx_control(void *);
 
-extern int rig_control_running;
+extern int trx_control_running;
 
 static void
 usage(void)
 {
-	(void)fprintf(stderr, "usage: rigd <device> <rig-type>\n");
+	(void)fprintf(stderr, "usage: trxd <device> <trx-type>\n");
 	exit(1);
 }
 
@@ -62,7 +62,7 @@ main(int argc, char *argv[])
 {
 	int fd;
 	struct addrinfo hints, *res, *res0;
-	pthread_t rig_control_thread, thread;
+	pthread_t trx_control_thread, thread;
 	controller_t controller;
 	int listen_fd[MAXLISTEN], i, ch, nodaemon = 0, log = 0, err, val;
 	char *bind_addr, *listen_port;
@@ -122,10 +122,10 @@ main(int argc, char *argv[])
 		}
 	}
 
-	/* Create the rig-control thread */
+	/* Create the trx-control thread */
 	controller.device = argv[0];
-	controller.rig_type = argv[1];
-	pthread_create(&rig_control_thread, NULL, rig_control, &controller);
+	controller.trx_type = argv[1];
+	pthread_create(&trx_control_thread, NULL, trx_control, &controller);
 
 	/* Setup network listening */
 	for (i = 0; i < MAXLISTEN; i++)
@@ -176,7 +176,7 @@ main(int argc, char *argv[])
 	}
 
 	/* Wait for connections as long as rig_control runs */
-	while (rig_control_running) {
+	while (trx_control_running) {
 		struct timeval	 tv;
 		fd_set		 readfds;
 		int		 maxfd = -1;
@@ -235,9 +235,9 @@ main(int argc, char *argv[])
 			    &client_fd);
 		}
 	}
-	pthread_join(rig_control_thread, NULL);
+	pthread_join(trx_control_thread, NULL);
 
 	closelog();
-	printf("rigd terminates\n");
+	printf("trxd terminates\n");
 	return 0;
 }

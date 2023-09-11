@@ -18,9 +18,9 @@
 -- FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 -- IN THE SOFTWARE.
 
--- Dummy transceiver support for rig-control
+-- Dummy transceiver support for trx-control
 
-local rig = require 'rig'
+local trx = require 'trx'
 
 local function initialize()
 end

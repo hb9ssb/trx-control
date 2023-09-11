@@ -18,27 +18,27 @@
 .\" FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 .\" IN THE SOFTWARE.
 .\"
-.TH RIG-CONTROL 7 "8 September 2023" "rig-control"
+.TH TRX-CONTROL 7 "11 September 2023" "trx-control"
 .SH NAME
-rig-control \- software to control radio transceivers
+trx-control \- software to control radio transceivers
 .SH DESCRIPTION
 .
 Software to control amateur radio transceivers.
 .
 .PP
 rig-control consists of
-.IR rigd (8)
+.IR trxd (8)
 (a daemon to control the transceiver), and,
-.IR rigctl (1)
-(a command line utility to access rigd.)
+.IR trxctl (1)
+(a command line utility to access trxd.)
 .
 .
-.IR rigd (8)
+.IR trxd (8)
 listens on port 14285 by for incoming connections
 (14285 is the default port, it can be changed).
 .
 .PP
-rig-control supports IPv4 and IPv6.
+trx-control supports IPv4 and IPv6.
 .
 .PP
 The effective transceiver control is done using Lua modules,
@@ -49,26 +49,26 @@ See https://lua.org and https://lua.msys.ch for more information on Lua.
 .
 .SH "BACKGROUND"
 .
-rig-control is the base layer of a larger software system to
-support contesting in "runner" and "search & pounce" mode where
-a monitor station can enter heard stations into a queue (querying
-.IR rigd (8)
+trx-control (pronounced as "transceiver control") is the base layer of a
+larger software system to support contesting in "runner" and "search & pounce"
+mode where a monitor station can enter heard stations into a queue (querying
+.IR trxd (8)
 for frequency an mode) and the "run & pounce" station
 can either select a running frequency and mode or select a station
 from the "stations heard" queue. By clicking or tapping on a
 running frequency or an antry from the "stations heard" queue,
-the transceiver will be tuned to that frequency using rigd(8).
+the transceiver will be tuned to that frequency using trxd(8).
 .
 .PP
 Another client might be the contest logging software, which can
 query
-.IR rigd (8)
+.IR trxd (8)
 for the frequency and mode of the station that is currently being worked.
 .
 .
 .SH "SUPPORTED TRANSCEIVERS"
 .PP
-Initially, rig-control will support the following transceivers:
+Initially, trx-control will support the following transceivers:
 .
 .PP
 .TS
@@ -84,38 +84,38 @@ Yaesu	FT-817	yaesu-ft-817	38400
 .TE
 .
 Make sure to set the CAT bit rate to the value expected by
-.IR rigd (8) .
+.IR trxd (8) .
 .
 .
 .SH "PROTOCOL"
 .
-The protocol between rigd(8) and a client will be simple, but
-is not yet defined in its entity. In any case, one rigd(8)
+The protocol between trxd(8) and a client will be simple, but
+is not yet defined in its entity. In any case, one trxd(8)
 daemon can serve an unlimited number of clients.  A client can
-not only send commands to rigd(8), it can also subscribe for
+not only send commands to trxd(8), it can also subscribe for
 events like frequency changed etc.
 .
 .
 .SH FILES
 .
 .TP
-.I /usr/bin/rigctl
-rig-control client.
+.I /usr/bin/trxctl
+trx-control client.
 .
 .
 .TP
-.I /usr/sbin/rigd
-rig-control daemon.
+.I /usr/sbin/trxd
+trx-control daemon.
 .
 .
 .TP
-.I /usr/share/rigd/rigs
+.I /usr/share/trxd/trx
 Lua scripts that control transceivers.
 .
 .
 .SH AUTHORS
 .
-The rig-control software was written by
+The trx-control software was written by
 .MT marc\@msys.ch
 Marc Balmer HB9SSB
 .ME .
@@ -124,6 +124,6 @@ Marc Balmer HB9SSB
 .SH "SEE ALSO"
 .
 .PP
-.IR rigctl (1),
-.IR rigd (8)
+.IR trxctl (1),
+.IR trxd (8)
 .

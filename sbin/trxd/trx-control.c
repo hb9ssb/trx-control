@@ -39,27 +39,27 @@
 #include <lauxlib.h>
 
 #include "pathnames.h"
-#include "rigd.h"
+#include "trxd.h"
 
-extern int luaopen_rig(lua_State *);
-int rig_control_running = 0;
+extern int luaopen_trx(lua_State *);
+int trx_control_running = 0;
 
 void *
-rig_control(void *arg)
+trx_control(void *arg)
 {
 	controller_t controller = *(controller_t *)arg;
 	struct termios tty;
 	lua_State *L;
 	struct stat sb;
-	char rig_driver[PATH_MAX];
+	char trx_driver[PATH_MAX];
 	int fd;
 
-	rig_control_running = 1;
+	trx_control_running = 1;
 	pthread_detach(pthread_self());
 
-	if (strchr(controller.rig_type, '/')) {
-		syslog(LOG_ERR, "rig-type must not contain slashes");
-		rig_control_running = 0;
+	if (strchr(controller.trx_type, '/')) {
+		syslog(LOG_ERR, "trx-type must not contain slashes");
+		trx_control_running = 0;
 		return NULL;
 	}
 
@@ -68,7 +68,7 @@ rig_control(void *arg)
 		syslog(LOG_ERR, "Can't open CAT device %s: %s",
 		    controller.device, strerror(errno));
 		fd = 0;
-		rig_control_running = 0;
+		trx_control_running = 0;
 		return NULL;
 	}
 	if (isatty(fd)) {
@@ -87,29 +87,29 @@ rig_control(void *arg)
 	L = luaL_newstate();
 	if (L == NULL) {
 		syslog(LOG_ERR, "cannot initialize Lua state");
-		rig_control_running = 0;
+		trx_control_running = 0;
 		return NULL;
 	}
 	luaL_openlibs(L);
 	lua_getglobal(L, "package");
 	lua_getfield(L, -1, "preload");
-	lua_pushcfunction(L, luaopen_rig);
-	lua_setfield(L, -2, "rig");
+	lua_pushcfunction(L, luaopen_trx);
+	lua_setfield(L, -2, "trx");
 
-	snprintf(rig_driver, sizeof(rig_driver), "%s/%s.lua", PATH_RIGS,
-	    controller.rig_type);
+	snprintf(trx_driver, sizeof(trx_driver), "%s/%s.lua", PATH_TRX,
+	    controller.trx_type);
 
-	if (stat(rig_driver, &sb)) {
-		syslog(LOG_ERR, "driver for rig-type %s not found",
-		    controller.rig_type);
-		rig_control_running = 0;
+	if (stat(trx_driver, &sb)) {
+		syslog(LOG_ERR, "driver for trx-type %s not found",
+		    controller.trx_type);
+		trx_control_running = 0;
 		lua_close(L);
 		return NULL;
 	}
 
-	if (luaL_dofile(L, rig_driver)) {
+	if (luaL_dofile(L, trx_driver)) {
 		syslog(LOG_ERR, "Lua error: %s", lua_tostring(L, -1));
-		rig_control_running = 0;
+		trx_control_running = 0;
 		lua_close(L);
 		return NULL;
 	}
@@ -117,19 +117,19 @@ rig_control(void *arg)
 	if (!stat(PATH_INIT, &sb)) {
 		if (luaL_dofile(L, PATH_INIT)) {
 			syslog(LOG_ERR, "Lua error: %s", lua_tostring(L, -1));
-			rig_control_running = 0;
+			trx_control_running = 0;
 			lua_close(L);
 			return NULL;
 		}
 	}
 
 
-	printf("rig_control started\n");
+	printf("trx_control started\n");
 
 	sleep(10);
 
-	printf("rig_control terminates\n");
+	printf("trx_control terminates\n");
 	lua_close(L);
-	rig_control_running = 0;
+	trx_control_running = 0;
 	return NULL;
 }
