@@ -51,10 +51,17 @@ rig_control(void *arg)
 	struct termios tty;
 	lua_State *L;
 	struct stat sb;
+	char rig_driver[PATH_MAX];
 	int fd;
 
 	rig_control_running = 1;
 	pthread_detach(pthread_self());
+
+	if (strchr(controller.rig_type, '/')) {
+		syslog(LOG_ERR, "rig-type must not contain slashes");
+		rig_control_running = 0;
+		return NULL;
+	}
 
 	fd = open(controller.device, O_RDWR);
 	if (fd == -1) {
@@ -88,6 +95,24 @@ rig_control(void *arg)
 	lua_getfield(L, -1, "preload");
 	lua_pushcfunction(L, luaopen_rig);
 	lua_setfield(L, -2, "rig");
+
+	snprintf(rig_driver, sizeof(rig_driver), "%s/%s.lua", PATH_RIGS,
+	    controller.rig_type);
+
+	if (stat(rig_driver, &sb)) {
+		syslog(LOG_ERR, "driver for rig-type %s not found",
+		    controller.rig_type);
+		rig_control_running = 0;
+		lua_close(L);
+		return NULL;
+	}
+
+	if (luaL_dofile(L, rig_driver)) {
+		syslog(LOG_ERR, "Lua error: %s", lua_tostring(L, -1));
+		rig_control_running = 0;
+		lua_close(L);
+		return NULL;
+	}
 
 	if (!stat(PATH_INIT, &sb)) {
 		if (luaL_dofile(L, PATH_INIT)) {
