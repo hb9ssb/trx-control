@@ -1,4 +1,4 @@
-# trx-control
+# trx-control (pronounced "transceiver control")
 
 Software to control amateur radio transceivers.  This is work in progress.
 
