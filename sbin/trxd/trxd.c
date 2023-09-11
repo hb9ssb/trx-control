@@ -50,6 +50,8 @@ extern void *trx_control(void *);
 
 extern int trx_control_running;
 
+command_tag_t *command_tag;
+
 static void
 usage(void)
 {
@@ -122,6 +124,22 @@ main(int argc, char *argv[])
 			}
 		}
 	}
+
+	command_tag = malloc(sizeof(command_tag_t));
+	if (command_tag == NULL)
+		goto terminate;
+
+	if (pthread_mutex_init(&command_tag->mutex, NULL))
+		goto terminate;
+
+	if (pthread_cond_init(&command_tag->cond, NULL))
+		goto terminate;
+
+	if (pthread_mutex_init(&command_tag->rmutex, NULL))
+		goto terminate;
+
+	if (pthread_cond_init(&command_tag->rcond, NULL))
+		goto terminate;
 
 	/* Create the trx-control thread */
 	controller.device = argv[0];
@@ -226,18 +244,21 @@ main(int argc, char *argv[])
 				    gai_strerror(err));
 			if (log)
 				syslog(LOG_INFO, "connection from %s", hbuf);
+#if 0
 			if (fcntl(client_fd, F_SETFL,
 			    fcntl(client_fd, F_GETFL) | O_NONBLOCK)) {
 				syslog(LOG_ERR, "fcntl: %s", strerror(errno));
 				close(client_fd);
 				break;
 			}
+#endif
 			pthread_create(&thread, NULL, client_handler,
 			    &client_fd);
 		}
 	}
 	pthread_join(trx_control_thread, NULL);
 
+terminate:
 	closelog();
 	printf("trxd terminates\n");
 	return 0;

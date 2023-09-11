@@ -44,6 +44,7 @@
 extern int luaopen_trx(lua_State *);
 int trx_control_running = 0;
 int fd = -1;
+extern command_tag_t *command_tag;
 
 void *
 trx_control(void *arg)
@@ -135,7 +136,33 @@ trx_control(void *arg)
 
 	printf("trx_control started\n");
 
-	sleep(10);
+	while (1) {
+		if (pthread_mutex_lock(&command_tag->mutex))
+			goto terminate;
+
+		printf("tc mutex locked, waiting\n");
+		if (pthread_cond_wait(&command_tag->cond, &command_tag->mutex))
+			goto terminate;
+
+		printf("trx control got command %s\n", command_tag->command);
+
+		if (!strcmp(command_tag->command, "trx")) {
+			lua_geti(L, LUA_REGISTRYINDEX, driver_ref);
+			lua_getfield(L, -1, "transceiver");
+			if (lua_type(L, -1) == LUA_TSTRING)
+				command_tag->reply = (char *)lua_tostring(L, -1);
+			else
+				command_tag->reply = "unknown trx";
+		} else
+			command_tag->reply = "no such command";
+		printf("tc signal reply\n");
+
+		pthread_mutex_lock(&command_tag->rmutex);
+		pthread_cond_signal(&command_tag->rcond);
+		pthread_mutex_unlock(&command_tag->rmutex);
+
+		pthread_mutex_unlock(&command_tag->mutex);
+	}
 
 terminate:
 	printf("trx_control terminates\n");

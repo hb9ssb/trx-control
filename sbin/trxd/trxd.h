@@ -23,11 +23,24 @@
 #ifndef __TRXD_H__
 #define __TRXD_H__
 
+#include <pthread.h>
+
 #define TRXD_VERSION	"1.0.0"
 
 typedef struct controller {
 	const char *device;
 	const char *trx_type;
 } controller_t;
+
+typedef struct command_tag {
+	pthread_mutex_t	 mutex;
+	pthread_cond_t	 cond;
+	pthread_mutex_t	 rmutex;
+	pthread_cond_t	 rcond;
+
+	char		*command;
+	char		*param;
+	char		*reply;
+} command_tag_t;
 
 #endif /* __TRXD_H__ */
