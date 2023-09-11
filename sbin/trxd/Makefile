@@ -5,7 +5,7 @@ OBJS=		${SRCS:.c=.o}
 MANDIR?=	/usr/share/man
 SBINDIR?=	/usr/sbin
 
-CFLAGS+=	-I../../external/mit/lua/src -pthread
+CFLAGS+=	-I../../external/mit/lua/src -pthread -D_GNU_SOURCE
 LDFLAGS+=	-L../../lib/liblua -llua -lm
 
 build:		trxd

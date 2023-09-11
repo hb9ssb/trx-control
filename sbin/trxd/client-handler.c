@@ -24,6 +24,7 @@
 
 #include <err.h>
 #include <pthread.h>
+#include <sched.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -43,7 +44,7 @@ client_handler(void *arg)
 	if (status)
 		err(1, "can't detach");
 
-	printf("client_handler started\n");
+	printf("client_handler started on cpu %d\n", sched_getcpu());
 
 	do {
 		nread = read(fd, buf, sizeof(buf));

@@ -28,6 +28,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <pthread.h>
+#include <sched.h>
 #include <syslog.h>
 #include <stdio.h>
 #include <string.h>
@@ -134,7 +135,7 @@ trx_control(void *arg)
 		break;
 	}
 
-	printf("trx_control started\n");
+	printf("trx_control started on cpu %d\n", sched_getcpu());
 
 	while (1) {
 		if (pthread_mutex_lock(&command_tag->mutex))
