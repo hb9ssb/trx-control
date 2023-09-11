@@ -24,15 +24,15 @@ clean: 		subdir
 cleandir:	TARGET=cleandir
 cleandir: 	subdir
 
-.PHONY: install rig-control.7
+.PHONY: install trx-control.7
 install:	TARGET=install
 install: 	subdir trx-control.7
 	@echo all installed
 
-rig-control.7:
+trx-control.7:
 		@install -D -m 644 $@ $(DESTDIR)$(MANDIR)/man7/$@
 		@gzip -f $(DESTDIR)$(MANDIR)/man7/$@
 
 # Dependencies
 
-sbin/rigd:	lib/liblua
+sbin/trxd:	lib/liblua

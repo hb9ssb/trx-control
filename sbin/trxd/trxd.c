@@ -103,7 +103,7 @@ main(int argc, char *argv[])
 	if (listen_port == NULL)
 		listen_port = LISTEN_PORT;
 
-	openlog("rigd", nodaemon == 1 ?
+	openlog("trxd", nodaemon == 1 ?
 		LOG_PERROR | LOG_CONS | LOG_PID | LOG_NDELAY
 		: LOG_CONS | LOG_PID | LOG_NDELAY, LOG_USER);
 
