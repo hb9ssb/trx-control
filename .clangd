@@ -1,0 +1,13 @@
+If:
+  PathMatch: bin/trxctl/.*\.c
+
+CompileFlags:
+  Add: [-I, ../../external/mit/lua/src]
+
+---
+
+If:
+  PathMatch: sbin/trxd/.*\.c
+
+CompileFlags:
+  Add: [-I, ../../external/mit/lua/src]
