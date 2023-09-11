@@ -23,12 +23,40 @@
 .SH NAME
 trxd
 .
+.
+.SH SYNOPSIS
+trxd [-dl] [-b address] [-p port] [-P path] <cat-device> <trx-type>
+.
+.
 .SH DESCRIPTION
 .
 .IR trxd (8)
 is a daemon to control amateur radio transceivers.
 .IR trxd (8)
 listens for incoming TCP/IP connections from trx-control compatible clients.
+.
+.
+.SH OPTIONS
+.
+.TP
+-b <address>
+Set the bind (listen) address.
+If unspecified, "localhost" is used.
+.TP
+-d
+Do not daemonize (run in foreground).
+.TP
+-l
+Log connection attempts.
+.TP
+-p <port>
+Set the listen port.
+If unspecified
+.IR trxd (8)
+uses port 14285.
+.TP
+-P <path>
+Set the path name of a pid file.
 .
 .
 .SH "SUPPORTED TRANSCEIVERS"

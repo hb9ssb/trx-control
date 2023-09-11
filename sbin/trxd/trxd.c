@@ -53,7 +53,8 @@ extern int trx_control_running;
 static void
 usage(void)
 {
-	(void)fprintf(stderr, "usage: trxd <device> <trx-type>\n");
+	(void)fprintf(stderr, "usage: trxd [-dl] [-b address] [-p port] "
+	    "[-P path] <cat-device> <trx-type>\n");
 	exit(1);
 }
 
