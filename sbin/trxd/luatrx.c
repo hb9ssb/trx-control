@@ -62,7 +62,15 @@ luatrx_setspeed(lua_State *L)
 static int
 luatrx_read(lua_State *L)
 {
-	return 0;
+	char buf[256];
+	size_t len;
+
+	len = read(fd, buf, sizeof(buf));
+	if (len > 0)
+		lua_pushlstring(L, buf, len)
+	else
+		lua_pushnil(L);
+	return 1;
 }
 
 static int

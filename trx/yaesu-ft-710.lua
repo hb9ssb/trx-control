@@ -28,10 +28,14 @@ local function initialize()
 	trx.setspeed(38400)
 end
 
-local function setFrequency()
+local function setFrequency(freq)
+	trx.send(string.format('FA%s;', freq)
 end
 
 local function getFrequency()
+	trx.send('FA;')
+	local reply = trx.read()
+	return reply
 end
 
 return {
