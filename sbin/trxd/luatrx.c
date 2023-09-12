@@ -67,7 +67,7 @@ luatrx_read(lua_State *L)
 
 	len = read(fd, buf, sizeof(buf));
 	if (len > 0)
-		lua_pushlstring(L, buf, len)
+		lua_pushlstring(L, buf, len);
 	else
 		lua_pushnil(L);
 	return 1;
