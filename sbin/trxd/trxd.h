@@ -41,6 +41,7 @@ typedef struct command_tag {
 	char		*command;
 	char		*param;
 	char		*reply;
+	int		 client_fd;
 } command_tag_t;
 
 #endif /* __TRXD_H__ */

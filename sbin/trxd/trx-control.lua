@@ -18,25 +18,57 @@
 -- FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 -- IN THE SOFTWARE.
 
--- Lower half of the trx-control Lua part
+-- Upper half of trx-control
 
--- Yaesu FT-897 CAT driver
+local driver = {}
 
-local trx = require 'trx'
+local function registerDriver(newDriver)
+	driver = newDriver
 
-local function initialize()
-	trx.setspeed(38400)
+	if type(driver.initialize) == 'function' then
+		driver.initialize()
+	end
+
+	if type(driver.transceiver) == 'string' then
+		print('registered driver for ' .. driver.transceiver)
+	end
 end
 
-local function setFrequency()
+local function loadDriver(trxType)
+	if trxType == nil then
+		return 'command expects a trx-type'
+	end
+
+	if string.find(trxType, '/') ~= nil then
+		return 'trx-type must not contain slashes'
+	end
+
+	local d = dofile(string.format('/usr/share/trxd/trx/%s.lua', trxType))
+	if type(d) == 'table' then
+		registerDriver(d)
+		return 'new driver loaded'
+	else
+		return 'unexpected return value from driver'
+	end
+end
+
+local function getTransceiver()
+	return driver.transceiver or 'unknown transceiver'
+end
+
+local function setFrequency(freq)
+	driver.setFrequency(freq)
+	return 'ok'
 end
 
 local function getFrequency()
+	return driver.getFrequency()
 end
 
 return {
-	transceiver = 'Yaesu FT-897',
-	initialize = initialize,
+	registerDriver = registerDriver,
+	loadDriver = loadDriver,
+	getTransceiver = getTransceiver,
 	setFrequency = setFrequency,
 	getFrequency = getFrequency
 }

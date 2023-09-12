@@ -10,4 +10,4 @@ If:
   PathMatch: sbin/trxd/.*\.c
 
 CompileFlags:
-  Add: [-I, ../../external/mit/lua/src]
+  Add: [-I, ../../external/mit/lua/src, -D, _GNU_SOURCE]

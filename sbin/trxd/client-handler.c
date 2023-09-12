@@ -63,8 +63,16 @@ client_handler(void *arg)
 		pthread_mutex_lock(&command_tag->rmutex);
 
 		command_tag->command = buf;
-		command_tag->param = "2";
-		command_tag->reply = "10";
+		command_tag->param = NULL;
+		p = strchr(buf, ' ');
+		if (p) {
+			*p++ = '\0';
+			while (*p == ' ')
+				p++;
+			if (*p)
+				command_tag->param = p;
+		}
+		command_tag->client_fd = fd;
 
 		pthread_cond_signal(&command_tag->cond);
 		pthread_mutex_unlock(&command_tag->mutex);

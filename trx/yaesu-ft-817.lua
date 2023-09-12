@@ -18,7 +18,9 @@
 -- FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 -- IN THE SOFTWARE.
 
--- Yaesu FT-817 support for trx-control
+-- Lower half of the trx-control Lua part
+
+-- Yaesu FT-817 CAT driver
 
 local trx = require 'trx'
 

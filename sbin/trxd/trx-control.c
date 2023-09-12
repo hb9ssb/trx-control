@@ -47,13 +47,24 @@ int trx_control_running = 0;
 int fd = -1;
 extern command_tag_t *command_tag;
 
+static struct {
+	const char *command;
+	const char *func;
+} command_map[] = {
+	"load-driver",		"loadDriver",
+	"get-transceiver",	"getTransceiver",
+	"set-frequency",	"setFrequency",
+	"get-frequency",	"getFrequency",
+	NULL,			NULL
+};
+
 void *
 trx_control(void *arg)
 {
 	controller_t controller = *(controller_t *)arg;
 	struct termios tty;
 	lua_State *L;
-	int driver_ref;
+	int n, driver_ref;
 	struct stat sb;
 	char trx_driver[PATH_MAX];
 
@@ -96,7 +107,17 @@ trx_control(void *arg)
 	lua_pushcfunction(L, luaopen_trx);
 	lua_setfield(L, -2, "trx");
 
-	snprintf(trx_driver, sizeof(trx_driver), "%s/%s.lua", PATH_TRX,
+	if (luaL_dofile(L, _PATH_TRX_CONTROL)) {
+		syslog(LOG_ERR, "Lua error: %s", lua_tostring(L, -1));
+		goto terminate;
+	}
+	if (lua_type(L, -1) != LUA_TTABLE) {
+		syslog(LOG_ERR, "trx driver did not return a table");
+		goto terminate;
+	} else
+		driver_ref = luaL_ref(L, LUA_REGISTRYINDEX);
+
+	snprintf(trx_driver, sizeof(trx_driver), "%s/%s.lua", _PATH_TRX,
 	    controller.trx_type);
 
 	if (stat(trx_driver, &sb)) {
@@ -104,6 +125,9 @@ trx_control(void *arg)
 		    controller.trx_type);
 		goto terminate;
 	}
+
+	lua_geti(L, LUA_REGISTRYINDEX, driver_ref);
+	lua_getfield(L, -1, "registerDriver");
 
 	if (luaL_dofile(L, trx_driver)) {
 		syslog(LOG_ERR, "Lua error: %s", lua_tostring(L, -1));
@@ -113,31 +137,30 @@ trx_control(void *arg)
 		syslog(LOG_ERR, "trx driver %s did not return a table",
 		    controller.trx_type);
 		goto terminate;
-	} else
-		driver_ref = luaL_ref(L, LUA_REGISTRYINDEX);
+	} else {
+		switch (lua_pcall(L, 1, 0, 0)) {
+		case LUA_OK:
+			break;
+		case LUA_ERRRUN:
+		case LUA_ERRMEM:
+		case LUA_ERRERR:
+			syslog(LOG_ERR, "Lua error: %s", lua_tostring(L, -1));
+			break;
+		}
+	}
 
-	if (!stat(PATH_INIT, &sb)) {
-		if (luaL_dofile(L, PATH_INIT)) {
+	if (!stat(_PATH_INIT, &sb)) {
+		if (luaL_dofile(L, _PATH_INIT)) {
 			syslog(LOG_ERR, "Lua error: %s", lua_tostring(L, -1));
 			goto terminate;
 		}
 	}
 
-	lua_geti(L, LUA_REGISTRYINDEX, driver_ref);
-	lua_getfield(L, -1, "initialize");
-	switch (lua_pcall(L, 0, 0, 0)) {
-	case LUA_OK:
-		break;
-	case LUA_ERRRUN:
-	case LUA_ERRMEM:
-	case LUA_ERRERR:
-		syslog(LOG_ERR, "Lua error: %s", lua_tostring(L, -1));
-		break;
-	}
-
 	printf("trx_control started on cpu %d\n", sched_getcpu());
 
 	while (1) {
+		int nargs = 1;
+
 		if (pthread_mutex_lock(&command_tag->mutex))
 			goto terminate;
 
@@ -147,13 +170,35 @@ trx_control(void *arg)
 
 		printf("trx control got command %s\n", command_tag->command);
 
-		if (!strcmp(command_tag->command, "trx")) {
+		for (n = 0; command_map[n].command != NULL; n++)
+			if (!strcmp(command_map[n].command,
+			    command_tag->command))
+				break;
+
+		if (command_map[n].command != NULL) {
 			lua_geti(L, LUA_REGISTRYINDEX, driver_ref);
-			lua_getfield(L, -1, "transceiver");
-			if (lua_type(L, -1) == LUA_TSTRING)
-				command_tag->reply = (char *)lua_tostring(L, -1);
-			else
-				command_tag->reply = "unknown trx";
+			lua_getfield(L, -1, command_map[n].func);
+			if (lua_type(L, -1) != LUA_TFUNCTION) {
+				command_tag->reply = "no function for command";
+			} else {
+				if (command_tag->param) {
+					lua_pushstring(L, command_tag->param);
+					nargs++;
+				}
+				lua_pushinteger(L, command_tag->client_fd);
+				switch (lua_pcall(L, nargs, 1, 0)) {
+				case LUA_OK:
+					break;
+				case LUA_ERRRUN:
+				case LUA_ERRMEM:
+				case LUA_ERRERR:
+					syslog(LOG_ERR, "Lua error: %s",
+					    lua_tostring(L, -1));
+					break;
+				}
+				command_tag->reply =
+				    (char *)lua_tostring(L, -1);
+			}
 		} else
 			command_tag->reply = "no such command";
 		printf("tc signal reply\n");

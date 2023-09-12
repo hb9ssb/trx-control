@@ -18,17 +18,26 @@
 -- FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 -- IN THE SOFTWARE.
 
--- Dummy transceiver support for trx-control
+-- Lower half of the trx-control Lua part
+
+-- Dummy transceiver driver
 
 local trx = require 'trx'
 
+local frequency = 'frequency not set'
+
 local function initialize()
+	print 'dummy trx initialized'
 end
 
-local function setFrequency()
+local function setFrequency(freq)
+	print('dummy trx set frequency to ' .. freq)
+	frequency = freq
 end
 
 local function getFrequency()
+	print 'dummy trx get frequency'
+	return frequency
 end
 
 return {
