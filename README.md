@@ -44,9 +44,9 @@ Initially, trx-control will support the following transceivers:
 
 trxd(8) waits for incoming connections and accepts a series of commands.
 
-### set-frequency <frequency>
+### set-frequency *frequency*
 
-Set the current frequency to <frequency>.
+Set the current frequency to *frequency*.
 
 ### get-frequency
 
@@ -69,6 +69,6 @@ No longer listen for frequency changes.
 
 Return the curren transceiver type.
 
-### load-driver <trx-type>
+### load-driver *trx-type*
 
-Load driver for <trx-type> at runtime, replacing the currently active driver.
+Load driver for *trx-type* at runtime, replacing the currently active driver.
