@@ -31,7 +31,6 @@
 #include <getopt.h>
 #include <netdb.h>
 #include <pthread.h>
-#include <sched.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -195,8 +194,6 @@ main(int argc, char *argv[])
 		i++;
 	}
 
-	printf("trx-control main thread running on cpu %d\n", sched_getcpu());
-
 	/* Wait for connections as long as trx_control runs */
 	while (trx_control_running) {
 		struct timeval	 tv;
@@ -263,6 +260,5 @@ main(int argc, char *argv[])
 
 terminate:
 	closelog();
-	printf("trxd terminates\n");
 	return 0;
 }

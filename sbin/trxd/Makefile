@@ -1,4 +1,4 @@
-SRCS=		trxd.c trx-control.c client-handler.c luatrx.c
+SRCS=		trxd.c trx-control.c client-handler.c luatrxd.c luatrx.c
 OBJS=		${SRCS:.c=.o}
 
 MANDIR?=	/usr/share/man

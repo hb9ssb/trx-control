@@ -20,7 +20,10 @@
 
 -- Upper half of trx-control
 
+local trxd = require 'trxd'
+
 local driver = {}
+local frequencyListeners = {}
 
 local function registerDriver(newDriver)
 	driver = newDriver
@@ -28,12 +31,9 @@ local function registerDriver(newDriver)
 	if type(driver.initialize) == 'function' then
 		driver.initialize()
 	end
-
-	if type(driver.transceiver) == 'string' then
-		print('registered driver for ' .. driver.transceiver)
-	end
 end
 
+-- XXX drivers should be sandboxed
 local function loadDriver(trxType)
 	if trxType == nil then
 		return 'command expects a trx-type'
@@ -58,11 +58,32 @@ end
 
 local function setFrequency(freq)
 	driver.setFrequency(freq)
-	return 'ok'
+	for k, v in ipairs(frequencyListeners) do
+		trxd.send(v, string.format('frequency %s\n', freq))
+	end
+	return 'frequency set'
 end
 
 local function getFrequency()
 	return driver.getFrequency()
+end
+
+local function listenFrequency(fd)
+	print 'listen for frequency changes'
+	frequencyListeners[#frequencyListeners + 1] = fd
+	return 'listening'
+end
+
+local function unlistenFrequency(fd)
+	print 'unlisten for frequency changes'
+
+	for k, v in ipairs(frequencyListeners) do
+		if v == fd then
+			frequencyListeners[k] = nil
+			return 'unlisten'
+		end
+	end
+	return 'not listening'
 end
 
 return {
@@ -70,5 +91,7 @@ return {
 	loadDriver = loadDriver,
 	getTransceiver = getTransceiver,
 	setFrequency = setFrequency,
-	getFrequency = getFrequency
+	getFrequency = getFrequency,
+	listenFrequency = listenFrequency,
+	unlistenFrequency = unlistenFrequency
 }

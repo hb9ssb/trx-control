@@ -43,6 +43,7 @@
 #include "trxd.h"
 
 extern int luaopen_trx(lua_State *);
+extern int luaopen_trxd(lua_State *);
 int trx_control_running = 0;
 int fd = -1;
 extern command_tag_t *command_tag;
@@ -55,6 +56,8 @@ static struct {
 	"get-transceiver",	"getTransceiver",
 	"set-frequency",	"setFrequency",
 	"get-frequency",	"getFrequency",
+	"listen-frequency",	"listenFrequency",
+	"unlisten-frequency",	"unlistenFrequency",
 	NULL,			NULL
 };
 
@@ -107,6 +110,12 @@ trx_control(void *arg)
 	lua_pushcfunction(L, luaopen_trx);
 	lua_setfield(L, -2, "trx");
 
+	luaL_openlibs(L);
+	lua_getglobal(L, "package");
+	lua_getfield(L, -1, "preload");
+	lua_pushcfunction(L, luaopen_trxd);
+	lua_setfield(L, -2, "trxd");
+
 	if (luaL_dofile(L, _PATH_TRX_CONTROL)) {
 		syslog(LOG_ERR, "Lua error: %s", lua_tostring(L, -1));
 		goto terminate;
@@ -156,19 +165,14 @@ trx_control(void *arg)
 		}
 	}
 
-	printf("trx_control started on cpu %d\n", sched_getcpu());
-
 	while (1) {
 		int nargs = 1;
 
 		if (pthread_mutex_lock(&command_tag->mutex))
 			goto terminate;
 
-		printf("tc mutex locked, waiting\n");
 		if (pthread_cond_wait(&command_tag->cond, &command_tag->mutex))
 			goto terminate;
-
-		printf("trx control got command %s\n", command_tag->command);
 
 		for (n = 0; command_map[n].command != NULL; n++)
 			if (!strcmp(command_map[n].command,
@@ -201,7 +205,6 @@ trx_control(void *arg)
 			}
 		} else
 			command_tag->reply = "no such command";
-		printf("tc signal reply\n");
 
 		pthread_mutex_lock(&command_tag->rmutex);
 		pthread_cond_signal(&command_tag->rcond);
@@ -211,7 +214,6 @@ trx_control(void *arg)
 	}
 
 terminate:
-	printf("trx_control terminates\n");
 	if (L)
 		lua_close(L);
 	trx_control_running = 0;

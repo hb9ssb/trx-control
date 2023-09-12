@@ -42,8 +42,33 @@ Initially, trx-control will support the following transceivers:
 
 ## Protocol
 
-The protocol between trxd(8) and a client will be simple, but
-is not yet defined in its entity. In any case, one trxd(8)
-daemon can serve an unlimited number of clients.  A client can
-not only send commands to trxd(8), it can also subscribe for
-events like frequency changed etc.
+trxd(8) waits for incoming connections and accepts a series of commands.
+
+### set-frequency <frequency>
+
+Set the current frequency to <frequency>.
+
+### get-frequency
+
+Return the current frequency.
+
+### listen-frequency
+
+Listen to frequency changes.  If the frequency changes, the client will
+receive a string in the form "frequency 14285".
+
+At the moment, this works only if the frequency is changed by a trxd (8)
+client, but not if the frequency is changed directly on the receiver. This
+will change in the near future.
+
+### unlisten-frequency
+
+No longer listen for frequency changes.
+
+### get-tranceiver
+
+Return the curren transceiver type.
+
+### load-driver <trx-type>
+
+Load driver for <trx-type> at runtime, replacing the currently active driver.

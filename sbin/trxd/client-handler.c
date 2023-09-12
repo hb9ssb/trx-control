@@ -44,21 +44,17 @@ client_handler(void *arg)
 	if (status)
 		err(1, "can't detach");
 
-	printf("client_handler started on cpu %d\n", sched_getcpu());
-
 	do {
 		nread = read(fd, buf, sizeof(buf));
 		if (nread <= 0)
 			break;
 
-		printf("read %d bytes\n", nread);
 		for (n = 0; n < nread; n++) {
 			if (buf[n] == 0x0a || buf[n] == 0x0d) {
 				buf[n] = '\0';
 				break;
 			}
 		}
-		printf("got command '%s'\n", buf);
 		pthread_mutex_lock(&command_tag->mutex);
 		pthread_mutex_lock(&command_tag->rmutex);
 
@@ -77,11 +73,8 @@ client_handler(void *arg)
 		pthread_cond_signal(&command_tag->cond);
 		pthread_mutex_unlock(&command_tag->mutex);
 
-		printf("wait for reply\n");
 
 		pthread_cond_wait(&command_tag->rcond, &command_tag->rmutex);
-		printf("got reply %s\n", command_tag->reply);
-
 
 		write(fd, command_tag->reply, strlen(command_tag->reply));
 		buf[0] = 0x0a;
@@ -91,7 +84,6 @@ client_handler(void *arg)
 		pthread_mutex_unlock(&command_tag->rmutex);
 
 	} while (nread > 0);
-	printf("client_handler terminating\n");
 	close(fd);
 	return NULL;
 }

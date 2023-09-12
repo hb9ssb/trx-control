@@ -89,11 +89,43 @@ Make sure to set the CAT bit rate to the value expected by
 .
 .SH "PROTOCOL"
 .
-The protocol between trxd(8) and a client will be simple, but
-is not yet defined in its entity. In any case, one trxd(8)
-daemon can serve an unlimited number of clients.  A client can
-not only send commands to trxd(8), it can also subscribe for
-events like frequency changed etc.
+.IR trxd(8)
+waits for incoming connections and accepts a series of commands.
+.
+.TP
+.I set-frequency <frequency>
+Set the current frequency to <frequency>.
+.
+.
+.TP
+.I get-frequency
+Return the current frequency.
+.
+.
+.TP
+.I listen-frequency
+Listen to frequency changes.
+At the moment, this works only if the frequency is changed by a
+.IR trxd (8)
+client, but not if the frequency is changed directly on the receiver.
+This will change in the near future.
+.
+.
+.TP
+.I unlisten-frequency
+No longer listen for frequency changes.
+.
+.
+.TP
+.I get-tranceiver
+Return the curren transceiver type.
+.
+.
+.TP
+.I load-driver <trx-type>
+Load driver for <trx-type> at runtime, replacing the currently active driver.
+.
+.
 .
 .
 .SH FILES
