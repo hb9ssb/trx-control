@@ -24,7 +24,7 @@ mode where a monitor station can enter heard stations into a queue (querying
 trxd(8) for frequency an mode) and the "run & pounce" station
 can either select a running frequency and mode or select a station
 from the "stations heard" queue. By clicking or tapping on a
-running frequency or en antry from the "stations heard" queue,
+running frequency or an entry from the "stations heard" queue,
 the transceiver will be tuned to that frequency using trxd(8).
 
 Another client might be the contest logging software, which can
