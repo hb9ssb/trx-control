@@ -26,14 +26,19 @@ local trx = require 'trx'
 
 local function initialize()
 	trx.setspeed(38400)
+	trx.write('ID;')
+	local reply = trx.read()
+	if reply ~= 'ID0800;' then
+		print 'this is not an Yaesu FT-710 transceiver'
+	end
 end
 
 local function setFrequency(freq)
-	trx.send(string.format('FA%s;', freq)
+	trx.write(string.format('FA%s;', freq))
 end
 
 local function getFrequency()
-	trx.send('FA;')
+	trx.write('FA;')
 	local reply = trx.read()
 	return reply
 end
