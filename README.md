@@ -67,7 +67,7 @@ No longer listen for frequency changes.
 
 ### get-tranceiver
 
-Return the curren transceiver type.
+Return the current transceiver type.
 
 ### load-driver *trx-type*
 

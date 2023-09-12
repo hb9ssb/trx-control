@@ -68,6 +68,11 @@ luatrx_read(lua_State *L)
 static int
 luatrx_write(lua_State *L)
 {
+	const char *data;
+	size_t len;
+
+	data = luaL_checklstring(L, 1, &len);
+	write(fd, data, len);
 	return 0;
 }
 
