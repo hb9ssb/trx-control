@@ -1,5 +1,4 @@
-TRX=		dummy-trx.lua \
-		yaesu-ft-710.lua \
+TRX=		yaesu-ft-710.lua \
 		yaesu-ft-897.lua \
 		yaesu-ft-817.lua
 

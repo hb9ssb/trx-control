@@ -35,7 +35,6 @@ is currently being worked.
 
 Initially, trx-control will support the following transceivers:
 
-* Dummy transceiver for testing purposes
 * Yaesu FT-710
 * Yaesu FT-897
 * Yaesu FT-817
