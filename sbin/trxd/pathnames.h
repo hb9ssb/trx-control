@@ -24,7 +24,6 @@
 #define __TRXD_PATHNAMES_H__
 
 #define _PATH_TRX		"/usr/share/trxd/trx"
-#define _PATH_INIT		"/usr/share/trxd/init.lua"
 #define _PATH_TRX_CONTROL	"/usr/share/trxd/trx-control.lua"
 
 #endif /* __TRXD_PATHNAMES_H__ */

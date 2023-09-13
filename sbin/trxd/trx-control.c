@@ -109,12 +109,9 @@ trx_control(void *arg)
 	lua_getfield(L, -1, "preload");
 	lua_pushcfunction(L, luaopen_trx);
 	lua_setfield(L, -2, "trx");
-
-	luaL_openlibs(L);
-	lua_getglobal(L, "package");
-	lua_getfield(L, -1, "preload");
 	lua_pushcfunction(L, luaopen_trxd);
 	lua_setfield(L, -2, "trxd");
+	lua_pop(L, 1);
 
 	if (luaL_dofile(L, _PATH_TRX_CONTROL)) {
 		syslog(LOG_ERR, "Lua error: %s", lua_tostring(L, -1));
@@ -157,13 +154,7 @@ trx_control(void *arg)
 			break;
 		}
 	}
-
-	if (!stat(_PATH_INIT, &sb)) {
-		if (luaL_dofile(L, _PATH_INIT)) {
-			syslog(LOG_ERR, "Lua error: %s", lua_tostring(L, -1));
-			goto terminate;
-		}
-	}
+	lua_pop(L, 2);
 
 	while (1) {
 		int nargs = 1;
@@ -207,6 +198,7 @@ trx_control(void *arg)
 				else
 					command_tag->reply = "no result";
 			}
+			lua_pop(L, 2);
 		} else
 			command_tag->reply = "no such command";
 
