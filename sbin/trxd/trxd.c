@@ -29,8 +29,10 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <getopt.h>
+#include <grp.h>
 #include <netdb.h>
 #include <pthread.h>
+#include <pwd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -55,28 +57,57 @@ command_tag_t *command_tag;
 static void
 usage(void)
 {
-	(void)fprintf(stderr, "usage: trxd [-dl] [-b address] [-p port] "
-	    "[-P path] <cat-device> <trx-type>\n");
+	(void)fprintf(stderr, "usage: trxd [-dl] [-b address] [-g group] "
+	    "[-p port] [-u user] [-P path] <cat-device> <trx-type>\n");
 	exit(1);
 }
 
 int
 main(int argc, char *argv[])
 {
-	int fd;
+	struct passwd *passwd;
+	struct group *grp;
+	uid_t uid;
+	gid_t gid;
 	struct addrinfo hints, *res, *res0;
 	pthread_t trx_control_thread, thread;
 	controller_t controller;
-	int listen_fd[MAXLISTEN], i, ch, nodaemon = 0, log = 0, err, val;
-	char *bind_addr, *listen_port;
+	int fd, listen_fd[MAXLISTEN], i, ch, nodaemon = 0, log = 0, err, val;
+	char *bind_addr, *listen_port, *user, *group, *homedir;
 	char *pidfile = NULL;
 
 	bind_addr = listen_port = NULL;
 
-	while ((ch = getopt(argc, argv, "dlb:p:P:")) != -1) {
+	user = TRXD_USER;
+	group = TRXD_GROUP;
+
+	while (1) {
+		int option_index = 0;
+		static struct option long_options[] = {
+			{ "no-daemon",		no_argument, 0, 'd' },
+			{ "log-connections",	no_argument, 0, 'l' },
+			{ "group",		required_argument, 0, 'g' },
+			{ "bind-address",	required_argument, 0, 'b' },
+			{ "listen-port",	required_argument, 0, 'l' },
+			{ "pid-file",		required_argument, 0, 'P' },
+			{ "user",		required_argument, 0, 'u' },
+			{ 0, 0, 0, 0 }
+		};
+
+		ch = getopt_long(argc, argv, "dlb:g:p:u:P:", long_options,
+		    &option_index);
+
+		if (ch == -1)
+			break;
+
 		switch (ch) {
+		case 0:
+			break;
 		case 'd':
 			nodaemon = 1;
+			break;
+		case 'g':
+			group = optarg;
 			break;
 		case 'l':
 			log = 1;
@@ -86,6 +117,9 @@ main(int argc, char *argv[])
 			break;
 		case 'p':
 			listen_port = optarg;
+			break;
+		case 'u':
+			user = optarg;
 			break;
 		case 'P':
 			pidfile = optarg;
@@ -109,6 +143,46 @@ main(int argc, char *argv[])
 	openlog("trxd", nodaemon == 1 ?
 		LOG_PERROR | LOG_CONS | LOG_PID | LOG_NDELAY
 		: LOG_CONS | LOG_PID | LOG_NDELAY, LOG_USER);
+
+	uid = getuid();
+	gid = getgid();
+
+	if ((passwd = getpwnam(user)) != NULL) {
+		uid = passwd->pw_uid;
+		gid = passwd->pw_gid;
+		homedir = passwd->pw_dir;
+	} else {
+		syslog(LOG_ERR, "no such user '%s'", user);
+		exit(1);
+	}
+
+	if (group != NULL) {
+		if ((grp = getgrnam(group)) != NULL)
+			gid = grp->gr_gid;
+		else {
+			syslog(LOG_ERR, "no such group '%s'", group);
+			exit(1);
+		}
+	}
+
+	if (chdir(homedir)) {
+		syslog(LOG_ERR, "can't chdir to %s", homedir);
+		exit(1);
+	}
+
+	if (setgid(gid)) {
+		syslog(LOG_ERR, "can't set group");
+		exit(1);
+	}
+	if (setuid(uid)) {
+		syslog(LOG_ERR, "can't set user id");
+		exit(1);
+	}
+
+	if (!getuid() || !getgid()) {
+		syslog(LOG_ERR, "must not be run as root, exiting");
+		exit(1);
+	}
 
 	if (!nodaemon) {
 		if (daemon(0, 0))
@@ -244,14 +318,7 @@ main(int argc, char *argv[])
 				    gai_strerror(err));
 			if (log)
 				syslog(LOG_INFO, "connection from %s", hbuf);
-#if 0
-			if (fcntl(client_fd, F_SETFL,
-			    fcntl(client_fd, F_GETFL) | O_NONBLOCK)) {
-				syslog(LOG_ERR, "fcntl: %s", strerror(errno));
-				close(client_fd);
-				break;
-			}
-#endif
+
 			pthread_create(&thread, NULL, client_handler,
 			    &client_fd);
 		}

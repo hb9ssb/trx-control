@@ -26,6 +26,8 @@
 #include <pthread.h>
 
 #define TRXD_VERSION	"1.0.0"
+#define TRXD_USER	"trxd"
+#define TRXD_GROUP	"trxd"
 
 typedef struct controller {
 	const char *device;
