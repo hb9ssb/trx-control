@@ -24,14 +24,18 @@
 
 local trx = require 'trx'
 
+local frequency = 'no frequency set'
+
 local function initialize()
 	trx.setspeed(38400)
 end
 
-local function setFrequency()
+local function setFrequency(freq)
+	frequency = freq
 end
 
 local function getFrequency()
+	-- return frequency
 end
 
 return {
