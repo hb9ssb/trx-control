@@ -47,25 +47,6 @@ a corresponding Lua module for a specific transceiver model.
 See https://lua.org and https://lua.msys.ch for more information on Lua.
 .
 .
-.SH "BACKGROUND"
-.
-trx-control (pronounced "transceiver control") is the base layer of a
-larger software system to support contesting in "runner" and "search & pounce"
-mode where a monitor station can enter heard stations into a queue (querying
-.IR trxd (8)
-for frequency an mode) and the "run & pounce" station
-can either select a running frequency and mode or select a station
-from the "stations heard" queue. By clicking or tapping on a
-running frequency or an entry from the "stations heard" queue,
-the transceiver will be tuned to that frequency using trxd(8).
-.
-.PP
-Another client might be the contest logging software, which can
-query
-.IR trxd (8)
-for the frequency and mode of the station that is currently being worked.
-.
-.
 .SH "SUPPORTED TRANSCEIVERS"
 .PP
 Initially, trx-control will support the following transceivers:
@@ -84,47 +65,6 @@ Yaesu	FT-817	yaesu-ft-817	38400
 .
 Make sure to set the CAT bit rate to the value expected by
 .IR trxd (8) .
-.
-.
-.SH "PROTOCOL"
-.
-.IR trxd(8)
-waits for incoming connections and accepts a series of commands.
-.
-.TP
-.I set-frequency <frequency>
-Set the current frequency to <frequency>.
-.
-.
-.TP
-.I get-frequency
-Return the current frequency.
-.
-.
-.TP
-.I listen-frequency
-Listen to frequency changes.
-At the moment, this works only if the frequency is changed by a
-.IR trxd (8)
-client, but not if the frequency is changed directly on the receiver.
-This will change in the near future.
-.
-.
-.TP
-.I unlisten-frequency
-No longer listen for frequency changes.
-.
-.
-.TP
-.I get-tranceiver
-Return the current transceiver type.
-.
-.
-.TP
-.I load-driver <trx-type>
-Load driver for <trx-type> at runtime, replacing the currently active driver.
-.
-.
 .
 .
 .SH FILES
@@ -157,4 +97,8 @@ Marc Balmer HB9SSB
 .PP
 .IR trxctl (1),
 .IR trxd (8)
+.PP
+The client/server protocol is documented in the projects wiki at
+https://github.com/hb9ssb/trx-control/wiki.
+.
 .
