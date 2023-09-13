@@ -35,7 +35,7 @@ local function setFrequency(freq)
 end
 
 local function getFrequency()
-	-- return frequency
+	return frequency
 end
 
 return {
