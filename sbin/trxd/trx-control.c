@@ -183,7 +183,8 @@ trx_control(void *arg)
 			lua_geti(L, LUA_REGISTRYINDEX, driver_ref);
 			lua_getfield(L, -1, command_map[n].func);
 			if (lua_type(L, -1) != LUA_TFUNCTION) {
-				command_tag->reply = "no function for command";
+				command_tag->reply = "command not supported, "
+				    "please submit a bug report";
 			} else {
 				if (command_tag->param) {
 					lua_pushstring(L, command_tag->param);
@@ -200,8 +201,11 @@ trx_control(void *arg)
 					    lua_tostring(L, -1));
 					break;
 				}
-				command_tag->reply =
-				    (char *)lua_tostring(L, -1);
+				if (lua_type(L, -1) == LUA_TSTRING)
+					command_tag->reply =
+					    (char *)lua_tostring(L, -1);
+				else
+					command_tag->reply = "no result";
 			}
 		} else
 			command_tag->reply = "no such command";
