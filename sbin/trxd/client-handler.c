@@ -27,6 +27,7 @@
 #include <sched.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include <unistd.h>
 
 #include "trxd.h"
@@ -85,5 +86,6 @@ client_handler(void *arg)
 
 	} while (nread > 0);
 	close(fd);
+	free(arg);
 	return NULL;
 }

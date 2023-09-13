@@ -39,6 +39,7 @@ typedef struct command_tag {
 	pthread_cond_t	 cond;
 	pthread_mutex_t	 rmutex;
 	pthread_cond_t	 rcond;
+	pthread_mutex_t	 ai_mutex;
 
 	char		*command;
 	char		*param;

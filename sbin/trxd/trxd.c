@@ -215,6 +215,9 @@ main(int argc, char *argv[])
 	if (pthread_cond_init(&command_tag->rcond, NULL))
 		goto terminate;
 
+	if (pthread_mutex_init(&command_tag->ai_mutex, NULL))
+		goto terminate;
+
 	/* Create the trx-control thread */
 	controller.device = argv[0];
 	controller.trx_type = argv[1];
@@ -297,18 +300,21 @@ main(int argc, char *argv[])
 		for (i = 0; i < MAXLISTEN; ++i) {
 			struct sockaddr_storage	 sa;
 			socklen_t		 len;
-			int			 client_fd, err;
+			int			 *client_fd, err;
 			char			 hbuf[NI_MAXHOST];
+
+			client_fd = malloc(sizeof(int));
 
 			if (listen_fd[i] == -1 ||
 			    !FD_ISSET(listen_fd[i], &readfds))
 				continue;
 			memset(&sa, 0, sizeof(sa));
 			len = sizeof(sa);
-			client_fd = accept(listen_fd[i],
+			*client_fd = accept(listen_fd[i],
 			    (struct sockaddr *)&sa, &len);
-			if (client_fd < 0) {
+			if (*client_fd < 0) {
 				syslog(LOG_ERR, "accept: %s", strerror(errno));
+				free(client_fd);
 				break;
 			}
 			err = getnameinfo((struct sockaddr *)&sa, len,
@@ -320,7 +326,7 @@ main(int argc, char *argv[])
 				syslog(LOG_INFO, "connection from %s", hbuf);
 
 			pthread_create(&thread, NULL, client_handler,
-			    &client_fd);
+			    client_fd);
 		}
 	}
 	pthread_join(trx_control_thread, NULL);

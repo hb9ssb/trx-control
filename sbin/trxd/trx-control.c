@@ -44,6 +44,7 @@
 
 extern int luaopen_trx(lua_State *);
 extern int luaopen_trxd(lua_State *);
+extern void *trx_handler(void *);
 int trx_control_running = 0;
 int fd = -1;
 extern command_tag_t *command_tag;
@@ -70,6 +71,7 @@ trx_control(void *arg)
 	int n, driver_ref;
 	struct stat sb;
 	char trx_driver[PATH_MAX];
+	pthread_t trx_handler_thread;
 
 	L = NULL;
 	trx_control_running = 1;
@@ -156,6 +158,9 @@ trx_control(void *arg)
 	}
 	lua_pop(L, 2);
 
+	/* handle incoming data from the trx */
+	pthread_create(&trx_handler_thread, NULL, trx_handler, &fd);
+
 	while (1) {
 		int nargs = 1;
 
@@ -163,6 +168,9 @@ trx_control(void *arg)
 			goto terminate;
 
 		if (pthread_cond_wait(&command_tag->cond, &command_tag->mutex))
+			goto terminate;
+
+		if (pthread_mutex_lock(&command_tag->ai_mutex))
 			goto terminate;
 
 		for (n = 0; command_map[n].command != NULL; n++)
@@ -206,6 +214,8 @@ trx_control(void *arg)
 		pthread_cond_signal(&command_tag->rcond);
 		pthread_mutex_unlock(&command_tag->rmutex);
 
+
+		pthread_mutex_unlock(&command_tag->ai_mutex);
 		pthread_mutex_unlock(&command_tag->mutex);
 	}
 
