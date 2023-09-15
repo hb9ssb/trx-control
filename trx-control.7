@@ -18,7 +18,7 @@
 .\" FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 .\" IN THE SOFTWARE.
 .\"
-.TH TRX-CONTROL 7 "12 September 2023" "trx-control"
+.TH TRX-CONTROL 7 "15 September 2023" "trx-control"
 .SH NAME
 trx-control \- software to control radio transceivers
 .SH DESCRIPTION
@@ -28,17 +28,24 @@ Software to control amateur radio transceivers.
 .PP
 trx-control consists of
 .IR trxd (8)
-(a daemon to control the transceiver), and,
+(a daemon to control the transceivers), and,
 .IR trxctl (1)
 (a command line utility to access trxd.)
+.PP
+.IR trxctl (1)
+is meant as a reference client only.
+Software that wants to make use of
+.IR trxd (8)
+should implement the protocol and talk to
+.IR trxd (8)
+directly over the network.
 .
 .
+.PP
 .IR trxd (8)
 listens on port 14285 by for incoming connections
 (14285 is the default port, it can be changed).
-.
-.PP
-trx-control supports IPv4 and IPv6.
+It supports both IPv4 and IPv6.
 .
 .PP
 The effective transceiver control is done using Lua modules,
@@ -61,6 +68,7 @@ _
 Yaesu	FT-710	yaesu-ft-710	38400
 Yaesu	FT-897	yaesu-ft-897	38400
 Yaesu	FT-817	yaesu-ft-817	38400
+Yaesu	FT_991A	yaesu-ft-991a	38400
 .TE
 .
 Make sure to set the CAT bit rate to the value expected by
