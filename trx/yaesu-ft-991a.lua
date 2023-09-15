@@ -42,6 +42,4 @@ end
 
 ft991.transceiver = 'Yaesu FT-991A'
 
-
 return ft991
-
