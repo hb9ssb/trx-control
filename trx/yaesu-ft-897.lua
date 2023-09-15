@@ -20,27 +20,12 @@
 
 -- Lower half of the trx-control Lua part
 
--- Yaesu FT-897 CAT driver
+-- Yaesu FT-897 CAT driver.  This driver is very similar to the FT-817 driver,
+-- so we reuse that.  CTCSS/DCS mode setting and CTCSS tone setting as well
+-- as Rea TX state are different, though.
 
-local trx = require 'trx'
+local ft897 = require 'yaesu-ft-817'
 
-local frequency = 'no frequency set'
+ft897.transceiver = 'Yaesu FT-897'
 
-local function initialize()
-	trx.setspeed(38400)
-end
-
-local function setFrequency()
-	frequency = freq
-end
-
-local function getFrequency()
-	return frequency
-end
-
-return {
-	transceiver = 'Yaesu FT-897',
-	initialize = initialize,
-	setFrequency = setFrequency,
-	getFrequency = getFrequency
-}
+return ft897
