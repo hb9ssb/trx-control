@@ -1,10 +1,28 @@
-# Sample trxd(8) config file in YAML format
+# Sample trxd(8) config file.  This is in the YAML format.
+# See https://yaml.org for details on YAML.
 
-# This config files assumes a Yaesu FT-710 on /dev/ttyUSB0 and a Yaesu
-# FT-991A on /dev/ttyUSB2
+# This file will be processed the yaml Lua module, so the local tags mentioned
+# in https://lua.msys.ch/lua-module-reference.html#_a_note_on_yaml_tags can
+# be used.
 
-# NB: This file does not get installed by "make install"
+# Run in the background
+no-daemon: false
 
+# We listen on localhost:14285 for incoming connections
+bind-address: localhost
+listen-port: 14285
+
+# We log incoming connection using syslog
+log-connections: true
+
+# trxd shall run as trxd:trxd
+user: trxd
+group: trxd
+
+# We store the PID of the running trxd process in trxd.pid
+pid-file: trxd.pid
+
+# We control a Yaesu FT-710 on /dev/ttyUSB0 and a Yaesu FT-991A on /dev/ttyUSB2
 trx:
   ft-710:
     name: Yaesu FT-710
@@ -15,4 +33,3 @@ trx:
     name: Yaesu FT-991A
     device: /dev/ttyUSB2
     driver: yaesu-ft-991a
-

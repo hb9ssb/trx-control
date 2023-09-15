@@ -39,6 +39,10 @@
 #include <syslog.h>
 #include <unistd.h>
 
+#include <lua.h>
+#include <lualib.h>
+#include <lauxlib.h>
+
 #include "pathnames.h"
 #include "trxd.h"
 
@@ -46,6 +50,9 @@
 
 #define BIND_ADDR	"localhost"
 #define LISTEN_PORT	"14285"
+
+extern int luaopen_yaml(lua_State *);
+extern int luaopen_trxd(lua_State *);
 
 extern void *client_handler(void *);
 extern void *trx_control(void *);
@@ -70,6 +77,7 @@ main(int argc, char *argv[])
 	uid_t uid;
 	gid_t gid;
 	struct addrinfo hints, *res, *res0;
+	lua_State *L;
 	pthread_t trx_control_thread, thread;
 	controller_t controller;
 	int fd, listen_fd[MAXLISTEN], i, ch, nodaemon = 0, log = 0, err, val;
@@ -134,6 +142,20 @@ main(int argc, char *argv[])
 	if (argc != 2)
 		usage();
 
+	/* Setup Lua */
+	L = luaL_newstate();
+	if (L == NULL) {
+		syslog(LOG_ERR, "cannot initialize Lua state");
+		goto terminate;
+	}
+	luaL_openlibs(L);
+	lua_getglobal(L, "package");
+	lua_getfield(L, -1, "preload");
+	lua_pushcfunction(L, luaopen_yaml);
+	lua_setfield(L, -2, "yaml");
+	lua_pushcfunction(L, luaopen_trxd);
+	lua_setfield(L, -2, "trxd");
+	lua_pop(L, 1);
 
 	if (bind_addr == NULL)
 		bind_addr = BIND_ADDR;
@@ -198,6 +220,9 @@ main(int argc, char *argv[])
 			}
 		}
 	}
+
+	/* The Lua state is no longer needed below this point */
+	lua_close(L);
 
 	command_tag = malloc(sizeof(command_tag_t));
 	if (command_tag == NULL)
