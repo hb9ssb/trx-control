@@ -115,6 +115,13 @@ trx_control(void *arg)
 	lua_setfield(L, -2, "trxd");
 	lua_pop(L, 1);
 
+	lua_getglobal(L, "package");
+	lua_getfield(L, -1, "path");
+	lua_pushstring(L, ";" _PATH_TRX "/?.lua");
+	lua_concat(L, 2);
+	lua_setfield(L, -2, "path");
+	lua_pop(L, 1);
+
 	if (luaL_dofile(L, _PATH_TRX_CONTROL)) {
 		syslog(LOG_ERR, "Lua error: %s", lua_tostring(L, -1));
 		goto terminate;

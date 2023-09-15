@@ -24,7 +24,12 @@
 
 local trx = require 'trx'
 
-local function initialize()
+-- The FT-991A CAT interface is very similar to the FT-710 CAT interface,
+-- so we reuse that and only those functions that are different.
+
+local ft991 = require 'yaesu-ft-710'
+
+ft991.initialize = function ()
 	trx.setspeed(38400)
 	trx.write('ID;')
 	local reply = trx.read()
@@ -35,19 +40,8 @@ local function initialize()
 	end
 end
 
-local function setFrequency(freq)
-	trx.write(string.format('FA%s;', freq))
-end
+ft991.transceiver = 'Yaesu FT-991A'
 
-local function getFrequency()
-	trx.write('FA;')
-	local reply = trx.read()
-	return reply
-end
 
-return {
-	transceiver = 'Yaesu FT-991A',
-	initialize = initialize,
-	setFrequency = setFrequency,
-	getFrequency = getFrequency
-}
+return ft991
+
