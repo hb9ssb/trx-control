@@ -23,7 +23,7 @@ Initially, trx-control will support the following transceivers:
 * Yaesu FT-710
 * Yaesu FT-897
 * Yaesu FT-817
-* Yaesu FT_991A
+* Yaesu FT-991A
 
 The client/server protocol is documented in the projects wiki at
 https://github.com/hb9ssb/trx-control/wiki
