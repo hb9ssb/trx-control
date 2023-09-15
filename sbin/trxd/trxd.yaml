@@ -1,0 +1,18 @@
+# Sample trxd(8) config file in YAML format
+
+# This config files assumes a Yaesu FT-710 on /dev/ttyUSB0 and a Yaesu
+# FT-991A on /dev/ttyUSB2
+
+# NB: This file does not get installed by make install
+
+trx:
+  ft-710:
+    name: Yaesu FT-710
+    device: /dev/ttyUSB0
+    driver: yaesu-ft-710
+
+  ft-991a:
+    name: Yaesu FT-991A
+    device: /dev/ttyUSB2
+    driver: yaesu-ft-991a
+
