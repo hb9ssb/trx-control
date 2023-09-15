@@ -3,7 +3,7 @@
 # This config files assumes a Yaesu FT-710 on /dev/ttyUSB0 and a Yaesu
 # FT-991A on /dev/ttyUSB2
 
-# NB: This file does not get installed by make install
+# NB: This file does not get installed by "make install"
 
 trx:
   ft-710:
