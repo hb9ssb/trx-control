@@ -22,8 +22,6 @@
 
 -- Yaesu FT-817 CAT driver
 
-local trx = require 'trx'
-
 local frequency = 'no frequency set'
 
 local function initialize()

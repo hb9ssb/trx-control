@@ -22,6 +22,7 @@
 
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
 
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -64,8 +65,9 @@ command_tag_t *command_tag;
 static void
 usage(void)
 {
-	(void)fprintf(stderr, "usage: trxd [-dl] [-b address] [-g group] "
-	    "[-p port] [-u user] [-P path] <cat-device> <trx-type>\n");
+	(void)fprintf(stderr, "usage: trxd [-dl] [-b address] [-c config-file] "
+	    "[-g group] [-p port] [-u user] [-P path] <cat-device> "
+	    "<trx-type>\n");
 	exit(1);
 }
 
@@ -76,22 +78,21 @@ main(int argc, char *argv[])
 	struct group *grp;
 	uid_t uid;
 	gid_t gid;
+	struct stat sb;
 	struct addrinfo hints, *res, *res0;
 	lua_State *L;
 	pthread_t trx_control_thread, thread;
 	controller_t controller;
 	int fd, listen_fd[MAXLISTEN], i, ch, nodaemon = 0, log = 0, err, val;
-	char *bind_addr, *listen_port, *user, *group, *homedir;
-	char *pidfile = NULL;
+	const char *bind_addr, *listen_port, *user, *group, *homedir, *pidfile;
+	const char *cfg_file;
 
-	bind_addr = listen_port = NULL;
-
-	user = TRXD_USER;
-	group = TRXD_GROUP;
+	bind_addr = listen_port = user = group = pidfile = cfg_file = NULL;
 
 	while (1) {
 		int option_index = 0;
 		static struct option long_options[] = {
+			{ "config-file",	required_argument, 0, 'c' },
 			{ "no-daemon",		no_argument, 0, 'd' },
 			{ "log-connections",	no_argument, 0, 'l' },
 			{ "group",		required_argument, 0, 'g' },
@@ -102,7 +103,7 @@ main(int argc, char *argv[])
 			{ 0, 0, 0, 0 }
 		};
 
-		ch = getopt_long(argc, argv, "dlb:g:p:u:P:", long_options,
+		ch = getopt_long(argc, argv, "c:dlb:g:p:u:P:", long_options,
 		    &option_index);
 
 		if (ch == -1)
@@ -110,6 +111,9 @@ main(int argc, char *argv[])
 
 		switch (ch) {
 		case 0:
+			break;
+		case 'c':
+			cfg_file = optarg;
 			break;
 		case 'd':
 			nodaemon = 1;
@@ -142,6 +146,13 @@ main(int argc, char *argv[])
 	if (argc != 2)
 		usage();
 
+	if (cfg_file == NULL)
+		cfg_file = _PATH_CFG;
+
+	openlog("trxd", nodaemon == 1 ?
+		LOG_PERROR | LOG_CONS | LOG_PID | LOG_NDELAY
+		: LOG_CONS | LOG_PID | LOG_NDELAY, LOG_USER);
+
 	/* Setup Lua */
 	L = luaL_newstate();
 	if (L == NULL) {
@@ -149,22 +160,94 @@ main(int argc, char *argv[])
 		goto terminate;
 	}
 	luaL_openlibs(L);
-	lua_getglobal(L, "package");
-	lua_getfield(L, -1, "preload");
-	lua_pushcfunction(L, luaopen_yaml);
-	lua_setfield(L, -2, "yaml");
-	lua_pushcfunction(L, luaopen_trxd);
-	lua_setfield(L, -2, "trxd");
-	lua_pop(L, 1);
 
+	/* Provide the yaml and trxd modules as if they were part of std Lua */
+	luaopen_yaml(L);
+	lua_setglobal(L, "yaml");
+	luaopen_trxd(L);
+	lua_setglobal(L, "trxd");
+
+	/* Read the configuration file an extract parameters */
+	if (!stat(cfg_file, &sb)) {
+		printf("parse config file %s\n", cfg_file);
+
+		lua_getglobal(L, "yaml");
+		lua_getfield(L, -1, "parsefile");
+		lua_pushstring(L, cfg_file);
+
+		switch (lua_pcall(L, 1, 1, 0)) {
+		case LUA_OK:
+			if (lua_type(L, -1) != LUA_TTABLE) {
+				syslog(LOG_ERR, "invalid configuration file");
+				lua_close(L);
+				exit(1);
+			}
+			if (bind_addr == NULL) {
+				lua_getfield(L, -1, "bind-address");
+				bind_addr = lua_tostring(L, -1);
+				lua_pop(L, 1);
+			}
+			if (listen_port == NULL) {
+				lua_getfield(L, -1, "listen-port");
+				listen_port = lua_tostring(L, -1);
+				lua_pop(L, 1);
+			}
+			if (user == NULL) {
+				lua_getfield(L, -1, "user");
+				user = lua_tostring(L, -1);
+				lua_pop(L, 1);
+			}
+			if (group == NULL) {
+				lua_getfield(L, -1, "group");
+				group = lua_tostring(L, -1);
+				lua_pop(L, 1);
+			}
+			if (pidfile == NULL) {
+				lua_getfield(L, -1, "pid-file");
+				pidfile = lua_tostring(L, -1);
+				lua_pop(L, 1);
+			}
+			if (nodaemon == 0) {
+				lua_getfield(L, -1, "no-daemon");
+				nodaemon = lua_toboolean(L, -1);
+				lua_pop(L, 1);
+			}
+			if (log == 0) {
+				lua_getfield(L, -1, "log-connections");
+				log = lua_toboolean(L, -1);
+				lua_pop(L, 1);
+			}
+			break;
+		case LUA_ERRRUN:
+		case LUA_ERRMEM:
+		case LUA_ERRERR:
+			syslog(LOG_ERR, "Configuration error: %s",
+			    lua_tostring(L, -1));
+			break;
+		}
+		lua_pop(L, 2);
+	} else if (strcmp(cfg_file, _PATH_CFG)) {
+		syslog(LOG_ERR, "configuration file '%s' not accessible",
+		    cfg_file);
+		lua_close(L);
+		exit(1);
+	}
+
+	/* The Lua state is no longer needed below this point */
+	lua_close(L);
+
+	/*
+	 * Use default values for required parameters that are neither set on
+	 * the command line nor in the configuration file.
+	 */
 	if (bind_addr == NULL)
 		bind_addr = BIND_ADDR;
 	if (listen_port == NULL)
 		listen_port = LISTEN_PORT;
-
-	openlog("trxd", nodaemon == 1 ?
-		LOG_PERROR | LOG_CONS | LOG_PID | LOG_NDELAY
-		: LOG_CONS | LOG_PID | LOG_NDELAY, LOG_USER);
+	if (user == NULL)
+		user = TRXD_USER;
+	if (group == NULL)
+		group = TRXD_GROUP;
 
 	uid = getuid();
 	gid = getgid();
@@ -220,9 +303,6 @@ main(int argc, char *argv[])
 			}
 		}
 	}
-
-	/* The Lua state is no longer needed below this point */
-	lua_close(L);
 
 	command_tag = malloc(sizeof(command_tag_t));
 	if (command_tag == NULL)

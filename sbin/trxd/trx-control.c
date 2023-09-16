@@ -107,13 +107,10 @@ trx_control(void *arg)
 		goto terminate;
 	}
 	luaL_openlibs(L);
-	lua_getglobal(L, "package");
-	lua_getfield(L, -1, "preload");
-	lua_pushcfunction(L, luaopen_trx);
-	lua_setfield(L, -2, "trx");
-	lua_pushcfunction(L, luaopen_trxd);
-	lua_setfield(L, -2, "trxd");
-	lua_pop(L, 1);
+	luaopen_trx(L);
+	lua_setglobal(L, "trx");
+	luaopen_trxd(L);
+	lua_setglobal(L, "trxd");
 
 	lua_getglobal(L, "package");
 	lua_getfield(L, -1, "path");

@@ -22,8 +22,6 @@
 
 -- Yaesu FT-991A CAT driver
 
-local trx = require 'trx'
-
 -- The FT-991A CAT interface is very similar to the FT-710 CAT interface,
 -- so we reuse that and only those functions that are different.
 

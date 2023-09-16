@@ -25,5 +25,6 @@
 
 #define _PATH_TRX		"/usr/share/trxd/trx"
 #define _PATH_TRX_CONTROL	"/usr/share/trxd/trx-control.lua"
+#define _PATH_CFG		"/etc/trxd.yaml"
 
 #endif /* __TRXD_PATHNAMES_H__ */

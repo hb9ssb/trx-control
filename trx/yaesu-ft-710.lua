@@ -22,8 +22,6 @@
 
 -- Yaesu FT-710 CAT driver
 
-local trx = require 'trx'
-
 local function initialize()
 	trx.setspeed(38400)
 	trx.write('ID;')

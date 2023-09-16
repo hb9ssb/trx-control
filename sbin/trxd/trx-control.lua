@@ -20,8 +20,6 @@
 
 -- Upper half of trx-control
 
-local trxd = require 'trxd'
-
 local driver = {}
 local frequencyListeners = {}
 
