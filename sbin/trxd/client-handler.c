@@ -42,6 +42,7 @@ client_handler(void *arg)
 	int status, nread, n;
 	char buf[128], out[128], *p;
 	const char *command, *param;
+
 	t = command_tag;
 
 	status = pthread_detach(pthread_self());
@@ -111,10 +112,9 @@ client_handler(void *arg)
 			pthread_cond_signal(&t->cond);
 			pthread_mutex_unlock(&t->mutex);
 
+			pthread_cond_wait(&t->rcond, &t->rmutex);
 
-			pthread_cond_wait(&command_tag->rcond, &t->rmutex);
-
-			write(fd, command_tag->reply, strlen(t->reply));
+			write(fd, t->reply, strlen(t->reply));
 			buf[0] = 0x0a;
 			buf[1] = 0x0d;
 			write(fd, buf, 2);

@@ -165,11 +165,14 @@ trx_control(void *arg)
 			break;
 		}
 	}
-	lua_pop(L, 2);
+	lua_pop(L, 1);
 
+#if 0
 	/* handle incoming data from the trx */
 	pthread_create(&trx_handler_thread, NULL, trx_handler, command_tag);
+#endif
 
+	command_tag->is_running = 1;
 	while (1) {
 		int nargs = 1;
 
@@ -179,8 +182,10 @@ trx_control(void *arg)
 		if (pthread_cond_wait(&command_tag->cond, &command_tag->mutex))
 			goto terminate;
 
+#if 0
 		if (pthread_mutex_lock(&command_tag->ai_mutex))
 			goto terminate;
+#endif
 
 		for (n = 0; command_map[n].command != NULL; n++)
 			if (!strcmp(command_map[n].command,
@@ -223,7 +228,9 @@ trx_control(void *arg)
 		pthread_cond_signal(&command_tag->rcond);
 		pthread_mutex_unlock(&command_tag->rmutex);
 
+#if 0
 		pthread_mutex_unlock(&command_tag->ai_mutex);
+#endif
 		pthread_mutex_unlock(&command_tag->mutex);
 	}
 

@@ -66,8 +66,7 @@ static void
 usage(void)
 {
 	(void)fprintf(stderr, "usage: trxd [-dl] [-b address] [-c config-file] "
-	    "[-g group] [-p port] [-u user] [-P path] <cat-device> "
-	    "<trx-type>\n");
+	    "[-g group] [-p port] [-u user] [-P path]\n");
 	exit(1);
 }
 
@@ -143,7 +142,7 @@ main(int argc, char *argv[])
 	argc -= optind;
 	argv += optind;
 
-	if (argc != 2)
+	if (argc)
 		usage();
 
 	if (cfg_file == NULL)
@@ -300,7 +299,6 @@ main(int argc, char *argv[])
 		}
 	}
 
-	printf("list of drivers\n");
 	lua_getfield(L, -1, "trx");
 	top = lua_gettop(L);
 	lua_pushnil(L);
@@ -309,6 +307,7 @@ main(int argc, char *argv[])
 
 		t = malloc(sizeof(command_tag_t));
 		t->next = NULL;
+		t->is_running = 0;
 
 		lua_getfield(L, -1, "name");
 		t->name = strdup(lua_tostring(L, -1));

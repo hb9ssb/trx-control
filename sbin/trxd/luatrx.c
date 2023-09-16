@@ -43,7 +43,7 @@ get_fd(lua_State *L)
 	int fd;
 
 	lua_getglobal(L, "_CAT_DEVICE");
-	fd = lua_tointeger(L, 1);
+	fd = lua_tointeger(L, -1);
 	lua_pop(L, 1);
 	return fd;
 }
