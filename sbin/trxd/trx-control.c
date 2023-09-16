@@ -44,6 +44,7 @@
 
 extern int luaopen_trx(lua_State *);
 extern int luaopen_trxd(lua_State *);
+extern int luaopen_json(lua_State *);
 extern void *trx_handler(void *);
 
 static struct {
@@ -113,6 +114,8 @@ trx_control(void *arg)
 	lua_setglobal(L, "trx");
 	luaopen_trxd(L);
 	lua_setglobal(L, "trxd");
+	luaopen_json(L);
+	lua_setglobal(L, "json");
 
 	lua_getglobal(L, "package");
 	lua_getfield(L, -1, "path");

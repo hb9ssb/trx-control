@@ -4,7 +4,9 @@ SRCS=		trxd.c \
 		trx-handler.c \
 		luatrxd.c \
 		luatrx.c \
-		luayaml.c
+		luayaml.c \
+		buffer.c \
+		luajson.c
 
 OBJS=		${SRCS:.c=.o}
 
@@ -13,9 +15,9 @@ SBINDIR?=	/usr/sbin
 TRXDDIR?=	/usr/share/trxd
 
 CFLAGS+=	-I../../external/mit/lua/src -I../../external/mit/luayaml \
-		-pthread -D_GNU_SOURCE
+		-I../../external/mit/luajson -pthread -D_GNU_SOURCE
 LDFLAGS+=	-L../../lib/liblua -llua -lyaml -lm
-VPATH=		../../external/mit/luayaml
+VPATH=		../../external/mit/luayaml ../../external/mit/luajson
 
 build:		trxd
 
