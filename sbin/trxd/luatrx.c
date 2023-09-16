@@ -30,8 +30,6 @@
 
 #include "trxd.h"
 
-extern int fd;
-
 static int
 luatrx_version(lua_State *L)
 {
@@ -40,10 +38,23 @@ luatrx_version(lua_State *L)
 }
 
 static int
+get_fd(lua_State *L)
+{
+	int fd;
+
+	lua_getglobal(L, "_CAT_DEVICE");
+	fd = lua_tointeger(L, 1);
+	lua_pop(L, 1);
+	return fd;
+}
+
+static int
 luatrx_setspeed(lua_State *L)
 {
 	struct termios tty;
+	int fd;
 
+	fd = get_fd(L);
 	if (isatty(fd)) {
 		if (tcgetattr(fd, &tty) < 0) {
 			lua_pushboolean(L, 0);
@@ -64,6 +75,9 @@ luatrx_read(lua_State *L)
 {
 	char buf[256];
 	size_t len;
+	int fd;
+
+	fd = get_fd(L);
 
 	len = read(fd, buf, sizeof(buf));
 	if (len > 0)
@@ -78,6 +92,9 @@ luatrx_write(lua_State *L)
 {
 	const char *data;
 	size_t len;
+	int fd;
+
+	fd = get_fd(L);
 
 	data = luaL_checklstring(L, 1, &len);
 	write(fd, data, len);

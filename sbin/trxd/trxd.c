@@ -60,7 +60,7 @@ extern void *trx_control(void *);
 
 extern int trx_control_running;
 
-command_tag_t *command_tag;
+command_tag_t *command_tag = NULL;
 
 static void
 usage(void)
@@ -82,8 +82,8 @@ main(int argc, char *argv[])
 	struct addrinfo hints, *res, *res0;
 	lua_State *L;
 	pthread_t trx_control_thread, thread;
-	controller_t controller;
 	int fd, listen_fd[MAXLISTEN], i, ch, nodaemon = 0, log = 0, err, val;
+	int top;
 	const char *bind_addr, *listen_port, *user, *group, *homedir, *pidfile;
 	const char *cfg_file;
 
@@ -225,16 +225,12 @@ main(int argc, char *argv[])
 			    lua_tostring(L, -1));
 			break;
 		}
-		lua_pop(L, 2);
 	} else if (strcmp(cfg_file, _PATH_CFG)) {
 		syslog(LOG_ERR, "configuration file '%s' not accessible",
 		    cfg_file);
 		lua_close(L);
 		exit(1);
 	}
-
-	/* The Lua state is no longer needed below this point */
-	lua_close(L);
 
 	/*
 	 * Use default values for required parameters that are neither set on
@@ -304,29 +300,60 @@ main(int argc, char *argv[])
 		}
 	}
 
-	command_tag = malloc(sizeof(command_tag_t));
-	if (command_tag == NULL)
-		goto terminate;
+	printf("list of drivers\n");
+	lua_getfield(L, -1, "trx");
+	top = lua_gettop(L);
+	lua_pushnil(L);
+	while (lua_next(L, top)) {
+		command_tag_t *t;
 
-	if (pthread_mutex_init(&command_tag->mutex, NULL))
-		goto terminate;
+		t = malloc(sizeof(command_tag_t));
+		t->next = NULL;
 
-	if (pthread_cond_init(&command_tag->cond, NULL))
-		goto terminate;
+		lua_getfield(L, -1, "name");
+		t->name = strdup(lua_tostring(L, -1));
+		lua_pop(L, 1);
 
-	if (pthread_mutex_init(&command_tag->rmutex, NULL))
-		goto terminate;
+		lua_getfield(L, -1, "device");
+		t->device = strdup(lua_tostring(L, -1));
+		lua_pop(L, 1);
 
-	if (pthread_cond_init(&command_tag->rcond, NULL))
-		goto terminate;
+		lua_getfield(L, -1, "driver");
+		t->driver = strdup(lua_tostring(L, -1));
+		lua_pop(L, 1);
 
-	if (pthread_mutex_init(&command_tag->ai_mutex, NULL))
-		goto terminate;
+		if (command_tag == NULL)
+			command_tag = t;
+		else {
+			command_tag_t *n;
+			n = command_tag;
+			while (n->next != NULL)
+				n = n->next;
+			n->next = t;
+		}
 
-	/* Create the trx-control thread */
-	controller.device = argv[0];
-	controller.trx_type = argv[1];
-	pthread_create(&trx_control_thread, NULL, trx_control, &controller);
+		if (pthread_mutex_init(&t->mutex, NULL))
+			goto terminate;
+
+		if (pthread_cond_init(&t->cond, NULL))
+			goto terminate;
+
+		if (pthread_mutex_init(&t->rmutex, NULL))
+			goto terminate;
+
+		if (pthread_cond_init(&t->rcond, NULL))
+			goto terminate;
+
+		if (pthread_mutex_init(&t->ai_mutex, NULL))
+			goto terminate;
+
+		/* Create the trx-control thread */
+		pthread_create(&t->trx_control, NULL, trx_control, t);
+		lua_pop(L, 1);
+	}
+
+	/* The Lua state is no longer needed below this point */
+	lua_close(L);
 
 	/* Setup network listening */
 	for (i = 0; i < MAXLISTEN; i++)
@@ -377,7 +404,7 @@ main(int argc, char *argv[])
 	}
 
 	/* Wait for connections as long as trx_control runs */
-	while (trx_control_running) {
+	while (1) {
 		struct timeval	 tv;
 		fd_set		 readfds;
 		int		 maxfd = -1;
@@ -434,7 +461,6 @@ main(int argc, char *argv[])
 			    client_fd);
 		}
 	}
-	pthread_join(trx_control_thread, NULL);
 
 terminate:
 	closelog();

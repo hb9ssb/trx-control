@@ -29,22 +29,23 @@
 #define TRXD_USER	"trxd"
 #define TRXD_GROUP	"trxd"
 
-typedef struct controller {
-	const char *device;
-	const char *trx_type;
-} controller_t;
-
 typedef struct command_tag {
-	pthread_mutex_t	 mutex;
-	pthread_cond_t	 cond;
-	pthread_mutex_t	 rmutex;
-	pthread_cond_t	 rcond;
-	pthread_mutex_t	 ai_mutex;
+	pthread_mutex_t		 mutex;
+	pthread_cond_t		 cond;
+	pthread_mutex_t		 rmutex;
+	pthread_cond_t		 rcond;
+	pthread_mutex_t		 ai_mutex;
 
-	char		*command;
-	char		*param;
-	char		*reply;
-	int		 client_fd;
+	const char		*name;
+	const char		*device;
+	const char		*driver;
+	const char		*command;
+	const char		*param;
+	char			*reply;
+	int			 client_fd;
+	int			 cat_device;
+	pthread_t		 trx_control;
+	struct command_tag	*next;
 } command_tag_t;
 
 #endif /* __TRXD_H__ */

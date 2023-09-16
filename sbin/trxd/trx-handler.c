@@ -35,13 +35,11 @@
 
 #include "trxd.h"
 
-extern command_tag_t *command_tag;
-
 void *
 trx_handler(void *arg)
 {
-	int fd = *(int *)arg;
-	int status, nread, n, r;
+	command_tag_t *command_tag = (command_tag_t *)arg;
+	int status, nread, n, r, fd;
 	char buf[128], *p;
 	fd_set fds;
 	struct timeval tv;
@@ -49,6 +47,8 @@ trx_handler(void *arg)
 	status = pthread_detach(pthread_self());
 	if (status)
 		err(1, "can't detach");
+
+	fd = command_tag->cat_device;
 
 	do {
 		FD_ZERO(&fds);

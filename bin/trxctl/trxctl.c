@@ -38,7 +38,7 @@
 static void
 usage(void)
 {
-	(void)fprintf(stderr, "usage: trxctl [-v] [-p port] command "
+	(void)fprintf(stderr, "usage: trxctl [-lv] [-p port] [-u name] command "
 	    "[args ...]\n");
 	exit(1);
 }
@@ -84,11 +84,21 @@ connect_trxd(const char *host, const char *port)
 	return fd;
 }
 
+static void
+list_trx(int fd)
+{
+}
+
+static void
+use_trx(int fd, char *trx)
+{
+}
+
 int
 main(int argc, char *argv[])
 {
-	int fd, c, n, verbosity;
-	char *host, *port, buf[128];
+	int fd, c, n, list, verbosity;
+	char *host, *port, *trx, buf[128];
 
 	verbosity = 0;
 	host = DEFAULT_HOST;
@@ -97,13 +107,15 @@ main(int argc, char *argv[])
 	while (1) {
 		int option_index = 0;
 		static struct option long_options[] = {
+			{ "list",		no_argument, 0, 'l' },
+			{ "use",		required_argument, 0, 'u' },
 			{ "host",		required_argument, 0, 'h' },
 			{ "verbose",		no_argument, 0, 'v' },
 			{ "port",		required_argument, 0, 'p' },
 			{ 0, 0, 0, 0 }
 		};
 
-		c = getopt_long(argc, argv, "h:vp:", long_options,
+		c = getopt_long(argc, argv, "h:lu:vp:", long_options,
 		    &option_index);
 
 		if (c == -1)
@@ -115,8 +127,14 @@ main(int argc, char *argv[])
 		case 'h':
 			host = optarg;
 			break;
+		case 'l':
+			list = 1;
+			break;
 		case 'p':
 			port = optarg;
+			break;
+		case 'u':
+			trx = optarg;
 			break;
 		case 'v':
 			verbosity++;
@@ -134,19 +152,26 @@ main(int argc, char *argv[])
 		exit(1);
 	}
 
-	buf[0] = ' ';
-	for (n = 0; n < argc; n++) {
-		if (n)
-			write(fd, buf, 1);
-		write(fd, argv[n], strlen(argv[n]));
+	if (list) {
+		list_trx(fd);
+	} else {
+		if (trx)
+			use_trx(fd, trx);
+
+		buf[0] = ' ';
+		for (n = 0; n < argc; n++) {
+			if (n)
+				write(fd, buf, 1);
+			write(fd, argv[n], strlen(argv[n]));
+		}
+		buf[0] = 0x0a;
+		buf[1] = 0x0d;
+		write(fd, buf, 2);
+
+		read(fd, buf, sizeof(buf));
+
+		printf("%s\n", buf);
 	}
-	buf[0] = 0x0a;
-	buf[1] = 0x0d;
-	write(fd, buf, 2);
-
-	read(fd, buf, sizeof(buf));
-
-	printf("%s\n", buf);
 	close(fd);
 	return 0;
 }

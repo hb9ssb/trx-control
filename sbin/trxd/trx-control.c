@@ -45,9 +45,6 @@
 extern int luaopen_trx(lua_State *);
 extern int luaopen_trxd(lua_State *);
 extern void *trx_handler(void *);
-int trx_control_running = 0;
-int fd = -1;
-extern command_tag_t *command_tag;
 
 static struct {
 	const char *command;
@@ -65,27 +62,26 @@ static struct {
 void *
 trx_control(void *arg)
 {
-	controller_t controller = *(controller_t *)arg;
+	command_tag_t *command_tag = (command_tag_t *)arg;
 	struct termios tty;
 	lua_State *L;
-	int n, driver_ref;
+	int fd, n, driver_ref;
 	struct stat sb;
 	char trx_driver[PATH_MAX];
 	pthread_t trx_handler_thread;
 
 	L = NULL;
-	trx_control_running = 1;
 	pthread_detach(pthread_self());
 
-	if (strchr(controller.trx_type, '/')) {
-		syslog(LOG_ERR, "trx-type must not contain slashes");
+	if (strchr(command_tag->driver, '/')) {
+		syslog(LOG_ERR, "driver must not contain slashes");
 		goto terminate;
 	}
 
-	fd = open(controller.device, O_RDWR);
+	fd = open(command_tag->device, O_RDWR);
 	if (fd == -1) {
 		syslog(LOG_ERR, "Can't open CAT device %s: %s",
-		    controller.device, strerror(errno));
+		    command_tag->device, strerror(errno));
 		goto terminate;
 	}
 	if (isatty(fd)) {
@@ -100,6 +96,8 @@ trx_control(void *arg)
 		}
 	}
 
+	command_tag->cat_device = fd;
+
 	/* Setup Lua */
 	L = luaL_newstate();
 	if (L == NULL) {
@@ -107,6 +105,10 @@ trx_control(void *arg)
 		goto terminate;
 	}
 	luaL_openlibs(L);
+
+	lua_pushinteger(L, fd);
+	lua_setglobal(L, "_CAT_DEVICE");
+
 	luaopen_trx(L);
 	lua_setglobal(L, "trx");
 	luaopen_trxd(L);
@@ -130,11 +132,11 @@ trx_control(void *arg)
 		driver_ref = luaL_ref(L, LUA_REGISTRYINDEX);
 
 	snprintf(trx_driver, sizeof(trx_driver), "%s/%s.lua", _PATH_TRX,
-	    controller.trx_type);
+	    command_tag->driver);
 
 	if (stat(trx_driver, &sb)) {
 		syslog(LOG_ERR, "driver for trx-type %s not found",
-		    controller.trx_type);
+		    command_tag->driver);
 		goto terminate;
 	}
 
@@ -147,7 +149,7 @@ trx_control(void *arg)
 	}
 	if (lua_type(L, -1) != LUA_TTABLE) {
 		syslog(LOG_ERR, "trx driver %s did not return a table",
-		    controller.trx_type);
+		    command_tag->driver);
 		goto terminate;
 	} else {
 		switch (lua_pcall(L, 1, 0, 0)) {
@@ -163,7 +165,7 @@ trx_control(void *arg)
 	lua_pop(L, 2);
 
 	/* handle incoming data from the trx */
-	pthread_create(&trx_handler_thread, NULL, trx_handler, &fd);
+	pthread_create(&trx_handler_thread, NULL, trx_handler, command_tag);
 
 	while (1) {
 		int nargs = 1;
@@ -218,7 +220,6 @@ trx_control(void *arg)
 		pthread_cond_signal(&command_tag->rcond);
 		pthread_mutex_unlock(&command_tag->rmutex);
 
-
 		pthread_mutex_unlock(&command_tag->ai_mutex);
 		pthread_mutex_unlock(&command_tag->mutex);
 	}
@@ -226,6 +227,5 @@ trx_control(void *arg)
 terminate:
 	if (L)
 		lua_close(L);
-	trx_control_running = 0;
 	return NULL;
 }
