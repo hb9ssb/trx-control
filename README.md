@@ -27,7 +27,3 @@ Initially, trx-control will support the following transceivers:
 
 The client/server protocol is documented in the projects wiki at
 https://github.com/hb9ssb/trx-control/wiki
-
-## Telegram Group
-
-There is a telegram group for discussing trx-control at https://t.me/trxcontrol.
