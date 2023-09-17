@@ -20,92 +20,71 @@
  * IN THE SOFTWARE.
  */
 
-/* Provide the 'trxd' Lua module to the driver upper half */
+/* The trxctl Lua module */
 
+#include <termios.h>
 #include <unistd.h>
-#include <string.h>
 
 #include <lua.h>
 #include <lauxlib.h>
 
-#include "trxd.h"
-
-extern command_tag_t *command_tag;
-
-static int
-luatrxd_send(lua_State *L)
-{
-	int fd;
-	size_t len;
-	const char *data;
-
-	fd = luaL_checkinteger(L, 1);
-	data = luaL_checklstring(L, 2, &len);
-	write(fd, data, len);
-	return 0;
-}
+extern int connect_trxd(const char *, const char *);
+extern int fd;
 
 static int
-luatrxd_get_transceiver_list(lua_State *L)
+luatrxctl_connect(lua_State *L)
 {
-	command_tag_t *t;
-	int n = 1;
-	lua_newtable(L);
-	for (t = command_tag; t != NULL; t = t->next) {
-		lua_pushinteger(L, n++);
-		lua_newtable(L);
-		lua_pushstring(L, t->name);
-		lua_setfield(L, -2, "name");
-		lua_pushstring(L, t->device);
-		lua_setfield(L, -2, "device");
-		lua_pushstring(L, t->driver);
-		lua_setfield(L, -2, "driver");
-		lua_settable(L, -3);
-	}
+	if (fd)
+		close(fd);
+	fd = connect_trxd(luaL_checkstring(L, 1), luaL_checkstring(L, 2));
+	lua_pushboolean(L, fd > 0);
 	return 1;
 }
 
 static int
-luatrxd_select_transceiver(lua_State *L)
+luatrxctl_read(lua_State *L)
 {
-	command_tag_t *t;
-	int n = 0;
-	const char *name;
+	char buf[256];
+	size_t len;
 
-	name = luaL_checkstring(L, 1);
-
-	printf("select trx %s\n", name);
-	for (t = command_tag; t != NULL; t = t->next, n++) {
-		if (!strcmp(t->name, name))
-			break;
-	}
-
-	if (t)
-		lua_pushinteger(L, n);
+	len = read(fd, buf, sizeof(buf));
+	if (len > 0)
+		lua_pushlstring(L, buf, len);
 	else
 		lua_pushnil(L);
 	return 1;
 }
 
-int
-luaopen_trxd(lua_State *L)
+static int
+luatrxctl_write(lua_State *L)
 {
-	struct luaL_Reg luatrxd[] = {
-		{ "send",			luatrxd_send },
-		{ "getTransceiverList",		luatrxd_get_transceiver_list },
-		{ "selectTransceiver",		luatrxd_select_transceiver },
+	const char *data;
+	size_t len;
+
+	data = luaL_checklstring(L, 1, &len);
+	write(fd, data, len);
+	return 0;
+}
+
+int
+luaopen_trxctl(lua_State *L)
+{
+	struct luaL_Reg luatrxctl[] = {
+		{ "connect",	luatrxctl_connect },
+		{ "read",	luatrxctl_read },
+		{ "write",	luatrxctl_write },
 		{ NULL, NULL }
 	};
 
-	luaL_newlib(L, luatrxd);
+	luaL_newlib(L, luatrxctl);
 	lua_pushliteral(L, "_COPYRIGHT");
 	lua_pushliteral(L, "Copyright (c) 2023 Marc Balmer HB9SSB");
 	lua_settable(L, -3);
 	lua_pushliteral(L, "_DESCRIPTION");
-	lua_pushliteral(L, "trx-control internal functions for Lua");
+	lua_pushliteral(L, "trxctl for Lua");
 	lua_settable(L, -3);
 	lua_pushliteral(L, "_VERSION");
-	lua_pushliteral(L, "trxd 1.0.0");
+	lua_pushliteral(L, "trxctl 1.0.0");
 	lua_settable(L, -3);
 
 	return 1;

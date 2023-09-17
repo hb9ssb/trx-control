@@ -20,22 +20,26 @@
 
 -- Lower half of the trx-control Lua part
 
--- Yaesu FT-991A CAT driver
+-- Dummy driver fro development and testing purposes
 
--- The FT-991A CAT interface is very similar to the FT-710 CAT interface,
--- so we reuse that and only those functions that are different.
+local frequency = ''
 
-local ft991 = require 'yaesu-ft-710'
-
-ft991.initialize = function ()
-	trx.setspeed(38400)
-	trx.write('ID;')
-	local reply = trx.read()
-	if reply ~= 'ID0670;' then
-		print 'this is not a Yaesu FT-991A transceiver'
-	else
-		print 'this is a Yaesu FT-991A transceiver'
-	end
+local function initialize()
+	print 'dummy-trx: initialize'
 end
 
-return ft991
+local function setFrequency(freq)
+	print (string.format('dummy-trx: set fequency to %s', freq))
+	frequency = freq
+end
+
+local function getFrequency()
+	print 'dummy-trx: get frequency'
+	return frequency
+end
+
+return {
+	initialize = initialize,
+	setFrequency = setFrequency,
+	getFrequency = getFrequency
+}

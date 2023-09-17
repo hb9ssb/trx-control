@@ -30,10 +30,37 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <syslog.h>
 #include <unistd.h>
+
+#include <readline/readline.h>
+#include <readline/history.h>
+
+#include <lua.h>
+#include <lualib.h>
+#include <lauxlib.h>
 
 #define DEFAULT_HOST	"localhost"
 #define DEFAULT_PORT	"14285"
+#define _PATH_TRXCTL	"/usr/share/trxctl/trxctl.lua"
+
+extern void luaopen_trxctl(lua_State *);
+extern void luaopen_json(lua_State *);
+
+int fd = 0;
+
+static struct {
+	const char *command;
+	const char *func;
+} command_map[] = {
+	"use",			"useTrx",
+	"list-trx",		"listTrx",
+	"set-frequency",	"setFrequency",
+	"get-frequency",	"getFrequency",
+	"listen-frequency",	"listenFrequency",
+	"unlisten-frequency",	"unlistenFrequency",
+	NULL,			NULL
+};
 
 static void
 usage(void)
@@ -43,12 +70,12 @@ usage(void)
 	exit(1);
 }
 
-static int
+int
 connect_trxd(const char *host, const char *port)
 {
 	struct addrinfo hints, *res, *res0;
 	struct linger linger;
-	int fd, error;
+	int error;
 	char hbuf[NI_MAXHOST], sbuf[NI_MAXSERV];
 
 	memset(&hints, 0, sizeof(hints));
@@ -94,11 +121,30 @@ use_trx(int fd, char *trx)
 {
 }
 
+
+char *
+rl_gets()
+{
+	static char *line_read = NULL;
+
+	if (line_read) {
+		free(line_read);
+		line_read = NULL;
+	}
+
+	line_read = readline("trxctl> ");
+
+	if (line_read && *line_read)
+		add_history(line_read);
+	return line_read;
+}
+
 int
 main(int argc, char *argv[])
 {
-	int fd, c, n, list, verbosity;
-	char *host, *port, *trx, buf[128];
+	lua_State *L;
+	int fd, c, n, list, verbosity, cmdhandler_ref;
+	char *host, *port, *trx, buf[128], *line;
 
 	verbosity = 0;
 	host = DEFAULT_HOST;
@@ -146,32 +192,79 @@ main(int argc, char *argv[])
 	argc -= optind;
 	argv += optind;
 
+	L = luaL_newstate();
+	if (L == NULL) {
+		fprintf(stderr, "cannot initialize Lua state\n");
+		exit(1);
+	}
+	luaL_openlibs(L);
+	luaopen_trxctl(L);
+	lua_setglobal(L, "trxctl");
+	luaopen_json(L);
+	lua_setglobal(L, "json");
+	if (luaL_dofile(L, _PATH_TRXCTL)) {
+		fprintf(stderr, "Lua error: %s", lua_tostring(L, -1));
+		exit(1);
+	}
+	if (lua_type(L, -1) != LUA_TTABLE) {
+		fprintf(stderr, "trxctl did not return a table\n");
+		exit(1);
+	} else
+		cmdhandler_ref = luaL_ref(L, LUA_REGISTRYINDEX);
+
 	fd = connect_trxd(host, port);
 	if (fd < 0) {
 		fprintf(stderr, "connection failed\n");
 		exit(1);
 	}
 
-	if (list) {
-		list_trx(fd);
-	} else {
-		if (trx)
-			use_trx(fd, trx);
+	while ((line = rl_gets())) {
+		char *param;
 
-		buf[0] = ' ';
-		for (n = 0; n < argc; n++) {
-			if (n)
-				write(fd, buf, 1);
-			write(fd, argv[n], strlen(argv[n]));
+		param = strchr(line, ' ');
+		if (param) {
+			*param++ = '\0';
+			while (*param == ' ')
+				++param;
 		}
-		buf[0] = 0x0a;
-		buf[1] = 0x0d;
-		write(fd, buf, 2);
 
-		read(fd, buf, sizeof(buf));
+		if (!strcmp(line, "quit"))
+			break;
 
-		printf("%s\n", buf);
+		for (n = 0; command_map[n].command != NULL; n++)
+			if (!strcmp(command_map[n].command, line))
+				break;
+
+		if (command_map[n].command != NULL) {
+			lua_geti(L, LUA_REGISTRYINDEX, cmdhandler_ref);
+			lua_getfield(L, -1, command_map[n].func);
+			if (lua_type(L, -1) != LUA_TFUNCTION) {
+				fprintf(stderr, "command not supported, "
+				    "please submit a bug report\n");
+			} else {
+				if (param)
+					lua_pushstring(L, param);
+				switch (lua_pcall(L, param ? 1 : 0, 1, 0)) {
+				case LUA_OK:
+					break;
+				case LUA_ERRRUN:
+				case LUA_ERRMEM:
+				case LUA_ERRERR:
+					syslog(LOG_ERR, "Lua error: %s",
+					    lua_tostring(L, -1));
+					break;
+				}
+				if (lua_type(L, -1) == LUA_TSTRING)
+					printf("trxctl > %s\n",
+					    lua_tostring(L, -1));
+			}
+			lua_pop(L, 1);
+		} else if (*line)
+			printf("no such command\n");
+
 	}
+
+	lua_close(L);
 	close(fd);
 	return 0;
 }

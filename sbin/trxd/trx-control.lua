@@ -54,6 +54,10 @@ local function getTransceiver()
 	return driver.transceiver or 'unknown transceiver'
 end
 
+local function getTransceiverList()
+	return trxd.getTransceiverList()
+end
+
 local function setFrequency(freq)
 	driver.setFrequency(freq)
 	for k, v in ipairs(frequencyListeners) do
@@ -84,12 +88,44 @@ local function unlistenFrequency(fd)
 	return 'not listening'
 end
 
+-- Handle request from a network client
+local function requestHandler(data)
+	print('requestHandler', data)
+
+	local request = json.decode(data)
+	local reply = {
+		status = 'Ok'
+	}
+
+	if request.cmd == 'list-trx' then
+		reply = getTransceiverList()
+	elseif request.cmd == 'set-frequency' then
+		setFrequency(request.frequency)
+	elseif request.cmd == 'get-frequency' then
+		local freq = getFrequency()
+		reply.frequency = freq
+	elseif request.cmd == 'select-trx' then
+		local t = trxd.selectTransceiver(request.name)
+		if t ~= nil then
+			return string.format('switch-tag:%s',
+			    request.name)
+		else
+			reply = {
+				status = 'Error',
+				reason = 'No such transceiver'
+			}
+		end
+	end
+
+	return json.encode(reply)
+end
+
+-- Handle incoming data from the transceiver
+local function dataHandler(data)
+end
+
 return {
 	registerDriver = registerDriver,
-	loadDriver = loadDriver,
-	getTransceiver = getTransceiver,
-	setFrequency = setFrequency,
-	getFrequency = getFrequency,
-	listenFrequency = listenFrequency,
-	unlistenFrequency = unlistenFrequency
+	requestHandler = requestHandler,
+	dataHandler = dataHandler
 }

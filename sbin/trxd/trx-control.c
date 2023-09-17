@@ -32,6 +32,7 @@
 #include <syslog.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include <termios.h>
 #include <unistd.h>
 
@@ -47,23 +48,12 @@ extern int luaopen_trxd(lua_State *);
 extern int luaopen_json(lua_State *);
 extern void *trx_handler(void *);
 
-static struct {
-	const char *command;
-	const char *func;
-} command_map[] = {
-	"load-driver",		"loadDriver",
-	"get-transceiver",	"getTransceiver",
-	"set-frequency",	"setFrequency",
-	"get-frequency",	"getFrequency",
-	"listen-frequency",	"listenFrequency",
-	"unlisten-frequency",	"unlistenFrequency",
-	NULL,			NULL
-};
+extern command_tag_t *command_tag;
 
 void *
 trx_control(void *arg)
 {
-	command_tag_t *command_tag = (command_tag_t *)arg;
+	command_tag_t *tag = (command_tag_t *)arg;
 	struct termios tty;
 	lua_State *L;
 	int fd, n, driver_ref;
@@ -74,15 +64,15 @@ trx_control(void *arg)
 	L = NULL;
 	pthread_detach(pthread_self());
 
-	if (strchr(command_tag->driver, '/')) {
+	if (strchr(tag->driver, '/')) {
 		syslog(LOG_ERR, "driver must not contain slashes");
 		goto terminate;
 	}
 
-	fd = open(command_tag->device, O_RDWR);
+	fd = open(tag->device, O_RDWR);
 	if (fd == -1) {
 		syslog(LOG_ERR, "Can't open CAT device %s: %s",
-		    command_tag->device, strerror(errno));
+		    tag->device, strerror(errno));
 		goto terminate;
 	}
 	if (isatty(fd)) {
@@ -97,7 +87,7 @@ trx_control(void *arg)
 		}
 	}
 
-	command_tag->cat_device = fd;
+	tag->cat_device = fd;
 
 	/* Setup Lua */
 	L = luaL_newstate();
@@ -135,11 +125,11 @@ trx_control(void *arg)
 		driver_ref = luaL_ref(L, LUA_REGISTRYINDEX);
 
 	snprintf(trx_driver, sizeof(trx_driver), "%s/%s.lua", _PATH_TRX,
-	    command_tag->driver);
+	    tag->driver);
 
 	if (stat(trx_driver, &sb)) {
 		syslog(LOG_ERR, "driver for trx-type %s not found",
-		    command_tag->driver);
+		    tag->driver);
 		goto terminate;
 	}
 
@@ -152,7 +142,7 @@ trx_control(void *arg)
 	}
 	if (lua_type(L, -1) != LUA_TTABLE) {
 		syslog(LOG_ERR, "trx driver %s did not return a table",
-		    command_tag->driver);
+		    tag->driver);
 		goto terminate;
 	} else {
 		switch (lua_pcall(L, 1, 0, 0)) {
@@ -169,69 +159,76 @@ trx_control(void *arg)
 
 #if 0
 	/* handle incoming data from the trx */
-	pthread_create(&trx_handler_thread, NULL, trx_handler, command_tag);
+	pthread_create(&trx_handler_thread, NULL, trx_handler, tag);
 #endif
 
-	command_tag->is_running = 1;
+	tag->is_running = 1;
 	while (1) {
 		int nargs = 1;
 
-		if (pthread_mutex_lock(&command_tag->mutex))
+		if (pthread_mutex_lock(&tag->mutex))
 			goto terminate;
 
-		if (pthread_cond_wait(&command_tag->cond, &command_tag->mutex))
+		if (pthread_cond_wait(&tag->cond, &tag->mutex))
 			goto terminate;
 
 #if 0
-		if (pthread_mutex_lock(&command_tag->ai_mutex))
+		if (pthread_mutex_lock(&tag->ai_mutex))
 			goto terminate;
 #endif
 
-		for (n = 0; command_map[n].command != NULL; n++)
-			if (!strcmp(command_map[n].command,
-			    command_tag->command))
+		lua_geti(L, LUA_REGISTRYINDEX, driver_ref);
+		lua_getfield(L, -1, tag->handler);
+		if (lua_type(L, -1) != LUA_TFUNCTION) {
+			tag->reply = "command not supported, "
+			    "please submit a bug report";
+		} else {
+			lua_pushstring(L, tag->data);
+			lua_pushinteger(L, tag->client_fd);
+
+			switch (lua_pcall(L, 2, 1, 0)) {
+			case LUA_OK:
 				break;
-
-		if (command_map[n].command != NULL) {
-			lua_geti(L, LUA_REGISTRYINDEX, driver_ref);
-			lua_getfield(L, -1, command_map[n].func);
-			if (lua_type(L, -1) != LUA_TFUNCTION) {
-				command_tag->reply = "command not supported, "
-				    "please submit a bug report";
-			} else {
-				if (command_tag->param) {
-					lua_pushstring(L, command_tag->param);
-					nargs++;
-				}
-				lua_pushinteger(L, command_tag->client_fd);
-				switch (lua_pcall(L, nargs, 1, 0)) {
-				case LUA_OK:
-					break;
-				case LUA_ERRRUN:
-				case LUA_ERRMEM:
-				case LUA_ERRERR:
-					syslog(LOG_ERR, "Lua error: %s",
-					    lua_tostring(L, -1));
-					break;
-				}
-				if (lua_type(L, -1) == LUA_TSTRING)
-					command_tag->reply =
-					    (char *)lua_tostring(L, -1);
-				else
-					command_tag->reply = "no result";
+			case LUA_ERRRUN:
+			case LUA_ERRMEM:
+			case LUA_ERRERR:
+				syslog(LOG_ERR, "Lua error: %s",
+				    lua_tostring(L, -1));
+				break;
 			}
-			lua_pop(L, 2);
-		} else
-			command_tag->reply = "no such command";
+			if (lua_type(L, -1) == LUA_TSTRING) {
+				const char *reply = lua_tostring(L, -1);
+				if (!strncmp(reply, SWITCH_TAG,
+				    strlen(SWITCH_TAG))) {
+					char *name;
+					command_tag_t *t;
 
-		pthread_mutex_lock(&command_tag->rmutex);
-		pthread_cond_signal(&command_tag->rcond);
-		pthread_mutex_unlock(&command_tag->rmutex);
+					name = strchr(reply, ':');
+					name++;
+					for (t = command_tag; t != NULL;
+					   t = t->next) {
+						if (!strcmp(t->name, name)) {
+							tag->new_tag = t;
+							break;
+						}
+					}
+
+					tag->reply= "{ status: \"Ok\"}";
+				} else
+					tag->reply = reply;
+			} else
+				tag->reply = "{result: \"no value\"}";
+		}
+		lua_pop(L, 2);
+
+		pthread_mutex_lock(&tag->rmutex);
+		pthread_cond_signal(&tag->rcond);
+		pthread_mutex_unlock(&tag->rmutex);
 
 #if 0
-		pthread_mutex_unlock(&command_tag->ai_mutex);
+		pthread_mutex_unlock(&tag->ai_mutex);
 #endif
-		pthread_mutex_unlock(&command_tag->mutex);
+		pthread_mutex_unlock(&tag->mutex);
 	}
 
 terminate:

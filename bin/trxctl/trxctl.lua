@@ -18,24 +18,58 @@
 -- FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 -- IN THE SOFTWARE.
 
--- Lower half of the trx-control Lua part
+-- trxctl support functions/command handlers
 
--- Yaesu FT-991A CAT driver
+local function useTrx(trx)
+	print('useTrx ' .. trx)
+	local d = {
+		cmd = 'select-trx',
+		name = trx
+	}
 
--- The FT-991A CAT interface is very similar to the FT-710 CAT interface,
--- so we reuse that and only those functions that are different.
+	trxctl.write(json.encode(d) .. '\n')
+	local reply = trxctl.read()
+	print(reply)
+end
 
-local ft991 = require 'yaesu-ft-710'
+local function listTrx()
+	local request = {
+		cmd = 'list-trx'
+	}
 
-ft991.initialize = function ()
-	trx.setspeed(38400)
-	trx.write('ID;')
-	local reply = trx.read()
-	if reply ~= 'ID0670;' then
-		print 'this is not a Yaesu FT-991A transceiver'
-	else
-		print 'this is a Yaesu FT-991A transceiver'
+	trxctl.write(json.encode(request) .. '\n')
+	local reply = json.decode(trxctl.read())
+
+	for k, v in pairs(reply) do
+		print(string.format('%-20s %s on %s', v.name, v.driver,
+		    v.device))
 	end
 end
 
-return ft991
+local function setFrequency(freq)
+	local request = {
+		cmd = 'set-frequency',
+		frequency = freq
+	}
+
+	trxctl.write(json.encode(request) .. '\n')
+	local reply = trxctl.read()
+	print(reply)
+end
+
+local function getFrequency(freq)
+	local request = {
+		cmd = 'get-frequency',
+	}
+
+	trxctl.write(json.encode(request) .. '\n')
+	local reply = trxctl.read()
+	print(reply)
+end
+
+return {
+	useTrx = useTrx,
+	listTrx = listTrx,
+	setFrequency = setFrequency,
+	getFrequency = getFrequency
+}

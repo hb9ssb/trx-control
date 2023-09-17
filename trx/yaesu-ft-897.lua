@@ -26,6 +26,4 @@
 
 local ft897 = require 'yaesu-ft-817'
 
-ft897.transceiver = 'Yaesu FT-897'
-
 return ft897

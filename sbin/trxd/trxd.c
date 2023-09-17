@@ -168,7 +168,6 @@ main(int argc, char *argv[])
 
 	/* Read the configuration file an extract parameters */
 	if (!stat(cfg_file, &sb)) {
-		printf("parse config file %s\n", cfg_file);
 
 		lua_getglobal(L, "yaml");
 		lua_getfield(L, -1, "parsefile");

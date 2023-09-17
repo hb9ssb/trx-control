@@ -54,73 +54,29 @@ client_handler(void *arg)
 		if (nread <= 0)
 			break;
 
-		for (n = 0; n < nread; n++) {
-			if (buf[n] == 0x0a || buf[n] == 0x0d) {
-				buf[n] = '\0';
-				break;
-			}
-		}
+		pthread_mutex_lock(&t->mutex);
+		pthread_mutex_lock(&t->rmutex);
 
-		command = buf;
-		param = NULL;
-		p = strchr(buf, ' ');
-		if (p) {
-			*p++ = '\0';
-			while (*p == ' ')
-				p++;
-			if (*p)
-				param = p;
-		}
+		t->handler = "requestHandler";
+		t->data = buf;
+		t->client_fd = fd;
+		t->new_tag = t;
 
-		if (!strcmp(command, "use")) {
-			command_tag_t *n;
+		pthread_cond_signal(&t->cond);
+		pthread_mutex_unlock(&t->mutex);
 
-			for (n = command_tag; n; n = n->next) {
-				if (!strcmp(n->name, param)) {
-					t = n;
-					break;
-				}
-			}
-			if (n != NULL) {
-				snprintf(out, sizeof(out), "using trx '%s'\n",
-				    t->name);
-				write(fd, out, strlen(out));
-			} else {
-				snprintf(out, sizeof(out), "no trx '%s'\n",
-				    param);
-				write(fd, out, strlen(out));
-			}
-		} else if (!strcmp(command, "list-trx")) {
-			command_tag_t *n;
-			snprintf(out, sizeof(out), "list-trx-start\n");
-			write(fd, out, strlen(out));
+		pthread_cond_wait(&t->rcond, &t->rmutex);
 
-			for (n = command_tag; n; n = n->next) {
-				snprintf(out, sizeof(out), "%s\n", n->name);
-				write(fd, out, strlen(out));
-			}
-			snprintf(out, sizeof(out), "list-trx-end\n");
-			write(fd, out, strlen(out));
-		} else {
-			pthread_mutex_lock(&t->mutex);
-			pthread_mutex_lock(&t->rmutex);
+		write(fd, t->reply, strlen(t->reply));
+		buf[0] = 0x0a;
+		buf[1] = 0x0d;
+		write(fd, buf, 2);
 
-			t->command = command;
-			t->param = param;
-			t->client_fd = fd;
+		pthread_mutex_unlock(&t->rmutex);
 
-			pthread_cond_signal(&t->cond);
-			pthread_mutex_unlock(&t->mutex);
-
-			pthread_cond_wait(&t->rcond, &t->rmutex);
-
-			write(fd, t->reply, strlen(t->reply));
-			buf[0] = 0x0a;
-			buf[1] = 0x0d;
-			write(fd, buf, 2);
-
-			pthread_mutex_unlock(&t->rmutex);
-		}
+		/* Check if we changed the transceiver */
+		if (t->new_tag != t)
+			t = t->new_tag;
 	} while (nread > 0);
 	close(fd);
 	free(arg);

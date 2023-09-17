@@ -37,7 +37,6 @@ local function getFrequency()
 end
 
 return {
-	transceiver = 'Yaesu FT-817',
 	initialize = initialize,
 	setFrequency = setFrequency,
 	getFrequency = getFrequency

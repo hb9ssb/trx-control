@@ -23,6 +23,7 @@
 -- Yaesu FT-710 CAT driver
 
 local function initialize()
+	print('ft-710: initialize')
 	trx.setspeed(38400)
 	trx.write('ID;')
 	local reply = trx.read()
@@ -34,17 +35,18 @@ local function initialize()
 end
 
 local function setFrequency(freq)
+	print('ft-710: set frequency')
 	trx.write(string.format('FA%s;', freq))
 end
 
 local function getFrequency()
+	print('ft-710: get frequency')
 	trx.write('FA;')
 	local reply = trx.read()
 	return reply
 end
 
 return {
-	transceiver = 'Yaesu FT-710',
 	initialize = initialize,
 	setFrequency = setFrequency,
 	getFrequency = getFrequency

@@ -29,6 +29,8 @@
 #define TRXD_USER	"trxd"
 #define TRXD_GROUP	"trxd"
 
+#define SWITCH_TAG	"switch-tag:"
+
 typedef struct command_tag {
 	pthread_mutex_t		 mutex;
 	pthread_cond_t		 cond;
@@ -39,13 +41,17 @@ typedef struct command_tag {
 	const char		*name;
 	const char		*device;
 	const char		*driver;
-	const char		*command;
-	const char		*param;
-	char			*reply;
+
+	const char		*handler;
+	const char		*data;
+
+	const char		*reply;
 	int			 client_fd;
 	int			 cat_device;
 	pthread_t		 trx_control;
 	int			 is_running;
+
+	struct command_tag	*new_tag;
 	struct command_tag	*next;
 } command_tag_t;
 

@@ -85,8 +85,8 @@ trx_handler(void *arg)
 		pthread_mutex_lock(&command_tag->mutex);
 		pthread_mutex_lock(&command_tag->rmutex);
 
-		command_tag->command = "handle-data";
-		command_tag->param = buf;
+		command_tag->handler = "dataHandler";
+		command_tag->data = buf;
 		command_tag->client_fd = 0;
 
 		pthread_cond_signal(&command_tag->cond);
