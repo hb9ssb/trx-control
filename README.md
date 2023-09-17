@@ -27,3 +27,8 @@ Initially, trx-control will support the following transceivers:
 
 The client/server protocol is documented in the projects wiki at
 https://github.com/hb9ssb/trx-control/wiki
+
+## Signal group
+
+You can join a group on signal to discuss trx-control:
+https://signal.group/#CjQKIDkha6NGciRN-eA-qWjMTvtDfLkCeUBR_CDFtkMPJH9wEhAAVKw8SHl3dGIvVU2AT2sR
