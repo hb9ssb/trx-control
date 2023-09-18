@@ -20,7 +20,7 @@
 
 -- Lower half of the trx-control Lua part
 
--- Dummy driver fro development and testing purposes
+-- Dummy driver for development and testing purposes
 
 local frequency = 'no frequency set'
 local mode = 'no mode set'
