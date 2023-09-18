@@ -85,9 +85,9 @@ local function requestHandler(data)
 	elseif request.request == 'get-frequency' then
 		reply.frequency = getFrequency()
 	elseif request.request == 'set-mode' then
-		reply.mode = setMode(request.mode)
+		reply.mode = setMode(request.mode, request.band)
 	elseif request.request == 'get-mode' then
-		reply.mode = getMode()
+		reply.mode = getMode(request.band)
 	elseif request.request == 'select-trx' then
 		local t = trxd.selectTransceiver(request.name)
 		if t ~= nil then

@@ -25,15 +25,24 @@
 local mode = 'no mode set'
 
 local validModes = {
-	usb = true,
-	lsb = true,
-	cw = true,
-	fm = true,
-	am = true
+	['lsb'] = '1',
+	['usb'] = '2',
+	['cw-u'] = '3',
+	['fm'] = '4',
+	['am'] = '5',
+	['rtty-l'] = '6',
+	['cw-l'] = '7',
+	['data-l'] = '8',
+	['rtty-u'] = '9',
+	['data-fm'] = 'A',
+	['rm-n'] = 'B',
+	['data-u'] = 'C',
+	['am-n'] = 'D',
+	['psk'] = 'E',
+	['data-fm-n'] = 'F'
 }
 
 local function initialize()
-	print('ft-710: initialize')
 	trx.setspeed(38400)
 	trx.write('ID;')
 	local reply = trx.read()
@@ -45,21 +54,23 @@ local function initialize()
 end
 
 local function setFrequency(freq)
-	print('ft-710: set frequency')
 	trx.write(string.format('FA%s;', freq))
 	return freq
 end
 
 local function getFrequency()
-	print('ft-710: get frequency')
 	trx.write('FA;')
 	local reply = trx.read()
 	return reply
 end
 
-local function setMode(mode)
-	print (string.format('ft-710: set mode to %s', mode))
+local function setMode(mode, band)
+	local bcode = '0'
+	if band == 'sub' then
+		bcode = '1'
+	end
 	if validModes[mode] ~= nil then
+		trx.write(string.format('MD%s%s;', bcode, validModes[mode]))
 		mode = mode
 		return mode
 	else
@@ -67,9 +78,22 @@ local function setMode(mode)
 	end
 end
 
-local function getMode()
-	print 'ft-710: get mode'
-	return mode
+local function getMode(band)
+	local bcode = '0'
+	if band == 'sub' then
+		bcode = '1'
+	end
+
+	trx.write(string.format('MD%s;', bcode))
+	local reply = trx.read()
+	local mode = string.sub(reply, 4, 4)
+
+	for k, v in pairs(validModes) do
+		if v == mode then
+			return k
+		end
+	end
+	return 'unknown mode'
 end
 
 return {
