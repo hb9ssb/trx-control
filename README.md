@@ -13,7 +13,7 @@ trxd(8) listens on port 14285 by default for incoming connections.
 It supports both IPv4 and IPv6.
 
 The effective transceiver control is done using Lua modules,
-this way new transceivers can easily be supported by suppliying
+this way new transceivers can easily be supported by supplying
 a corresponding Lua driver module for a specific transceiver model.
 See https://lua.org and https://lua.msys.ch for more information
 on Lua.
