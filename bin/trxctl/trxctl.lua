@@ -80,12 +80,17 @@ end
 local function setMode(mode)
 	local request = {
 		request = 'set-mode',
-		mode = mode
 	}
+
+	for band, mode in string.gmatch(mode, "(%w+) +(%w+)") do
+		request.band = band
+		request.mode = mode
+	end
 
 	trxctl.writeln(json.encode(request))
 	local reply = json.decode(trxctl.read())
-	print(reply.mode)
+	print(string.format('set mode of band %s to %s', reply.band,
+	    reply.mode))
 end
 
 local function getMode()

@@ -43,8 +43,8 @@ local function getFrequency()
 	return driver.getFrequency()
 end
 
-local function setMode(mode)
-	return driver.setMode(mode)
+local function setMode(band, mode)
+	return driver.setMode(band, mode)
 end
 
 local function getMode()
@@ -85,7 +85,7 @@ local function requestHandler(data)
 	elseif request.request == 'get-frequency' then
 		reply.frequency = getFrequency()
 	elseif request.request == 'set-mode' then
-		reply.mode = setMode(request.mode, request.band)
+		reply.band, reply.mode = setMode(request.band, request.mode)
 	elseif request.request == 'get-mode' then
 		reply.mode = getMode(request.band)
 	elseif request.request == 'select-trx' then

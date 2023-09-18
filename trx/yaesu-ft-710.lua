@@ -22,8 +22,6 @@
 
 -- Yaesu FT-710 CAT driver
 
-local mode = 'no mode set'
-
 local validModes = {
 	['lsb'] = '1',
 	['usb'] = '2',
@@ -64,17 +62,23 @@ local function getFrequency()
 	return reply
 end
 
-local function setMode(mode, band)
-	local bcode = '0'
-	if band == 'sub' then
+local function setMode(band, mode)
+	print('ft-710', band, mode)
+	local bcode
+
+	if band == 'main' then
+		bcode = '0'
+	elseif band == 'sub' then
 		bcode = '1'
+	else
+		return nil, 'invalid band'
 	end
+
 	if validModes[mode] ~= nil then
 		trx.write(string.format('MD%s%s;', bcode, validModes[mode]))
-		mode = mode
-		return mode
+		return band, mode
 	else
-		return 'invalid mode ' .. mode
+		return nil, 'invalid mode'
 	end
 end
 
