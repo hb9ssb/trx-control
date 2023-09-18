@@ -40,7 +40,7 @@ client_handler(void *arg)
 	command_tag_t *t;
 	int fd = *(int *)arg;
 	int status, nread, n;
-	char buf[128], out[128], *p;
+	char buf[256], out[1024], *p;
 	const char *command, *param;
 
 	t = command_tag;
@@ -53,7 +53,7 @@ client_handler(void *arg)
 		nread = read(fd, buf, sizeof(buf));
 		if (nread <= 0)
 			break;
-
+		buf[nread] = '\0';
 		pthread_mutex_lock(&t->mutex);
 		pthread_mutex_lock(&t->rmutex);
 
@@ -67,10 +67,8 @@ client_handler(void *arg)
 
 		pthread_cond_wait(&t->rcond, &t->rmutex);
 
-		write(fd, t->reply, strlen(t->reply));
-		buf[0] = 0x0a;
-		buf[1] = 0x0d;
-		write(fd, buf, 2);
+		snprintf(out, sizeof(out), "%s\0x0a\0x0d", t->reply);
+		write(fd, out, strlen(out));
 
 		pthread_mutex_unlock(&t->rmutex);
 

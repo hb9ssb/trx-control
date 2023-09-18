@@ -22,7 +22,16 @@
 
 -- Dummy driver fro development and testing purposes
 
-local frequency = ''
+local frequency = 'no frequency set'
+local mode = 'no mode set'
+
+local validModes = {
+	usb = true,
+	lsb = true,
+	cw = true,
+	fm = true,
+	am = true
+}
 
 local function initialize()
 	print 'dummy-trx: initialize'
@@ -31,6 +40,7 @@ end
 local function setFrequency(freq)
 	print (string.format('dummy-trx: set fequency to %s', freq))
 	frequency = freq
+	return frequency
 end
 
 local function getFrequency()
@@ -38,8 +48,25 @@ local function getFrequency()
 	return frequency
 end
 
+local function setMode(mode)
+	print (string.format('dummy-trx: set mode to %s', mode))
+	if validModes[mode] ~= nil then
+		mode = mode
+		return mode
+	else
+		return 'invalid mode ' .. mode
+	end
+end
+
+local function getMode()
+	print 'dummy-trx: get mode'
+	return mode
+end
+
 return {
 	initialize = initialize,
 	setFrequency = setFrequency,
-	getFrequency = getFrequency
+	getFrequency = getFrequency,
+	getMode = getMode,
+	setMode = setMode
 }

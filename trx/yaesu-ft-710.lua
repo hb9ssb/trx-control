@@ -22,6 +22,16 @@
 
 -- Yaesu FT-710 CAT driver
 
+local mode = 'no mode set'
+
+local validModes = {
+	usb = true,
+	lsb = true,
+	cw = true,
+	fm = true,
+	am = true
+}
+
 local function initialize()
 	print('ft-710: initialize')
 	trx.setspeed(38400)
@@ -37,6 +47,7 @@ end
 local function setFrequency(freq)
 	print('ft-710: set frequency')
 	trx.write(string.format('FA%s;', freq))
+	return freq
 end
 
 local function getFrequency()
@@ -46,8 +57,25 @@ local function getFrequency()
 	return reply
 end
 
+local function setMode(mode)
+	print (string.format('ft-710: set mode to %s', mode))
+	if validModes[mode] ~= nil then
+		mode = mode
+		return mode
+	else
+		return 'invalid mode ' .. mode
+	end
+end
+
+local function getMode()
+	print 'ft-710: get mode'
+	return mode
+end
+
 return {
 	initialize = initialize,
 	setFrequency = setFrequency,
-	getFrequency = getFrequency
+	getFrequency = getFrequency,
+	getMode = getMode,
+	setMode = setMode
 }

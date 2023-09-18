@@ -24,12 +24,14 @@
 
 #include <termios.h>
 #include <unistd.h>
+#include <stdlib.h>
 
 #include <lua.h>
 #include <lauxlib.h>
 
 extern int connect_trxd(const char *, const char *);
 extern int fd;
+extern int verbosity;
 
 static int
 luatrxctl_connect(lua_State *L)
@@ -48,9 +50,11 @@ luatrxctl_read(lua_State *L)
 	size_t len;
 
 	len = read(fd, buf, sizeof(buf));
-	if (len > 0)
+	if (len > 0) {
+		if (verbosity)
+			printf("< %s\n", buf);
 		lua_pushlstring(L, buf, len);
-	else
+	} else
 		lua_pushnil(L);
 	return 1;
 }
@@ -62,7 +66,27 @@ luatrxctl_write(lua_State *L)
 	size_t len;
 
 	data = luaL_checklstring(L, 1, &len);
+	if (verbosity)
+		printf("> %s\n", data);
 	write(fd, data, len);
+	return 0;
+}
+
+static int
+luatrxctl_writeln(lua_State *L)
+{
+	const char *data;
+	char *buf;
+	char crlf[2] = { 0x0d, 0x0a };
+	size_t len;
+
+	data = luaL_checklstring(L, 1, &len);
+	buf = malloc(len + 3);
+	snprintf(buf, len + 3, "%s\0x0d\0x0a", data);
+	if (verbosity)
+		printf("> %s\n", data);
+	write(fd, buf, len + 2);
+	free(buf);
 	return 0;
 }
 
@@ -73,6 +97,7 @@ luaopen_trxctl(lua_State *L)
 		{ "connect",	luatrxctl_connect },
 		{ "read",	luatrxctl_read },
 		{ "write",	luatrxctl_write },
+		{ "writeln",	luatrxctl_writeln },
 		{ NULL, NULL }
 	};
 

@@ -31,43 +31,24 @@ local function registerDriver(newDriver)
 	end
 end
 
--- XXX drivers should be sandboxed
-local function loadDriver(trxType)
-	if trxType == nil then
-		return 'command expects a trx-type'
-	end
-
-	if string.find(trxType, '/') ~= nil then
-		return 'trx-type must not contain slashes'
-	end
-
-	local d = dofile(string.format('/usr/share/trxd/trx/%s.lua', trxType))
-	if type(d) == 'table' then
-		registerDriver(d)
-		return 'new driver loaded'
-	else
-		return 'unexpected return value from driver'
-	end
-end
-
-local function getTransceiver()
-	return driver.transceiver or 'unknown transceiver'
-end
-
 local function getTransceiverList()
 	return trxd.getTransceiverList()
 end
 
 local function setFrequency(freq)
-	driver.setFrequency(freq)
-	for k, v in ipairs(frequencyListeners) do
-		trxd.send(v, string.format('frequency %s\n', freq))
-	end
-	return 'frequency set'
+	return driver.setFrequency(freq)
 end
 
 local function getFrequency()
 	return driver.getFrequency()
+end
+
+local function setMode(mode)
+	return driver.setMode(mode)
+end
+
+local function getMode()
+	return driver.getMode()
 end
 
 local function listenFrequency(fd)
@@ -90,21 +71,24 @@ end
 
 -- Handle request from a network client
 local function requestHandler(data)
-	print('requestHandler', data)
-
 	local request = json.decode(data)
+
 	local reply = {
-		status = 'Ok'
+		status = 'Ok',
+		reply = request.request
 	}
 
-	if request.cmd == 'list-trx' then
-		reply = getTransceiverList()
-	elseif request.cmd == 'set-frequency' then
-		setFrequency(request.frequency)
-	elseif request.cmd == 'get-frequency' then
-		local freq = getFrequency()
-		reply.frequency = freq
-	elseif request.cmd == 'select-trx' then
+	if request.request == 'list-trx' then
+		reply.data = getTransceiverList()
+	elseif request.request == 'set-frequency' then
+		reply.frequency = setFrequency(request.frequency)
+	elseif request.request == 'get-frequency' then
+		reply.frequency = getFrequency()
+	elseif request.request == 'set-mode' then
+		reply.mode = setMode(request.mode)
+	elseif request.request == 'get-mode' then
+		reply.mode = getMode()
+	elseif request.request == 'select-trx' then
 		local t = trxd.selectTransceiver(request.name)
 		if t ~= nil then
 			return string.format('switch-tag:%s',
@@ -112,17 +96,25 @@ local function requestHandler(data)
 		else
 			reply = {
 				status = 'Error',
-				reason = 'No such transceiver'
+				reply = 'select-trx',
+				reason = 'No such transceiver',
+				name = request.name
 			}
 		end
 	end
-
 	return json.encode(reply)
 end
 
 -- Handle incoming data from the transceiver
 local function dataHandler(data)
 end
+
+-- Inihibit talking to the real hardware for now
+trx.write = function (data)
+	print(string.format('write %s to the trx', data))
+end
+
+trx.read = function () return '' end
 
 return {
 	registerDriver = registerDriver,

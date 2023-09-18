@@ -23,6 +23,15 @@
 -- Yaesu FT-817 CAT driver
 
 local frequency = 'no frequency set'
+local mode = 'no mode set'
+
+local validModes = {
+	usb = true,
+	lsb = true,
+	cw = true,
+	fm = true,
+	am = true
+}
 
 local function initialize()
 	trx.setspeed(38400)
@@ -36,8 +45,25 @@ local function getFrequency()
 	return frequency
 end
 
+local function setMode(mode)
+	print (string.format('ft-817: set mode to %s', mode))
+	if validModes[mode] ~= nil then
+		mode = mode
+		return mode
+	else
+		return 'invalid mode ' .. mode
+	end
+end
+
+local function getMode()
+	print 'ft-817: get mode'
+	return mode
+end
+
 return {
 	initialize = initialize,
 	setFrequency = setFrequency,
-	getFrequency = getFrequency
+	getFrequency = getFrequency,
+	getMode = getMode,
+	setMode = setMode
 }

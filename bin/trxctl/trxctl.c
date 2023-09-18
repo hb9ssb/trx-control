@@ -48,6 +48,7 @@ extern void luaopen_trxctl(lua_State *);
 extern void luaopen_json(lua_State *);
 
 int fd = 0;
+int verbosity = 0;
 
 static struct {
 	const char *command;
@@ -58,6 +59,8 @@ static struct {
 	"set-frequency",	"setFrequency",
 	"get-frequency",	"getFrequency",
 	"listen-frequency",	"listenFrequency",
+	"set-mode",		"setMode",
+	"get-mode",		"getMode",
 	"unlisten-frequency",	"unlistenFrequency",
 	NULL,			NULL
 };
@@ -143,7 +146,7 @@ int
 main(int argc, char *argv[])
 {
 	lua_State *L;
-	int fd, c, n, list, verbosity, cmdhandler_ref;
+	int fd, c, n, list, cmdhandler_ref;
 	char *host, *port, *trx, buf[128], *line;
 
 	verbosity = 0;

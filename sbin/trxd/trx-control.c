@@ -202,6 +202,7 @@ trx_control(void *arg)
 				    strlen(SWITCH_TAG))) {
 					char *name;
 					command_tag_t *t;
+					char buf[256];
 
 					name = strchr(reply, ':');
 					name++;
@@ -213,11 +214,15 @@ trx_control(void *arg)
 						}
 					}
 
-					tag->reply= "{ status: \"Ok\"}";
+					snprintf(buf, sizeof(buf),
+					    "{ \"status\": \"Ok\", \"reply\": "
+					    "\"use-trx\", \"name\": \"%s\"}",
+					    name);
+					tag->reply = buf;
 				} else
 					tag->reply = reply;
 			} else
-				tag->reply = "{result: \"no value\"}";
+				tag->reply = "{\"result\": \"no value\"}";
 		}
 		lua_pop(L, 2);
 

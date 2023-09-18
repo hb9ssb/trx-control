@@ -20,56 +20,89 @@
 
 -- trxctl support functions/command handlers
 
+local function params(data)
+end
+
 local function useTrx(trx)
-	print('useTrx ' .. trx)
 	local d = {
-		cmd = 'select-trx',
+		request = 'select-trx',
 		name = trx
 	}
 
-	trxctl.write(json.encode(d) .. '\n')
-	local reply = trxctl.read()
-	print(reply)
+	trxctl.writeln(json.encode(d))
+	local reply = json.decode(trxctl.read())
+	if reply.status == 'Ok' then
+		print(string.format('now using the %s transceiver', reply.name))
+	else
+		print(string.format('%s: %s', reply.status, reply.reason))
+	end
 end
 
 local function listTrx()
 	local request = {
-		cmd = 'list-trx'
+		request = 'list-trx'
 	}
 
-	trxctl.write(json.encode(request) .. '\n')
+	trxctl.writeln(json.encode(request))
 	local reply = json.decode(trxctl.read())
 
-	for k, v in pairs(reply) do
-		print(string.format('%-20s %s on %s', v.name, v.driver,
-		    v.device))
+	if reply.status == 'Ok' then
+		for k, v in pairs(reply.data) do
+			print(string.format('%-20s %s on %s', v.name, v.driver,
+			    v.device))
+		end
+	else
+		print(string.format('%s: %s', reply.status, reply.reason))
 	end
 end
 
 local function setFrequency(freq)
 	local request = {
-		cmd = 'set-frequency',
+		request = 'set-frequency',
 		frequency = freq
 	}
 
-	trxctl.write(json.encode(request) .. '\n')
-	local reply = trxctl.read()
-	print(reply)
+	trxctl.writeln(json.encode(request))
+	local reply = json.decode(trxctl.read())
+	print(reply.frequency)
 end
 
 local function getFrequency(freq)
 	local request = {
-		cmd = 'get-frequency',
+		request = 'get-frequency',
 	}
 
-	trxctl.write(json.encode(request) .. '\n')
-	local reply = trxctl.read()
-	print(reply)
+	trxctl.writeln(json.encode(request))
+	local reply = json.decode(trxctl.read())
+	print(reply.frequency)
+end
+
+local function setMode(mode)
+	local request = {
+		request = 'set-mode',
+		mode = mode
+	}
+
+	trxctl.writeln(json.encode(request))
+	local reply = json.decode(trxctl.read())
+	print(reply.mode)
+end
+
+local function getMode()
+	local request = {
+		request = 'get-mode',
+	}
+
+	trxctl.writeln(json.encode(request))
+	local reply = json.decode(trxctl.read())
+	print(reply.mode)
 end
 
 return {
 	useTrx = useTrx,
 	listTrx = listTrx,
 	setFrequency = setFrequency,
-	getFrequency = getFrequency
+	getFrequency = getFrequency,
+	setMode = setMode,
+	getMode = getMode
 }

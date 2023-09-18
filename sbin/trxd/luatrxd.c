@@ -74,7 +74,6 @@ luatrxd_select_transceiver(lua_State *L)
 
 	name = luaL_checkstring(L, 1);
 
-	printf("select trx %s\n", name);
 	for (t = command_tag; t != NULL; t = t->next, n++) {
 		if (!strcmp(t->name, name))
 			break;
