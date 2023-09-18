@@ -1,6 +1,8 @@
 # trx-control
 
-Software to control amateur radio transceivers.  This is work in progress.
+Software to control amateur radio transceivers.
+
+(This is work in progress and not yet ready for production use.)
 
 trx-control consists of trxd(8), a daemon to control the transceivers,
 and, trxctl(1), a command line utility to access trxd.  trxctl(1) is meant
@@ -24,6 +26,9 @@ Initially, trx-control will support the following transceivers:
 * Yaesu FT-897
 * Yaesu FT-817
 * Yaesu FT-991A
+
+A special dummy transceiver driver exists for development and testing
+purposes.
 
 The client/server protocol is documented in the projects wiki at
 https://github.com/hb9ssb/trx-control/wiki
