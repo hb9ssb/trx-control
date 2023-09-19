@@ -21,11 +21,20 @@
 -- Upper half of trx-control
 
 local driver = {}
+local device = ''
 local frequencyListeners = {}
 
-local function registerDriver(newDriver)
-	driver = newDriver
+local function registerDriver(name, dev, newDriver)
+	print(string.format('register driver for %s on %s', name, dev))
 
+	driver = newDriver
+	device = dev
+
+	if driver.statusUpdatesRequirePolling == true then
+		print('this tranceivers requires polling for status updates')
+	else
+		print('this transceiver supports automatic status updates')
+	end
 	if type(driver.initialize) == 'function' then
 		driver.initialize()
 	end
@@ -101,6 +110,10 @@ local function requestHandler(data)
 				name = request.name
 			}
 		end
+	elseif request.request == 'start-status-updates' then
+		trxd.startPolling(device)
+	elseif request.request == 'stop-status-updates' then
+		trxd.stopPolling(device)
 	end
 	return json.encode(reply)
 end

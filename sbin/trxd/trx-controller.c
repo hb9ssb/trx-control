@@ -114,7 +114,7 @@ trx_control(void *arg)
 	lua_setfield(L, -2, "path");
 	lua_pop(L, 1);
 
-	if (luaL_dofile(L, _PATH_TRX_CONTROL)) {
+	if (luaL_dofile(L, _PATH_TRX_CONTROLLER)) {
 		syslog(LOG_ERR, "Lua error: %s", lua_tostring(L, -1));
 		goto terminate;
 	}
@@ -135,7 +135,8 @@ trx_control(void *arg)
 
 	lua_geti(L, LUA_REGISTRYINDEX, driver_ref);
 	lua_getfield(L, -1, "registerDriver");
-
+	lua_pushstring(L, tag->name);
+	lua_pushstring(L, tag->device);
 	if (luaL_dofile(L, trx_driver)) {
 		syslog(LOG_ERR, "Lua error: %s", lua_tostring(L, -1));
 		goto terminate;
@@ -145,7 +146,7 @@ trx_control(void *arg)
 		    tag->driver);
 		goto terminate;
 	} else {
-		switch (lua_pcall(L, 1, 0, 0)) {
+		switch (lua_pcall(L, 3, 0, 0)) {
 		case LUA_OK:
 			break;
 		case LUA_ERRRUN:

@@ -49,6 +49,7 @@ typedef struct command_tag {
 	int			 client_fd;
 	int			 cat_device;
 	pthread_t		 trx_control;
+	pthread_t		 trx_poller;
 	int			 is_running;
 	int			 poller_running;
 

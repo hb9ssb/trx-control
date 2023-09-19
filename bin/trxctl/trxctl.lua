@@ -69,7 +69,7 @@ end
 
 local function getFrequency(freq)
 	local request = {
-		request = 'get-frequency',
+		request = 'get-frequency'
 	}
 
 	trxctl.writeln(json.encode(request))
@@ -79,7 +79,7 @@ end
 
 local function setMode(mode)
 	local request = {
-		request = 'set-mode',
+		request = 'set-mode'
 	}
 
 	for band, mode in string.gmatch(mode, "(%w+) +(%w+)") do
@@ -95,9 +95,28 @@ end
 
 local function getMode()
 	local request = {
-		request = 'get-mode',
+		request = 'get-mode'
 	}
 
+	trxctl.writeln(json.encode(request))
+	local reply = json.decode(trxctl.read())
+	print(reply.mode)
+end
+
+local function startStatusUpdates()
+	local request = {
+		request = 'start-status-updates'
+	}
+	trxctl.writeln(json.encode(request))
+	local reply = json.decode(trxctl.read())
+	print(reply.mode)
+
+end
+
+local function stopStatusUpdates()
+	local request = {
+		request = 'stop-status-updates'
+	}
 	trxctl.writeln(json.encode(request))
 	local reply = json.decode(trxctl.read())
 	print(reply.mode)
@@ -109,5 +128,7 @@ return {
 	setFrequency = setFrequency,
 	getFrequency = getFrequency,
 	setMode = setMode,
-	getMode = getMode
+	getMode = getMode,
+	startStatusUpdates = startStatusUpdates,
+	stopStatusUpdates = stopStatusUpdates
 }

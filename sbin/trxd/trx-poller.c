@@ -50,6 +50,8 @@ trx_poller(void *arg)
 	if (status)
 		err(1, "can't detach");
 
+	printf("poller starts running for %s on %s\n", t->name, t->device);
+
 	while (t->poller_running) {
 		pthread_mutex_lock(&t->mutex);
 		pthread_mutex_lock(&t->rmutex);
@@ -64,8 +66,11 @@ trx_poller(void *arg)
 
 		pthread_cond_wait(&t->rcond, &t->rmutex);
 
+		printf("poller got %s\n", t->reply);
+
 		pthread_mutex_unlock(&t->rmutex);
 		usleep(POLLING_INTERVAL);
 	}
+	printf("poller stops running for %s on %s\n", t->name, t->device);
 	return NULL;
 }

@@ -64,6 +64,7 @@ local function getMode()
 end
 
 return {
+	statusUpdatesRequirePolling = true,
 	initialize = initialize,
 	setFrequency = setFrequency,
 	getFrequency = getFrequency,

@@ -32,6 +32,8 @@
 
 extern command_tag_t *command_tag;
 
+extern void *trx_poller(void *);
+
 static int
 luatrxd_send(lua_State *L)
 {
@@ -86,6 +88,46 @@ luatrxd_select_transceiver(lua_State *L)
 	return 1;
 }
 
+static int
+luatrxd_start_polling(lua_State *L)
+{
+	const char *device;
+	command_tag_t *t;
+
+	device = luaL_checkstring(L, 1);
+	for (t = command_tag; t != NULL; t = t->next) {
+		if (!strcmp(t->device, device)) {
+			t->poller_running = 1;
+			pthread_create(&t->trx_poller, NULL, trx_poller, t);
+			lua_pushboolean(L, 1);
+			break;
+		}
+	}
+	if (t == NULL)
+		lua_pushnil(L);
+	return 1;
+}
+
+static int
+luatrxd_stop_polling(lua_State *L)
+{
+	const char *device;
+	command_tag_t *t;
+
+	device = luaL_checkstring(L, 1);
+	for (t = command_tag; t != NULL; t = t->next) {
+		if (!strcmp(t->device, device)) {
+			t->poller_running = 0;
+			pthread_join(t->trx_poller, NULL);
+			lua_pushboolean(L, 1);
+			break;
+		}
+	}
+	if (t == NULL)
+		lua_pushnil(L);
+	return 1;
+}
+
 int
 luaopen_trxd(lua_State *L)
 {
@@ -93,6 +135,8 @@ luaopen_trxd(lua_State *L)
 		{ "send",			luatrxd_send },
 		{ "getTransceiverList",		luatrxd_get_transceiver_list },
 		{ "selectTransceiver",		luatrxd_select_transceiver },
+		{ "startPolling",		luatrxd_start_polling },
+		{ "stopPolling",		luatrxd_stop_polling },
 		{ NULL, NULL }
 	};
 

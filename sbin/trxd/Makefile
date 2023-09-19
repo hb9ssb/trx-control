@@ -1,5 +1,5 @@
 SRCS=		trxd.c \
-		trx-control.c \
+		trx-controller.c \
 		client-handler.c \
 		trx-handler.c \
 		trx-poller.c \
@@ -25,8 +25,8 @@ build:		trxd
 clean:
 		rm -f trxd *.o
 
-.PHONY: install trxd.8 trx-control.lua
-install:	trxd trxd.8 trx-control.lua
+.PHONY: install trxd.8 trx-controller.lua
+install:	trxd trxd.8 trx-controller.lua
 		install -m 755 trxd $(DESTDIR)$(SBINDIR)
 
 trxd:		${OBJS}
@@ -36,7 +36,7 @@ trxd.8:
 		@install -D -m 644 $@ $(DESTDIR)$(MANDIR)/man8/$@
 		@gzip -f $(DESTDIR)$(MANDIR)/man8/$@
 
-trx-control.lua:
+trx-controller.lua:
 		@install -D -m 644 $@ $(DESTDIR)$(TRXDDIR)/$@
 
 .c.o:

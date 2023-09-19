@@ -62,6 +62,8 @@ static struct {
 	"set-mode",		"setMode",
 	"get-mode",		"getMode",
 	"unlisten-frequency",	"unlistenFrequency",
+	"start-status-updates",	"startStatusUpdates",
+	"stop-status-updates",	"stopStatusUpdates",
 	NULL,			NULL
 };
 
