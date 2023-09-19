@@ -20,40 +20,52 @@
  * IN THE SOFTWARE.
  */
 
-#ifndef __TRXD_H__
-#define __TRXD_H__
+/* Handle transceivers that need polling for status updates */
 
+#include <err.h>
 #include <pthread.h>
+#include <sched.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <unistd.h>
 
-#define TRXD_VERSION	"1.0.0"
-#define TRXD_USER	"trxd"
-#define TRXD_GROUP	"trxd"
+#include "trxd.h"
 
-#define SWITCH_TAG	"switch-tag:"
+#define STATUS_REQUEST	"{\"request\": \"get-frequency\"}"
+#define POLLING_INTERVAL	200000	/* microseconds */
 
-typedef struct command_tag {
-	pthread_mutex_t		 mutex;
-	pthread_cond_t		 cond;
-	pthread_mutex_t		 rmutex;
-	pthread_cond_t		 rcond;
-	pthread_mutex_t		 ai_mutex;
+void *
+trx_poller(void *arg)
+{
+	command_tag_t *t = (command_tag_t *)arg;
+	struct timeval tv;
+	int fd = *(int *)arg;
+	int status, nread, n;
+	char buf[256], out[1024], *p;
+	const char *command, *param;
 
-	const char		*name;
-	const char		*device;
-	const char		*driver;
 
-	const char		*handler;
-	const char		*data;
+	status = pthread_detach(pthread_self());
+	if (status)
+		err(1, "can't detach");
 
-	const char		*reply;
-	int			 client_fd;
-	int			 cat_device;
-	pthread_t		 trx_control;
-	int			 is_running;
-	int			 poller_running;
+	while (t->poller_running) {
+		pthread_mutex_lock(&t->mutex);
+		pthread_mutex_lock(&t->rmutex);
 
-	struct command_tag	*new_tag;
-	struct command_tag	*next;
-} command_tag_t;
+		/* XXX Maybe create a specific handler for the poller */
+		t->handler = "requestHandler";
+		t->data = STATUS_REQUEST;
+		t->client_fd = 0;
 
-#endif /* __TRXD_H__ */
+		pthread_cond_signal(&t->cond);
+		pthread_mutex_unlock(&t->mutex);
+
+		pthread_cond_wait(&t->rcond, &t->rmutex);
+
+		pthread_mutex_unlock(&t->rmutex);
+		usleep(POLLING_INTERVAL);
+	}
+	return NULL;
+}

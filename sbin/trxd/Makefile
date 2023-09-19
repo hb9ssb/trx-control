@@ -2,6 +2,7 @@ SRCS=		trxd.c \
 		trx-control.c \
 		client-handler.c \
 		trx-handler.c \
+		trx-poller.c \
 		luatrxd.c \
 		luatrx.c \
 		luayaml.c \

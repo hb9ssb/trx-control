@@ -307,6 +307,7 @@ main(int argc, char *argv[])
 		t = malloc(sizeof(command_tag_t));
 		t->next = NULL;
 		t->is_running = 0;
+		t->poller_running = 0;
 
 		lua_getfield(L, -1, "name");
 		t->name = strdup(lua_tostring(L, -1));
