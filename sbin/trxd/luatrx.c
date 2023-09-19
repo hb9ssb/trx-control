@@ -22,6 +22,7 @@
 
 /* Provide the 'trx' Lua module to transceiver drivers */
 
+#include <stdlib.h>
 #include <termios.h>
 #include <unistd.h>
 
@@ -74,12 +75,17 @@ static int
 luatrx_read(lua_State *L)
 {
 	char buf[256];
-	size_t len;
+	size_t len, nread;
 	int fd;
+
+	len = luaL_checkinteger(L, 1);
 
 	fd = get_fd(L);
 
-	len = read(fd, buf, sizeof(buf));
+	nread = 0;
+	while (nread < len)
+		nread += read(fd, &buf[nread], len - nread);
+
 	if (len > 0)
 		lua_pushlstring(L, buf, len);
 	else
@@ -101,6 +107,43 @@ luatrx_write(lua_State *L)
 	return 0;
 }
 
+static int
+from_bcd(lua_State *L)
+{
+	unsigned char *bcd_string, *string, *p;
+	size_t len;
+	int n;
+
+	bcd_string = (unsigned char *)luaL_checklstring(L, 1, &len);
+	string = p = malloc(len * 2 + 1);
+	for (n = 0; n < len; n++, bcd_string++) {
+		*p++ = '0' + (*bcd_string >> 4);
+		*p++ = '0' + (*bcd_string & 0x0f);
+	}
+	*p = '\0';
+	lua_pushstring(L, string);
+	free(string);
+	return 1;
+}
+
+static int
+to_bcd(lua_State *L)
+{
+	unsigned char *bcd_string, *string, *p;
+	size_t len;
+	int n;
+
+	string = (unsigned char *)luaL_checklstring(L, 1, &len);
+	bcd_string = p = malloc(len);
+	for (n = 0; n < len / 2; n++) {
+		*p = *string++ - '0' << 4 | *string++ & 0x0f;
+	}
+	*p = '\0';
+	lua_pushlstring(L, bcd_string, len / 2);
+	free(bcd_string);
+	return 1;
+}
+
 int
 luaopen_trx(lua_State *L)
 {
@@ -109,6 +152,8 @@ luaopen_trx(lua_State *L)
 		{ "setspeed",	luatrx_setspeed },
 		{ "read",	luatrx_read },
 		{ "write",	luatrx_write },
+		{ "fromBCD",	from_bcd },
+		{ "toBCD",	to_bcd },
 		{ NULL, NULL }
 	};
 

@@ -24,17 +24,23 @@ pid-file: trxd.pid
 
 # We control a Yaesu FT-710 on /dev/ttyUSB0 and a Yaesu FT-991A on /dev/ttyUSB2
 trx:
+  ft-897:
+    name: FT-897
+    device: /dev/ttyUSB2
+    driver: yaesu-ft-897
+
+inactive:
   dummy:
-    name: Dummy TRX
+    name: Dummy
     device: /dev/null
     driver: dummy-trx
 
   ft-710:
-    name: Yaesu FT-710
+    name: FT-710
     device: /dev/ttyUSB0
     driver: yaesu-ft-710
 
   ft-991a:
-    name: Yaesu FT-991A
+    name: FT-991A
     device: /dev/ttyUSB1
     driver: yaesu-ft-991a

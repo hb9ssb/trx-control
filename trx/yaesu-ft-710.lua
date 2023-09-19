@@ -43,7 +43,7 @@ local validModes = {
 local function initialize()
 	trx.setspeed(38400)
 	trx.write('ID;')
-	local reply = trx.read()
+	local reply = trx.read(7)
 	if reply ~= 'ID0800;' then
 		print 'this is not a Yaesu FT-710 transceiver'
 	else

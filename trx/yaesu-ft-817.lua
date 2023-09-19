@@ -22,7 +22,6 @@
 
 -- Yaesu FT-817 CAT driver
 
-local frequency = 'no frequency set'
 local mode = 'no mode set'
 
 local validModes = {
@@ -38,10 +37,15 @@ local function initialize()
 end
 
 local function setFrequency(freq)
-	frequency = freq
+	local bcd = trx.toBCD(freq)
+	trx.write(bcd .. '\x01')
+	return freq
 end
 
 local function getFrequency()
+	trx.write('\x00\x00\x00\x00\x03')
+	local f = trx.read(5)
+	frequency = trx.fromBCD(string.sub(f, 1, 4))
 	return frequency
 end
 
@@ -59,6 +63,7 @@ local function getMode()
 	print 'ft-817: get mode'
 	return mode
 end
+
 
 return {
 	statusUpdatesRequirePolling = true,

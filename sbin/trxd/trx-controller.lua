@@ -122,13 +122,6 @@ end
 local function dataHandler(data)
 end
 
--- Inihibit talking to the real hardware for now
-trx.write = function (data)
-	print(string.format('write %s to the trx', data))
-end
-
-trx.read = function () return '' end
-
 return {
 	registerDriver = registerDriver,
 	requestHandler = requestHandler,
