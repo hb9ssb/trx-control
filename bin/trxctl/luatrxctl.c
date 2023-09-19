@@ -51,6 +51,7 @@ luatrxctl_read(lua_State *L)
 
 	len = read(fd, buf, sizeof(buf));
 	if (len > 0) {
+		buf[len] = '\0';
 		if (verbosity)
 			printf("< %s\n", buf);
 		lua_pushlstring(L, buf, len);
