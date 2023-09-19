@@ -32,6 +32,7 @@
 #include <string.h>
 #include <syslog.h>
 #include <unistd.h>
+#include <wordexp.h>
 
 #include <readline/readline.h>
 #include <readline/history.h>
@@ -43,6 +44,7 @@
 #define DEFAULT_HOST	"localhost"
 #define DEFAULT_PORT	"14285"
 #define _PATH_TRXCTL	"/usr/share/trxctl/trxctl.lua"
+#define HISTORY		"~/.trxctl_history"
 
 extern void luaopen_trxctl(lua_State *);
 extern void luaopen_json(lua_State *);
@@ -148,6 +150,7 @@ int
 main(int argc, char *argv[])
 {
 	lua_State *L;
+	wordexp_t p;
 	int fd, c, n, list, cmdhandler_ref;
 	char *host, *port, *trx, buf[128], *line;
 
@@ -223,6 +226,9 @@ main(int argc, char *argv[])
 		exit(1);
 	}
 
+	wordexp(HISTORY, &p, 0);
+	read_history(p.we_wordv[0]);
+
 	while ((line = rl_gets())) {
 		char *param;
 
@@ -268,7 +274,8 @@ main(int argc, char *argv[])
 			printf("no such command\n");
 
 	}
-
+	write_history(p.we_wordv[0]);
+	wordfree(&p);
 	lua_close(L);
 	close(fd);
 	return 0;
