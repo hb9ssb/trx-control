@@ -50,6 +50,8 @@ Widget toplevel;
 lua_State *L;
 
 int emulator_ref = LUA_REFNIL;
+int verbosity = 0;
+int fd;
 
 static void xqrg_input_cb(XtPointer client_data, int *source, XtInputId *id);
 
@@ -194,12 +196,12 @@ main(int argc, char *argv[])
 			errx(1, "script %s not found", config.script);
 	}
 
-	listen_fd = connect_trxd(config.host, config.port);
+	fd = connect_trxd(config.host, config.port);
 
-	if (listen_fd < 0)
+	if (fd < 0)
 		err(1, "can not connect to %s:%s", config.host, config.port);
 
-	XtAppAddInput(app, listen_fd, (XtPointer)XtInputReadMask, xqrg_input_cb,
+	XtAppAddInput(app, fd, (XtPointer)XtInputReadMask, xqrg_input_cb,
 	    NULL);
 	XtAppMainLoop(app);
 
