@@ -18,7 +18,7 @@
 .\" FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 .\" IN THE SOFTWARE.
 .\"
-.TH TRX-CONTROL 7 "15 September 2023" "trx-control"
+.TH TRX-CONTROL 7 "20 September 2023" "trx-control"
 .SH NAME
 trx-control \- software to control radio transceivers
 .SH DESCRIPTION
@@ -28,12 +28,16 @@ Software to control amateur radio transceivers.
 .PP
 trx-control consists of
 .IR trxd (8)
-(a daemon to control the transceivers), and,
+(a daemon to control the transceivers),
 .IR trxctl (1)
-(a command line utility to access trxd.)
+(a command line utility to access trxd), and
+.IR xqrg (1)
+(a graphical client to display a transceivers frequency.)
 .PP
 .IR trxctl (1)
-is meant as a reference client only.
+and
+.IR xqrg (1)
+ar meant as reference clients only.
 Software that wants to make use of
 .IR trxd (8)
 should implement the protocol and talk to
@@ -102,7 +106,8 @@ Marc Balmer HB9SSB
 .SH "SEE ALSO"
 .
 .PP
-.IR trxctl (1),
+.IR trxctl (1) ,
+.IR xqrg (1) ,
 .IR trxd (8)
 .PP
 The client/server protocol is documented in the projects wiki at

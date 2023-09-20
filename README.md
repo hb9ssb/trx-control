@@ -5,9 +5,11 @@ Software to control amateur radio transceivers.
 (This is work in progress and not yet ready for production use.)
 
 trx-control consists of trxd(8), a daemon to control the transceivers,
-and, trxctl(1), a command line utility to access trxd.  trxctl(1) is meant
-as a reference client only.  Software that wants to make use of trxd(8)
-should implement the protocol and talk to trxd(8) directly over the network.
+trxctl(1), a command line utility to access trxd(8), and, xqrg(1), a
+graphical client to display a transceivers frequency. trxctl(1) and
+xqrg(1) are meant as reference clients only.
+Software that wants to make use of trxd(8) should implement the protocol
+and talk to trxd(8) directly over the network.
 
 trxd(8) listens on port 14285 by default for incoming connections.
 It supports both IPv4 and IPv6.
