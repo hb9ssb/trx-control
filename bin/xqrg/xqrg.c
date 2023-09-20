@@ -36,12 +36,13 @@
 #include <err.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <lualib.h>
-#include <lauxlib.h>
 #include <netdb.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+
+#include <lualib.h>
+#include <lauxlib.h>
 
 #include "xqrg.h"
 
