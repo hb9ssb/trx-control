@@ -1,0 +1,23 @@
+! XQRG settings
+
+! Font settings (*xqrg*renderTable.variable.)
+*fontList: variable
+
+*xqrg*renderTable: variable
+*xqrg*fontName: Courier New
+*xqrg*fontSize: 24
+*xqrg*fontType: FONT_IS_XFT
+
+! Color definitions
+*foreground: #000000
+*background: lightblue
+
+! Main Window settings
+*xqrg.title: trx-control frequency display
+*xqrg.width: 420
+*xqrg.height: 120
+*xqrg.iconName: xqrg
+
+*status*background: grey
+*xqrg*status*fontName: Arial
+*xqrg*status*fontSize: 10

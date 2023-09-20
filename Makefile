@@ -1,4 +1,5 @@
 SUBDIR+=	bin/trxctl \
+		bin/xqrg \
 		lib/liblua \
 		trx \
 		sbin/trxd

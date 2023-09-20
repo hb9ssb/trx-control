@@ -1,0 +1,134 @@
+/*
+ * Copyright (c) 2023 Marc Balmer HB9SSB
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to
+ * deal in the Software without restriction, including without limitation the
+ * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+ * sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
+ */
+
+#include <Xm/Xm.h>
+
+#include <lualib.h>
+#include <lauxlib.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+#include "xqrg.h"
+
+extern int emulator_ref;
+extern int client_fd;
+
+static int
+luaxqrg_emulator(lua_State *L)
+{
+        if (emulator_ref)
+                luaL_unref(L, LUA_REGISTRYINDEX, emulator_ref);
+        emulator_ref = luaL_ref(L, LUA_REGISTRYINDEX);
+        return 0;
+}
+
+static int
+luaxqrg_addchar(lua_State *L)
+{
+        qrg_addchar(luaL_checkinteger(L, 1));
+        return 0;
+}
+
+static int
+luaxqrg_scrollup(lua_State *L)
+{
+        qrg_scrollup();
+        return 0;
+}
+
+static int
+luaxqrg_position(lua_State *L)
+{
+        qrg_position(luaL_checkinteger(L, 1));
+        return 0;
+}
+
+static int
+luaxqrg_reset(lua_State *L)
+{
+        qrg_reset();
+        return 0;
+}
+
+static int
+luaxqrg_clrscr(lua_State *L)
+{
+	qrg_clrscr();
+	return 0;
+}
+
+static int
+luaxqrg_clreol(lua_State *L)
+{
+	qrg_clreol();
+	return 0;
+}
+
+static int
+luaxqrg_send(lua_State *L)
+{
+        const char *s;
+        size_t len;
+
+        s = luaL_checklstring(L, -1, &len);
+        if (write(client_fd, s, len) != len)
+        	fprintf(stderr, "error sending data back to host\n");
+        return 0;
+}
+
+static int
+luaxqrg_scroll_start(lua_State *L)
+{
+	scroll_start(luaL_checkstring(L, 1));
+	return 0;
+}
+
+int
+luaopen_xqrg(lua_State *L)
+{
+	struct luaL_Reg luaxqrg[] = {
+                { "emulator",		luaxqrg_emulator },
+		{ "addchar",		luaxqrg_addchar },
+		{ "scrollup",		luaxqrg_scrollup },
+		{ "position",		luaxqrg_position },
+                { "reset",		luaxqrg_reset },
+                { "clrscr",		luaxqrg_clrscr },
+		{ "clreol",		luaxqrg_clreol },
+                { "reset",		luaxqrg_reset },
+                { "send",		luaxqrg_send },
+		{ "scroll_start",	luaxqrg_scroll_start },
+		{ NULL, NULL }
+	};
+
+	luaL_newlib(L, luaxqrg);
+	lua_pushliteral(L, "_COPYRIGHT");
+	lua_pushliteral(L, "Copyright (C) 2023 Marc Balmer HB9SSB");
+	lua_settable(L, -3);
+	lua_pushliteral(L, "_DESCRIPTION");
+	lua_pushliteral(L, "trx-control frequency display");
+	lua_settable(L, -3);
+	lua_pushliteral(L, "_VERSION");
+	lua_pushliteral(L, "xqrg 1.0.0");
+	lua_settable(L, -3);
+
+        return 1;
+}
