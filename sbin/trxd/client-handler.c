@@ -53,6 +53,9 @@ client_handler(void *arg)
 		nread = read(fd, buf, sizeof(buf));
 		if (nread <= 0)
 			break;
+		/* don't write past buf if buf is full */
+		if (nread == sizeof(buf))
+			nread--;
 		buf[nread] = '\0';
 		pthread_mutex_lock(&t->mutex);
 		pthread_mutex_lock(&t->rmutex);
