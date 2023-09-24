@@ -29,6 +29,7 @@
 #include <lualib.h>
 #include <lauxlib.h>
 
+#include "trx-control.h"
 #include "xqrg.h"
 
 extern int emulator_ref;
@@ -87,51 +88,38 @@ luaxqrg_clreol(lua_State *L)
 }
 
 static int
-luaxqrg_read(lua_State *L)
+luaxqrg_readln(lua_State *L)
 {
-	char buf[256];
-	size_t len;
+	char *buf;
 
-	len = read(fd, buf, sizeof(buf));
-	if (len > 0) {
-		buf[len] = '\0';
+	buf = trxd_readln(fd);
+	if (buf != NULL) {
 		if (verbosity)
 			printf("< %s\n", buf);
-		lua_pushlstring(L, buf, len);
+		lua_pushstring(L, buf);
+		free(buf);
 	} else
 		lua_pushnil(L);
+
 	return 1;
-}
-
-static int
-luaxqrg_write(lua_State *L)
-{
-	const char *data;
-	size_t len;
-
-	data = luaL_checklstring(L, 1, &len);
-	if (verbosity)
-		printf("> %s\n", data);
-	write(fd, data, len);
-	return 0;
 }
 
 static int
 luaxqrg_writeln(lua_State *L)
 {
-	const char *data;
-	char *buf;
-	char crlf[2] = { 0x0d, 0x0a };
+	char *data;
 	size_t len;
 
-	data = luaL_checklstring(L, 1, &len);
-	buf = malloc(len + 3);
-	snprintf(buf, len + 3, "%s\0x0d\0x0a", data);
+	data = (char *)luaL_checklstring(L, 1, &len);
 	if (verbosity)
 		printf("> %s\n", data);
-	write(fd, buf, len + 2);
-	free(buf);
-	return 0;
+
+	if (trxd_writeln(fd, data) == len + 2)
+		lua_pushboolean(L, 1);
+	else
+		lua_pushnil(L);
+
+	return 1;
 }
 
 static int
@@ -153,8 +141,7 @@ luaopen_xqrg(lua_State *L)
                 { "clrscr",		luaxqrg_clrscr },
 		{ "clreol",		luaxqrg_clreol },
                 { "reset",		luaxqrg_reset },
-		{ "read",		luaxqrg_read },
-		{ "write",		luaxqrg_write },
+		{ "readln",		luaxqrg_readln },
 		{ "writeln",		luaxqrg_writeln },
 		{ "scroll_start",	luaxqrg_scroll_start },
 		{ NULL, NULL }

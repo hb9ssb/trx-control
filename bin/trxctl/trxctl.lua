@@ -30,7 +30,7 @@ local function useTrx(trx)
 	}
 
 	trxctl.writeln(json.encode(d))
-	local reply = json.decode(trxctl.read())
+	local reply = json.decode(trxctl.readln())
 	if reply.status == 'Ok' then
 		print(string.format('now using the %s transceiver', reply.name))
 	else
@@ -44,7 +44,7 @@ local function listTrx()
 	}
 
 	trxctl.writeln(json.encode(request))
-	local reply = json.decode(trxctl.read())
+	local reply = json.decode(trxctl.readln())
 
 	if reply.status == 'Ok' then
 		for k, v in pairs(reply.data) do
@@ -63,7 +63,7 @@ local function setFrequency(freq)
 	}
 
 	trxctl.writeln(json.encode(request))
-	local reply = json.decode(trxctl.read())
+	local reply = json.decode(trxctl.readln())
 	print(reply.frequency)
 end
 
@@ -73,7 +73,7 @@ local function getFrequency(freq)
 	}
 
 	trxctl.writeln(json.encode(request))
-	local reply = json.decode(trxctl.read())
+	local reply = json.decode(trxctl.readln())
 	print(reply.frequency)
 end
 
@@ -88,7 +88,7 @@ local function setMode(mode)
 	end
 
 	trxctl.writeln(json.encode(request))
-	local reply = json.decode(trxctl.read())
+	local reply = json.decode(trxctl.readln())
 	print(string.format('set mode of band %s to %s', reply.band,
 	    reply.mode))
 end
@@ -99,7 +99,7 @@ local function getMode()
 	}
 
 	trxctl.writeln(json.encode(request))
-	local reply = json.decode(trxctl.read())
+	local reply = json.decode(trxctl.readln())
 	print(reply.mode)
 end
 
@@ -108,7 +108,7 @@ local function startStatusUpdates()
 		request = 'start-status-updates'
 	}
 	trxctl.writeln(json.encode(request))
-	local reply = json.decode(trxctl.read())
+	local reply = json.decode(trxctl.readln())
 	print(reply.mode)
 
 end
@@ -118,7 +118,7 @@ local function stopStatusUpdates()
 		request = 'stop-status-updates'
 	}
 	trxctl.writeln(json.encode(request))
-	local reply = json.decode(trxctl.read())
+	local reply = json.decode(trxctl.readln(q))
 	print(reply.mode)
 end
 

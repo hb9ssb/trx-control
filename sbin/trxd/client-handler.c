@@ -70,7 +70,7 @@ client_handler(void *arg)
 
 		pthread_cond_wait(&t->rcond, &t->rmutex);
 
-		snprintf(out, sizeof(out), "%s\0x0a\0x0d", t->reply);
+		snprintf(out, sizeof(out), "%s\n", t->reply);
 		write(fd, out, strlen(out));
 
 		pthread_mutex_unlock(&t->rmutex);

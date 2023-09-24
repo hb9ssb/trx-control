@@ -157,7 +157,7 @@ main(int argc, char *argv[])
 			errx(1, "script %s not found", config.script);
 	}
 
-	fd = connect_trxd(config.host, config.port);
+	fd = trxd_connect(config.host, config.port);
 
 	if (fd < 0)
 		err(1, "can not connect to %s:%s", config.host, config.port);

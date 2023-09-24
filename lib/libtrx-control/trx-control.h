@@ -25,6 +25,8 @@
 #ifndef __TRX_CONTROL_H__
 #define __TRX_CONTROL_H__
 
-extern int connect_trxd(const char *, const char *);
+extern int trxd_connect(const char *, const char *);
+extern char *trxd_readln(int);
+extern int trxd_writeln(int, char *);
 
 #endif /* __TRX_CONTROL_H__ */

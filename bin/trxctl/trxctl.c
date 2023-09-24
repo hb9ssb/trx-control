@@ -101,7 +101,7 @@ main(int argc, char *argv[])
 {
 	lua_State *L;
 	wordexp_t p;
-	int fd, c, n, list, cmdhandler_ref;
+	int c, n, list, cmdhandler_ref;
 	char *host, *port, *trx, buf[128], *line;
 
 	verbosity = 0;
@@ -170,7 +170,7 @@ main(int argc, char *argv[])
 	} else
 		cmdhandler_ref = luaL_ref(L, LUA_REGISTRYINDEX);
 
-	fd = connect_trxd(host, port);
+	fd = trxd_connect(host, port);
 	if (fd < 0) {
 		fprintf(stderr, "connection failed\n");
 		exit(1);

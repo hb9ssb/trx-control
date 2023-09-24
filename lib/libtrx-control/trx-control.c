@@ -23,18 +23,21 @@
 /* trx-control(7) support functions used by trxd(8) and other binaries */
 
 #include <sys/socket.h>
+#include <sys/uio.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+#include <errno.h>
 #include <netdb.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
 #include "trx-control.h"
 
 int
-connect_trxd(const char *host, const char *port)
+trxd_connect(const char *host, const char *port)
 {
 	struct addrinfo hints, *res, *res0;
 	struct linger linger;
@@ -72,4 +75,85 @@ connect_trxd(const char *host, const char *port)
 		break;
 	}
 	return fd;
+}
+
+#define INITIAL_BUFSIZE		8192
+
+char *
+trxd_readln(int fd)
+{
+	ssize_t bufsize, n, nread;
+	char *buf;
+
+	bufsize = INITIAL_BUFSIZE;
+	buf = malloc(bufsize);
+
+	if (buf == NULL)
+		return NULL;
+
+	nread = 0;
+	for (;;) {
+		n = read(fd, &buf[nread], 1);
+		if (n == 0) {
+			free(buf);
+			return NULL;
+		}
+		if (n == -1) {
+			if (errno == EINTR)
+				continue;
+			else {
+				free(buf);
+				return NULL;
+			}
+		}
+
+		if (buf[nread] == 0x0a) {
+			buf[nread++] = 0x00;
+			return buf;
+		}
+		if (++nread == bufsize) {
+			bufsize *= 2;
+			buf = realloc(buf, bufsize);
+			if (buf == NULL)
+				return NULL;
+		}
+	}
+}
+
+int
+trxd_writeln(int fd, char *buf)
+{
+	struct iovec iov[2];
+	ssize_t l, len, nwritten;
+	int nv;
+	char *crlf = "\0x0d\0x0a";
+
+	l = len = strlen(buf) + 2;
+
+	iov[0].iov_base = buf;
+	iov[0].iov_len = strlen(buf);
+	iov[1].iov_base = crlf;
+	iov[1].iov_len = 2;
+
+	nv = 2;
+
+	do {
+		nwritten = writev(fd, iov, nv);
+		if (nwritten == -1)
+			return -1;
+		if (nwritten < len) {
+			if (nwritten < (len - 2)) {
+				iov[0].iov_base = &buf[nwritten];
+				iov[0].iov_len = strlen(iov[0].iov_base);
+			} else {
+				int n = len - nwritten;
+
+				iov[0].iov_base = &crlf[2 - n];
+				iov[0].iov_len = strlen(iov[0].iov_base);
+				nv = 1;
+			}
+		}
+		len -= nwritten;
+	} while (len > 0);
+	return l;
 }
