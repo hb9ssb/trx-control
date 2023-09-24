@@ -11,8 +11,10 @@ BINDIR?=	/usr/bin
 XQRGDIR?=	/usr/share/xqrg
 APP_DEFAULTS?=	/etc/X11/app-defaults
 
-CFLAGS+=	-I../../external/mit/lua/src -D_GNU_SOURCE
-LDFLAGS+=	-L../../lib/liblua -llua -lm -lXm -lXt -lX11 -lXm
+CFLAGS+=	-I../../lib/libtrx-control -I../../external/mit/lua/src \
+		-D_GNU_SOURCE
+LDFLAGS+=	-L../../lib/libtrx-control -ltrx-control \
+		-L../../lib/liblua -llua -lm -lXm -lXt -lX11 -lXm
 VPATH=		../../external/mit/luajson
 
 build:		xqrg

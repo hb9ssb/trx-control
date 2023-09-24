@@ -2,7 +2,7 @@ If:
   PathMatch: bin/trxctl/.*\.c
 
 CompileFlags:
-  Add: [-I, ../../external/mit/lua/src]
+  Add: [-I, ../../external/mit/lua/src, -I, ../../lib/libtrx-control]
 
 ---
 
@@ -10,7 +10,7 @@ If:
   PathMatch: bin/xqrg/.*\.c
 
 CompileFlags:
-  Add: [-I, ../../external/mit/lua/src]
+  Add: [-I, ../../external/mit/lua/src, -I, ../../lib/libtrx-control]
 
 ---
 

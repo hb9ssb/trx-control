@@ -16,3 +16,5 @@ libtrx-control.a:	${OBJS}
 
 .c.o:
 		cc -O3 -fPIC -c -o $@ ${CFLAGS} $<
+
+trx.control.o:	trx-control.c trx-control.h

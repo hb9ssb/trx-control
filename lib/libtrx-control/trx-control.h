@@ -20,9 +20,11 @@
  * IN THE SOFTWARE.
  */
 
-/* trx-control(7) support functions used by trxd(8) and other binaries
+/* trx-control(7) support functions used by trxd(8) and other binaries */
 
 #ifndef __TRX_CONTROL_H__
 #define __TRX_CONTROL_H__
+
+extern int connect_trxd(const char *, const char *);
 
 #endif /* __TRX_CONTROL_H__ */

@@ -79,58 +79,6 @@ usage(void)
 	exit(1);
 }
 
-int
-connect_trxd(const char *host, const char *port)
-{
-	struct addrinfo hints, *res, *res0;
-	struct linger linger;
-	int error;
-	char hbuf[NI_MAXHOST], sbuf[NI_MAXSERV];
-
-	memset(&hints, 0, sizeof(hints));
-	hints.ai_socktype = SOCK_STREAM;
-	error = getaddrinfo(host, port, &hints, &res0);
-	if (error) {
-		fprintf(stderr, "%s: %s\n", host, gai_strerror(error));
-		return -1;
-	}
-	fd = -1;
-	for (res = res0; res; res = res->ai_next) {
-		error = getnameinfo(res->ai_addr, res->ai_addrlen, hbuf,
-		    sizeof(hbuf), sbuf, sizeof(sbuf), NI_NUMERICHOST |
-		    NI_NUMERICSERV);
-		if (error)
-			continue;
-		fd = socket(res->ai_family, res->ai_socktype,
-		    res->ai_protocol);
-		if (fd < 0)
-			continue;
-		if (connect(fd, res->ai_addr, res->ai_addrlen) < 0) {
-			close(fd);
-			fd = -1;
-			continue;
-		}
-		linger.l_onoff = 1;
-		linger.l_linger = 10;	/* sec. */
-		if (setsockopt(fd, SOL_SOCKET, SO_LINGER, &linger,
-		    sizeof(linger)))
-			fprintf(stderr, "setsockopt SO_LINGER failed\n");
-		break;
-	}
-	return fd;
-}
-
-static void
-list_trx(int fd)
-{
-}
-
-static void
-use_trx(int fd, char *trx)
-{
-}
-
-
 char *
 rl_gets()
 {
