@@ -1,6 +1,7 @@
 SUBDIR+=	bin/trxctl \
 		bin/xqrg \
 		lib/liblua \
+		lib/libtrx-control \
 		trx \
 		sbin/trxd
 
@@ -36,5 +37,5 @@ trx-control.7:
 
 # Dependencies
 
-bin/trxctl:	lib/liblua
-sbin/trxd:	lib/liblua
+bin/trxctl:	lib/libtrx-control lib/liblua
+sbin/trxd:	lib/libtrx-control lib/liblua

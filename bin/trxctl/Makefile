@@ -9,8 +9,10 @@ MANDIR?=	/usr/share/man
 BINDIR?=	/usr/bin
 TRXCTLDIR?=	/usr/share/trxctl
 
-CFLAGS+=	-I../../external/mit/lua/src -D_GNU_SOURCE
-LDFLAGS+=	-L../../lib/liblua -llua -lm -lreadline
+CFLAGS+=	-I../../lib/libtrx-control -I../../external/mit/lua/src \
+		-D_GNU_SOURCE
+LDFLAGS+=	-L../../lib/libtrx-control -ltrx-control \
+		-L../../lib/liblua -llua -lm -lreadline
 VPATH=		../../external/mit/luajson
 
 build:		trxctl

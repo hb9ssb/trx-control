@@ -15,9 +15,11 @@ MANDIR?=	/usr/share/man
 SBINDIR?=	/usr/sbin
 TRXDDIR?=	/usr/share/trxd
 
-CFLAGS+=	-I../../external/mit/lua/src -I../../external/mit/luayaml \
+CFLAGS+=	-I../../lib/libtrx-control -I../../external/mit/lua/src \
+		-I../../external/mit/luayaml \
 		-I../../external/mit/luajson -pthread -D_GNU_SOURCE
-LDFLAGS+=	-L../../lib/liblua -llua -lyaml -lm
+LDFLAGS+=	-L../../lib/libtrx-control -ltrx-control \
+		-L../../lib/liblua -llua -lyaml -lm
 VPATH=		../../external/mit/luayaml ../../external/mit/luajson
 
 build:		trxd

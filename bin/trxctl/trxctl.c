@@ -41,6 +41,8 @@
 #include <lualib.h>
 #include <lauxlib.h>
 
+#include "trx-control.h"
+
 #define DEFAULT_HOST	"localhost"
 #define DEFAULT_PORT	"14285"
 #define _PATH_TRXCTL	"/usr/share/trxctl/trxctl.lua"
