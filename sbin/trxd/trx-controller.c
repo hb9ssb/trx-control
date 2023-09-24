@@ -173,10 +173,8 @@ trx_control(void *arg)
 		if (pthread_cond_wait(&tag->cond, &tag->mutex))
 			goto terminate;
 
-#if 0
 		if (pthread_mutex_lock(&tag->ai_mutex))
 			goto terminate;
-#endif
 
 		lua_geti(L, LUA_REGISTRYINDEX, driver_ref);
 		lua_getfield(L, -1, tag->handler);
@@ -231,9 +229,8 @@ trx_control(void *arg)
 		pthread_cond_signal(&tag->rcond);
 		pthread_mutex_unlock(&tag->rmutex);
 
-#if 0
 		pthread_mutex_unlock(&tag->ai_mutex);
-#endif
+
 		pthread_mutex_unlock(&tag->mutex);
 	}
 
