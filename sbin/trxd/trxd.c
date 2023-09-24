@@ -246,41 +246,47 @@ main(int argc, char *argv[])
 	uid = getuid();
 	gid = getgid();
 
-	if ((passwd = getpwnam(user)) != NULL) {
-		uid = passwd->pw_uid;
-		gid = passwd->pw_gid;
-		homedir = passwd->pw_dir;
-	} else {
-		syslog(LOG_ERR, "no such user '%s'", user);
-		exit(1);
-	}
-
-	if (group != NULL) {
-		if ((grp = getgrnam(group)) != NULL)
-			gid = grp->gr_gid;
-		else {
-			syslog(LOG_ERR, "no such group '%s'", group);
+	/*
+	 * If trxd(8) is started by the root user, weh change the user id to
+	 * an unprivileged user.
+	 */
+	if (uid == 0) {
+		if ((passwd = getpwnam(user)) != NULL) {
+			uid = passwd->pw_uid;
+			gid = passwd->pw_gid;
+			homedir = passwd->pw_dir;
+		} else {
+			syslog(LOG_ERR, "no such user '%s'", user);
 			exit(1);
 		}
-	}
 
-	if (chdir(homedir)) {
-		syslog(LOG_ERR, "can't chdir to %s", homedir);
-		exit(1);
-	}
+		if (group != NULL) {
+			if ((grp = getgrnam(group)) != NULL)
+				gid = grp->gr_gid;
+			else {
+				syslog(LOG_ERR, "no such group '%s'", group);
+				exit(1);
+			}
+		}
 
-	if (setgid(gid)) {
-		syslog(LOG_ERR, "can't set group");
-		exit(1);
-	}
-	if (setuid(uid)) {
-		syslog(LOG_ERR, "can't set user id");
-		exit(1);
-	}
+		if (chdir(homedir)) {
+			syslog(LOG_ERR, "can't chdir to %s", homedir);
+			exit(1);
+		}
 
-	if (!getuid() || !getgid()) {
-		syslog(LOG_ERR, "must not be run as root, exiting");
-		exit(1);
+		if (setgid(gid)) {
+			syslog(LOG_ERR, "can't set group");
+			exit(1);
+		}
+		if (setuid(uid)) {
+			syslog(LOG_ERR, "can't set user id");
+			exit(1);
+		}
+
+		if (!getuid() || !getgid()) {
+			syslog(LOG_ERR, "must not be run as root, exiting");
+			exit(1);
+		}
 	}
 
 	if (!nodaemon) {
