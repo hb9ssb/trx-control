@@ -31,7 +31,7 @@ local function registerDriver(name, dev, newDriver)
 	device = dev
 
 	if driver.statusUpdatesRequirePolling == true then
-		print('this tranceivers requires polling for status updates')
+		print('this transceiver requires polling for status updates')
 	else
 		print('this transceiver supports automatic status updates')
 	end

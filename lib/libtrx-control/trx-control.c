@@ -106,7 +106,6 @@ trxd_readln(int fd)
 				return NULL;
 			}
 		}
-
 		if (buf[nread] == 0x0a) {
 			buf[nread++] = 0x00;
 			return buf;
@@ -126,7 +125,7 @@ trxd_writeln(int fd, char *buf)
 	struct iovec iov[2];
 	ssize_t l, len, nwritten;
 	int nv;
-	char *crlf = "\0x0d\0x0a";
+	char *crlf = "\n";
 
 	l = len = strlen(buf) + 2;
 

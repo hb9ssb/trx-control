@@ -31,6 +31,7 @@
 #include <unistd.h>
 
 #include "trxd.h"
+#include "trx-control.h"
 
 extern command_tag_t *command_tag;
 
@@ -40,7 +41,7 @@ client_handler(void *arg)
 	command_tag_t *t;
 	int fd = *(int *)arg;
 	int status, nread, n;
-	char buf[256], out[1024], *p;
+	char *buf, *p;
 	const char *command, *param;
 
 	t = command_tag;
@@ -49,14 +50,13 @@ client_handler(void *arg)
 	if (status)
 		err(1, "can't detach");
 
-	do {
-		nread = read(fd, buf, sizeof(buf));
-		if (nread <= 0)
+	for (;;) {
+		buf = trxd_readln(fd);
+
+		if (buf == NULL)
 			break;
-		/* don't write past buf if buf is full */
-		if (nread == sizeof(buf))
-			nread--;
-		buf[nread] = '\0';
+
+
 		pthread_mutex_lock(&t->mutex);
 		pthread_mutex_lock(&t->rmutex);
 
@@ -70,15 +70,15 @@ client_handler(void *arg)
 
 		pthread_cond_wait(&t->rcond, &t->rmutex);
 
-		snprintf(out, sizeof(out), "%s\n", t->reply);
-		write(fd, out, strlen(out));
+		free(buf);
+		trxd_writeln(fd, t->reply);
 
 		pthread_mutex_unlock(&t->rmutex);
 
 		/* Check if we changed the transceiver */
 		if (t->new_tag != t)
 			t = t->new_tag;
-	} while (nread > 0);
+	}
 	close(fd);
 	free(arg);
 	return NULL;
