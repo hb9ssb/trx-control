@@ -22,7 +22,7 @@
 
 /* Handle incoming data from the trx */
 
-#include <sys/select.h>
+#include <sys/epoll.h>
 
 #include <err.h>
 #include <errno.h>
@@ -39,7 +39,8 @@ void *
 trx_handler(void *arg)
 {
 	command_tag_t *command_tag = (command_tag_t *)arg;
-	int status, nread, n, r, fd;
+	struct epoll_event ev, evr;
+	int status, nread, n, r, fd, epfd, ready;
 	char buf[128], *p;
 	fd_set fds;
 	struct timeval tv;
@@ -50,12 +51,23 @@ trx_handler(void *arg)
 
 	fd = command_tag->cat_device;
 
-	do {
-		FD_ZERO(&fds);
-		FD_SET(fd, &fds);
+	epfd = epoll_create(1);
+	if (epfd == -1)
+		err(1, "epoll_create");
 
-		tv.tv_sec = 0;
-		tv.tv_usec = 10000;
+	ev.events = EPOLLIN;
+	ev.data.fd = fd;
+	if (epoll_ctl(epfd, EPOLL_CTL_ADD, fd, &ev) == -1)
+		err(1, "epoll_ctl");
+
+	do {
+		ready = epoll_wait(epfd, &evr, 1, -1);
+		if (ready == -1) {
+			if (errno == EINTR)
+				continue;
+			else
+				err(1, "epoll_wait");
+		}
 
 		pthread_mutex_lock(&command_tag->ai_mutex);
 		r = select(fd + 1, &fds, NULL, NULL, &tv);
