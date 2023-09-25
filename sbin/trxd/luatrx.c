@@ -103,7 +103,9 @@ luatrx_write(lua_State *L)
 	fd = get_fd(L);
 
 	data = luaL_checklstring(L, 1, &len);
+	tcflush(fd, TCIFLUSH);
 	write(fd, data, len);
+	tcdrain(fd);
 	return 0;
 }
 
