@@ -106,7 +106,7 @@ trxd_readln(int fd)
 				return NULL;
 			}
 		}
-		if (buf[nread] == 0x0a) {
+		if (buf[nread] == '\n') {
 			buf[nread++] = 0x00;
 			return buf;
 		}
@@ -127,12 +127,12 @@ trxd_writeln(int fd, char *buf)
 	int nv;
 	char *crlf = "\n";
 
-	l = len = strlen(buf) + 2;
+	l = len = strlen(buf) + strlen(crlf);
 
 	iov[0].iov_base = buf;
 	iov[0].iov_len = strlen(buf);
 	iov[1].iov_base = crlf;
-	iov[1].iov_len = 2;
+	iov[1].iov_len = strlen(crlf);
 
 	nv = 2;
 
@@ -141,13 +141,13 @@ trxd_writeln(int fd, char *buf)
 		if (nwritten == -1)
 			return -1;
 		if (nwritten < len) {
-			if (nwritten < (len - 2)) {
+			if (nwritten < (len - strlen(crlf))) {
 				iov[0].iov_base = &buf[nwritten];
 				iov[0].iov_len = strlen(iov[0].iov_base);
 			} else {
 				int n = len - nwritten;
 
-				iov[0].iov_base = &crlf[2 - n];
+				iov[0].iov_base = &crlf[strlen(crlf) - n];
 				iov[0].iov_len = strlen(iov[0].iov_base);
 				nv = 1;
 			}

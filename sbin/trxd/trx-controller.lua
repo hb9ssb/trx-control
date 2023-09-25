@@ -104,7 +104,7 @@ local function requestHandler(data)
 	if request.request == 'list-trx' then
 		reply.data = getTransceiverList()
 	elseif request.request == 'set-frequency' then
-		reply.frequency = setFrequency(request.frequency)
+		reply.frequency = setFrequency(tonumber(request.frequency))
 	elseif request.request == 'get-frequency' then
 		reply.frequency = getFrequency()
 	elseif request.request == 'set-mode' then

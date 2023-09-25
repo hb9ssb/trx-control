@@ -86,8 +86,8 @@ luatrx_read(lua_State *L)
 	while (nread < len)
 		nread += read(fd, &buf[nread], len - nread);
 
-	if (len > 0)
-		lua_pushlstring(L, buf, len);
+	if (nread > 0)
+		lua_pushlstring(L, buf, nread);
 	else
 		lua_pushnil(L);
 	return 1;
@@ -136,9 +136,10 @@ string_to_bcd(lua_State *L)
 	string = (unsigned char *)luaL_checklstring(L, 1, &len);
 	bcd_string = p = malloc(len);
 	for (n = 0; n < len / 2; n++) {
-		*p = *string++ - '0' << 4 | *string++ & 0x0f;
+		*p++ = *string++ - '0' << 4 | *string++ & 0x0f;
 	}
 	*p = '\0';
+
 	lua_pushlstring(L, bcd_string, len / 2);
 	free(bcd_string);
 	return 1;

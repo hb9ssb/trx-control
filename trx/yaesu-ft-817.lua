@@ -36,10 +36,12 @@ local function initialize()
 	trx.setspeed(38400)
 end
 
-local function setFrequency(freq)
+local function setFrequency(frequency)
+	local freq = string.sub(string.format('%09d', frequency), 1, -2)
+	print('set frequency to ' ..  freq)
 	local bcd = trx.stringToBcd(freq)
 	trx.write(bcd .. '\x01')
-	return freq
+	return frequency
 end
 
 local function getFrequency()
