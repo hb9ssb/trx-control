@@ -108,7 +108,7 @@ luatrx_write(lua_State *L)
 }
 
 static int
-from_bcd(lua_State *L)
+bcd_to_string(lua_State *L)
 {
 	unsigned char *bcd_string, *string, *p;
 	size_t len;
@@ -127,7 +127,7 @@ from_bcd(lua_State *L)
 }
 
 static int
-to_bcd(lua_State *L)
+string_to_bcd(lua_State *L)
 {
 	unsigned char *bcd_string, *string, *p;
 	size_t len;
@@ -148,12 +148,12 @@ int
 luaopen_trx(lua_State *L)
 {
 	struct luaL_Reg luatrx[] = {
-		{ "version",	luatrx_version },
-		{ "setspeed",	luatrx_setspeed },
-		{ "read",	luatrx_read },
-		{ "write",	luatrx_write },
-		{ "fromBCD",	from_bcd },
-		{ "toBCD",	to_bcd },
+		{ "version",		luatrx_version },
+		{ "setspeed",		luatrx_setspeed },
+		{ "read",		luatrx_read },
+		{ "write",		luatrx_write },
+		{ "bcdToString",	bcd_to_string },
+		{ "stringToBcd",	string_to_bcd },
 		{ NULL, NULL }
 	};
 

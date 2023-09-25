@@ -37,7 +37,7 @@ local function initialize()
 end
 
 local function setFrequency(freq)
-	local bcd = trx.toBCD(freq)
+	local bcd = trx.stringToBcd(freq)
 	trx.write(bcd .. '\x01')
 	return freq
 end
@@ -45,7 +45,7 @@ end
 local function getFrequency()
 	trx.write('\x00\x00\x00\x00\x03')
 	local f = trx.read(5)
-	frequency = trx.fromBCD(string.sub(f, 1, 4))
+	frequency = trx.bcdToString(string.sub(f, 1, 4))
 	return frequency
 end
 
