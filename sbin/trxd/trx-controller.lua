@@ -82,6 +82,20 @@ end
 local function requestHandler(data)
 	local request = json.decode(data)
 
+	if request == nil then
+		return json.encode({
+			status = 'Error',
+			reason = 'Invalid input data or no input data at all'
+		})
+	end
+
+	if request.request == nil or #request.request == 0 then
+		return json.encode({
+			status = 'Error',
+			reason = 'No request'
+		})
+	end
+
 	local reply = {
 		status = 'Ok',
 		reply = request.request
@@ -114,6 +128,9 @@ local function requestHandler(data)
 		trxd.startPolling(device)
 	elseif request.request == 'stop-status-updates' then
 		trxd.stopPolling(device)
+	else
+		reply.status = 'Error'
+		reply.reason = 'Unknown request'
 	end
 	return json.encode(reply)
 end
