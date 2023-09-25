@@ -196,7 +196,7 @@ trx_control(void *arg)
 				break;
 			}
 			if (lua_type(L, -1) == LUA_TSTRING) {
-				const char *reply = lua_tostring(L, -1);
+				char *reply = lua_tostring(L, -1);
 				if (!strncmp(reply, SWITCH_TAG,
 				    strlen(SWITCH_TAG))) {
 					char *name;

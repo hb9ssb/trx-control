@@ -43,9 +43,9 @@ typedef struct command_tag {
 	const char		*driver;
 
 	const char		*handler;
-	const char		*data;
+	char			*data;
 
-	const char		*reply;
+	char			*reply;
 	int			 client_fd;
 	int			 cat_device;
 	pthread_t		 trx_control;
