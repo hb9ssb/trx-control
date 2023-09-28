@@ -1,4 +1,4 @@
-# Sample trxd(8) config file.  This is in the YAML format.
+# Sample trxd(8) config file.  This is in YAML-format.
 # See https://yaml.org for details on YAML.
 
 # This file will be processed the yaml Lua module, so the local tags mentioned
@@ -22,7 +22,7 @@ group: trxd
 # We store the PID of the running trxd process in trxd.pid
 pid-file: trxd.pid
 
-# We control a Yaesu FT-710 on /dev/ttyUSB0 and a Yaesu FT-991A on /dev/ttyUSB2
+# The list of transceivers we can control
 trx:
   ft-897:
     name: FT-897
