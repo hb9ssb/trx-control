@@ -1,0 +1,7 @@
+*.o
+*.a
+.DS_Store
+
+bin/trxctl
+bin/xqrg
+sbin/trxd
