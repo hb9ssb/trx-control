@@ -168,7 +168,6 @@ main(int argc, char *argv[])
 
 	/* Read the configuration file an extract parameters */
 	if (!stat(cfg_file, &sb)) {
-
 		lua_getglobal(L, "yaml");
 		lua_getfield(L, -1, "parsefile");
 		lua_pushstring(L, cfg_file);
@@ -357,9 +356,6 @@ main(int argc, char *argv[])
 		lua_pop(L, 1);
 	}
 
-	/* The Lua state is no longer needed below this point */
-	lua_close(L);
-
 	/* Setup network listening */
 	for (i = 0; i < MAXLISTEN; i++)
 		listen_fd[i] = -1;
@@ -373,6 +369,10 @@ main(int argc, char *argv[])
 		    bind_addr, listen_port, gai_strerror(err));
 		exit(1);
 	}
+
+	/* The Lua state is no longer needed below this point */
+	lua_close(L);
+
 	i = 0;
 	for (res = res0; res != NULL && i < MAXLISTEN;
 	    res = res->ai_next) {
