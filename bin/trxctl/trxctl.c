@@ -68,6 +68,8 @@ static struct {
 	"unlisten-frequency",	"unlistenFrequency",
 	"start-status-updates",	"startStatusUpdates",
 	"stop-status-updates",	"stopStatusUpdates",
+	"lock",			"lockTrx",
+	"unlock",		"unlockTrx",
 	NULL,			NULL
 };
 

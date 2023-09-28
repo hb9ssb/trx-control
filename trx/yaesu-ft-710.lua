@@ -61,6 +61,16 @@ local function stopStatusUpdates()
 	return 'status updates off'
 end
 
+local function lock()
+	trx.write('LK1;')
+	return 'locked'
+end
+
+local function unlock()
+	trx.write('LK0;')
+	return 'unlocked'
+end
+
 local function setFrequency(freq)
 	trx.write(string.format('FA%s;', freq))
 	return freq
@@ -114,6 +124,8 @@ return {
 	initialize = initialize,
 	startStatusUpdates = startStatusUpdates,
 	stopStatusUpdates = stopStatusUpdates,
+	lock = lock,
+	unlock = unlock,
 	setFrequency = setFrequency,
 	getFrequency = getFrequency,
 	getMode = getMode,

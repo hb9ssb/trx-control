@@ -56,6 +56,33 @@ local function listTrx()
 	end
 end
 
+local function lockTrx()
+	local d = {
+		request = 'lock-trx'
+	}
+
+	trxctl.writeln(json.encode(d))
+	local reply = json.decode(trxctl.readln())
+	if reply.status == 'Ok' then
+		print('transceiver locked')
+	else
+		print(string.format('%s: %s', reply.status, reply.reason))
+	end
+end
+
+local function unlockTrx()
+	local d = {
+		request = 'unlock-trx'
+	}
+
+	trxctl.writeln(json.encode(d))
+	local reply = json.decode(trxctl.readln())
+	if reply.status == 'Ok' then
+		print('transceiver unlocked')
+	else
+		print(string.format('%s: %s', reply.status, reply.reason))
+	end
+end
 local function setFrequency(freq)
 	local request = {
 		request = 'set-frequency',
@@ -125,6 +152,8 @@ end
 return {
 	useTrx = useTrx,
 	listTrx = listTrx,
+	lockTrx = lockTrx,
+	unlockTrx = unlockTrx,
 	setFrequency = setFrequency,
 	getFrequency = getFrequency,
 	setMode = setMode,

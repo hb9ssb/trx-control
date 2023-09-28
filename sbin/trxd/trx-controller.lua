@@ -62,6 +62,14 @@ local function getMode()
 	return driver.getMode()
 end
 
+local function lockTransceiver()
+	return driver.lock()
+end
+
+local function unlockTransceiver()
+	return driver.unlock()
+end
+
 local function listenFrequency(fd)
 	print 'listen for frequency changes'
 	frequencyListeners[#frequencyListeners + 1] = fd
@@ -126,6 +134,10 @@ local function requestHandler(data)
 				name = request.name
 			}
 		end
+	elseif request.request == 'lock-trx' then
+		lockTransceiver()
+	elseif request.request == 'unlock-trx' then
+		unlockTransceiver()
 	elseif request.request == 'start-status-updates' then
 		if driver.statusUpdatesRequirePolling == true then
 			trxd.startPolling(device)

@@ -38,6 +38,16 @@ local function initialize()
 	trx.setspeed(38400)
 end
 
+local function lock()
+	trx.write('\x00\x00\x00\x00\x00')
+	return 'locked'
+end
+
+local function unlock()
+	trx.write('\x00\x00\x00\x00\x80')
+	return 'unlocked'
+end
+
 local function setFrequency(frequency)
 	local freq = string.sub(string.format('%09d', frequency), 1, -2)
 	local bcd = trx.stringToBcd(freq)
@@ -93,6 +103,8 @@ return {
 	initialize = initialize,
 	startStatusUpdates = nil,
 	stopStatusUpdates = nil,
+	lock = lock,
+	unlock = unlock,
 	setFrequency = setFrequency,
 	getFrequency = getFrequency,
 	getMode = getMode,
