@@ -30,7 +30,7 @@ local ft991 = require 'yaesu-ft-710'
 ft991.initialize = function ()
 	trx.setspeed(38400)
 	trx.write('ID;')
-	local reply = trx.read()
+	local reply = trx.read(7)
 	if reply ~= 'ID0670;' then
 		print 'this is not a Yaesu FT-991A transceiver'
 	else
