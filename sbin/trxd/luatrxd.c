@@ -33,6 +33,7 @@
 extern command_tag_t *command_tag;
 
 extern void *trx_poller(void *);
+extern void *trx_handler(void *);
 
 static int
 luatrxd_send(lua_State *L)
@@ -128,6 +129,51 @@ luatrxd_stop_polling(lua_State *L)
 	return 1;
 }
 
+static int
+luatrxd_start_handling(lua_State *L)
+{
+	const char *device;
+	command_tag_t *t;
+	char eol = '\n';
+
+	device = luaL_checkstring(L, 1);
+	for (t = command_tag; t != NULL; t = t->next) {
+		if (!strcmp(t->device, device)) {
+			if (lua_gettop(L) == 2)
+				eol = lua_tointeger(L, 2);
+			printf("eol character is %02x (%c)\n", eol, eol);
+			t->handler_running = 1;
+			t->handler_eol = eol;
+			pthread_create(&t->trx_handler, NULL, trx_handler, t);
+			lua_pushboolean(L, 1);
+			break;
+		}
+	}
+	if (t == NULL)
+		lua_pushnil(L);
+	return 1;
+}
+
+static int
+luatrxd_stop_handling(lua_State *L)
+{
+	const char *device;
+	command_tag_t *t;
+
+	device = luaL_checkstring(L, 1);
+	for (t = command_tag; t != NULL; t = t->next) {
+		if (!strcmp(t->device, device)) {
+			t->handler_running = 0;
+			pthread_join(t->trx_handler, NULL);
+			lua_pushboolean(L, 1);
+			break;
+		}
+	}
+	if (t == NULL)
+		lua_pushnil(L);
+	return 1;
+}
+
 int
 luaopen_trxd(lua_State *L)
 {
@@ -137,6 +183,8 @@ luaopen_trxd(lua_State *L)
 		{ "selectTransceiver",		luatrxd_select_transceiver },
 		{ "startPolling",		luatrxd_start_polling },
 		{ "stopPolling",		luatrxd_stop_polling },
+		{ "startHandling",		luatrxd_start_handling },
+		{ "stopHandling",		luatrxd_stop_handling },
 		{ NULL, NULL }
 	};
 

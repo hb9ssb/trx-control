@@ -32,7 +32,7 @@
 
 #include "trxd.h"
 
-#define STATUS_REQUEST	"{\"request\": \"get-frequency\"}"
+#define STATUS_REQUEST	"{\"request\": \"status-update\"}"
 #define POLLING_INTERVAL	200000	/* microseconds */
 
 void *
@@ -44,7 +44,6 @@ trx_poller(void *arg)
 	int status, nread, n;
 	char buf[256], out[1024], *p;
 	const char *command, *param;
-
 
 	status = pthread_detach(pthread_self());
 	if (status)
@@ -66,7 +65,8 @@ trx_poller(void *arg)
 
 		pthread_cond_wait(&t->rcond, &t->rmutex);
 
-		printf("poller got %s\n", t->reply);
+		if (t->reply != NULL)
+			printf("poller got %s\n", t->reply);
 
 		pthread_mutex_unlock(&t->rmutex);
 		usleep(POLLING_INTERVAL);

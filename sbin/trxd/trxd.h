@@ -50,8 +50,11 @@ typedef struct command_tag {
 	int			 cat_device;
 	pthread_t		 trx_control;
 	pthread_t		 trx_poller;
+	pthread_t		 trx_handler;
 	int			 is_running;
 	int			 poller_running;
+	int			 handler_running;
+	int			 handler_eol;
 
 	struct command_tag	*new_tag;
 	struct command_tag	*next;

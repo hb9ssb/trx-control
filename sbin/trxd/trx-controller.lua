@@ -23,6 +23,8 @@
 local driver = {}
 local device = ''
 local frequencyListeners = {}
+local lastFrequency = 0
+local lastMode = ''
 
 local function registerDriver(name, dev, newDriver)
 	print(string.format('register driver for %s on %s', name, dev))
@@ -106,7 +108,7 @@ local function requestHandler(data)
 	elseif request.request == 'set-frequency' then
 		reply.frequency = setFrequency(tonumber(request.frequency))
 	elseif request.request == 'get-frequency' then
-		reply.frequency = getFrequency()
+		reply.frequency, reply.mode = getFrequency()
 	elseif request.request == 'set-mode' then
 		reply.band, reply.mode = setMode(request.band, request.mode)
 	elseif request.request == 'get-mode' then
@@ -125,9 +127,35 @@ local function requestHandler(data)
 			}
 		end
 	elseif request.request == 'start-status-updates' then
-		trxd.startPolling(device)
+		if driver.statusUpdatesRequirePolling == true then
+			trxd.startPolling(device)
+		elseif type(driver.startStatusUpdates) == 'function' then
+			local eol = driver.startStatusUpdates()
+			trxd.startHandling(device, eol)
+		else
+			reply.status = 'Error'
+			reply.reason = 'Can not start status updates'
+		end
 	elseif request.request == 'stop-status-updates' then
-		trxd.stopPolling(device)
+		if driver.statusUpdatesRequirePolling == true then
+			trxd.stopPolling(device)
+		elseif type(driver.stopStatusUpdates) == 'function' then
+			driver.stopStatusUpdates()
+			trxd.stopHandling(device)
+		else
+			reply.status = 'Error'
+			reply.reason = 'Can not stop status updates'
+		end
+	elseif request.request == 'status-update' then
+		local frequency, mode = getFrequency()
+		if lastFrequency ~= frequency or lastMode ~= mode then
+			reply.frequency = frequency
+			reply.mode = mode
+			lastFrequency = frequency
+			lastMode = mode
+		else
+			return nil
+		end
 	else
 		reply.status = 'Error'
 		reply.reason = 'Unknown request'

@@ -71,7 +71,8 @@ client_handler(void *arg)
 		pthread_cond_wait(&t->rcond, &t->rmutex);
 
 		free(buf);
-		trxd_writeln(fd, t->reply);
+		if (t->reply)
+			trxd_writeln(fd, t->reply);
 
 		pthread_mutex_unlock(&t->rmutex);
 

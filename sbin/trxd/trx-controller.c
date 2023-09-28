@@ -221,7 +221,7 @@ trx_control(void *arg)
 				} else
 					tag->reply = reply;
 			} else
-				tag->reply = "{\"result\": \"no value\"}";
+				tag->reply = NULL;
 		}
 		lua_pop(L, 2);
 
