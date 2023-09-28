@@ -326,6 +326,10 @@ main(int argc, char *argv[])
 		t->driver = strdup(lua_tostring(L, -1));
 		lua_pop(L, 1);
 
+		lua_getfield(L, -1, "default");
+		t->is_default = lua_toboolean(L, -1);
+		lua_pop(L, 1);
+
 		if (command_tag == NULL)
 			command_tag = t;
 		else {

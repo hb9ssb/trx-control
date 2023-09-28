@@ -44,7 +44,14 @@ client_handler(void *arg)
 	char *buf, *p;
 	const char *command, *param;
 
-	t = command_tag;
+	/* Check if have a default transceiver */
+	for (t = command_tag; t != NULL; t = t->next)
+		if (t->is_default)
+			break;
+
+	/* If there is no default transceiver, use the firs one */
+	if (t == NULL)
+		t = command_tag;
 
 	status = pthread_detach(pthread_self());
 	if (status)

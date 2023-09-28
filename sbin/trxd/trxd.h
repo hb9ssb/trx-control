@@ -41,6 +41,7 @@ typedef struct command_tag {
 	const char		*name;
 	const char		*device;
 	const char		*driver;
+	int			 is_default;
 
 	const char		*handler;
 	char			*data;
