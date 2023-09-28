@@ -65,7 +65,7 @@ command_tag_t *command_tag = NULL;
 static void
 usage(void)
 {
-	(void)fprintf(stderr, "usage: trxd [-dl] [-b address] [-c config-file] "
+	(void)fprintf(stderr, "usage: trxd [-dl] [-b address] [-c path] "
 	    "[-g group] [-p port] [-u user] [-P path]\n");
 	exit(1);
 }
