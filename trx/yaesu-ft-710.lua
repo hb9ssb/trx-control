@@ -51,6 +51,16 @@ local function initialize()
 	end
 end
 
+local function startStatusUpdates()
+	trx.write('AI1;')
+	return string.byte(';')
+end
+
+local function stopStatusUpdates()
+	trx.write('AI0;')
+	return 'status updates off'
+end
+
 local function setFrequency(freq)
 	trx.write(string.format('FA%s;', freq))
 	return freq
@@ -102,6 +112,8 @@ end
 
 return {
 	initialize = initialize,
+	startStatusUpdates = startStatusUpdates,
+	stopStatusUpdates = stopStatusUpdates,
 	setFrequency = setFrequency,
 	getFrequency = getFrequency,
 	getMode = getMode,
