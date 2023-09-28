@@ -37,6 +37,14 @@ local function initialize()
 	print 'dummy-trx: initialize'
 end
 
+local function lock()
+	print 'dummy-trx: locked'
+end
+
+local function unlock()
+	print 'dummy-trx: unlocked'
+end
+
 local function setFrequency(freq)
 	print (string.format('dummy-trx: set fequency to %s', freq))
 	frequency = freq
@@ -66,6 +74,10 @@ end
 return {
 	statusUpdatesRequirePolling = true,
 	initialize = initialize,
+	startStatusUpdates = nil,
+	stopStatusUpdates = nil,
+	lock = lock,
+	unlock = unlock,
 	setFrequency = setFrequency,
 	getFrequency = getFrequency,
 	getMode = getMode,
