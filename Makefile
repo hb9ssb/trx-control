@@ -38,4 +38,5 @@ trx-control.7:
 # Dependencies
 
 bin/trxctl:	lib/libtrx-control lib/liblua
+bin/xqrg:	lib/libtrx-control lib/liblua
 sbin/trxd:	lib/libtrx-control lib/liblua
