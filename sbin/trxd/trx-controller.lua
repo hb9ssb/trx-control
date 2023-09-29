@@ -23,6 +23,7 @@
 local driver = {}
 local device = ''
 local statusUpdateListeners = {}
+local statusUpdates = false
 local lastFrequency = 0
 local lastMode = ''
 
@@ -163,16 +164,6 @@ local function requestHandler(data, fd)
 
 		if reply.status == 'Ok' then
 			removeStatusUpdateListener(fd)
-		end
-	elseif request.request == 'status-update' then
-		local frequency, mode = getFrequency()
-		if lastFrequency ~= frequency or lastMode ~= mode then
-			reply.frequency = frequency
-			reply.mode = mode
-			lastFrequency = frequency
-			lastMode = mode
-		else
-			return nil
 		end
 	else
 		reply.status = 'Error'

@@ -46,8 +46,6 @@ trx_poller(void *arg)
 		pthread_mutex_lock(&t->rmutex);
 
 		t->handler = "pollHandler";
-		t->data = STATUS_REQUEST;
-		t->client_fd = 0;
 
 		pthread_cond_signal(&t->qcond);
 

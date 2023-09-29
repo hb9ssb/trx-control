@@ -76,6 +76,7 @@ trx_handler(void *arg)
 		}
 		for (n = 0; n < nfds; n++) {
 			if (events[n].data.fd == fd) {
+				pthread_mutex_lock(&command_tag->mutex);
 
 				for (n = 0; n < sizeof(buf) - 1; n++) {
 					read(fd, &buf[n], 1);
@@ -84,7 +85,6 @@ trx_handler(void *arg)
 				}
 				buf[++n] = '\0';
 
-				pthread_mutex_lock(&command_tag->mutex);
 				pthread_mutex_lock(&command_tag->rmutex);
 
 				command_tag->handler = "dataHandler";
