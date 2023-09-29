@@ -67,7 +67,8 @@ trx_handler(void *arg)
 		err(1, "epoll_ctl");
 
 	for (terminate = 0; terminate == 0; ) {
-		nfds = epoll_wait(epfd, events, MAX_EVENTS, -1);
+		pthread_mutex_lock(&command_tag->mutex);
+		nfds = epoll_wait(epfd, events, MAX_EVENTS, 0);
 		if (nfds == -1) {
 			if (errno == EINTR)
 				continue;
@@ -76,7 +77,6 @@ trx_handler(void *arg)
 		}
 		for (n = 0; n < nfds; n++) {
 			if (events[n].data.fd == fd) {
-				pthread_mutex_lock(&command_tag->mutex);
 
 				for (n = 0; n < sizeof(buf) - 1; n++) {
 					read(fd, &buf[n], 1);
@@ -101,6 +101,7 @@ trx_handler(void *arg)
 			} else
 				terminate = 1;
 		}
+		pthread_mutex_unlock(&command_tag->mutex);
 	};
 	return NULL;
 }
