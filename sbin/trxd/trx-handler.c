@@ -35,15 +35,16 @@
 
 #include "trxd.h"
 
+#define MAX_EVENTS	2
 void *
 trx_handler(void *arg)
 {
 	command_tag_t *command_tag = (command_tag_t *)arg;
-	struct epoll_event ev, evr;
-	int status, nread, n, r, fd, epfd, ready;
+	struct epoll_event ev[MAX_EVENTS], events[MAX_EVENTS];
+	int status, nread, n, r, fd, epfd, nfds, terminate;
 	char buf[128], *p;
-	fd_set fds;
 	struct timeval tv;
+	sigset_t mask;
 
 	status = pthread_detach(pthread_self());
 	if (status)
@@ -55,59 +56,51 @@ trx_handler(void *arg)
 	if (epfd == -1)
 		err(1, "epoll_create");
 
-	ev.events = EPOLLIN;
-	ev.data.fd = fd;
-	if (epoll_ctl(epfd, EPOLL_CTL_ADD, fd, &ev) == -1)
+	ev[0].events = EPOLLIN;
+	ev[0].data.fd = fd;
+	ev[1].events = EPOLLIN;
+	ev[1].data.fd = command_tag->handler_pipefd[0];
+
+	if (epoll_ctl(epfd, EPOLL_CTL_ADD, fd, &ev[0]) == -1)
+		err(1, "epoll_ctl");
+	if (epoll_ctl(epfd, EPOLL_CTL_ADD, command_tag->handler_pipefd[0],
+	    &ev[1]) == -1)
 		err(1, "epoll_ctl");
 
-	do {
-		ready = epoll_wait(epfd, &evr, 1, -1);
-		if (ready == -1) {
+	for (terminate = 0; terminate == 0; ) {
+		nfds = epoll_wait(epfd, events, MAX_EVENTS, -1);
+		if (nfds == -1) {
 			if (errno == EINTR)
 				continue;
 			else
 				err(1, "epoll_wait");
 		}
+		for (n = 0; n < nfds; n++) {
+			if (events[n].data.fd == fd) {
 
-		pthread_mutex_lock(&command_tag->ai_mutex);
-		r = select(fd + 1, &fds, NULL, NULL, &tv);
-		if (r < 0) {
-			if (errno != EINTR) {
-				syslog(LOG_ERR, "select: %s", strerror(errno));
-				break;
-			}
+				for (n = 0; n < sizeof(buf) - 1; n++) {
+					read(fd, &buf[n], 1);
+					if (buf[n] == command_tag->handler_eol)
+						break;
+				}
+				buf[++n] = '\0';
+
+				pthread_mutex_lock(&command_tag->mutex);
+				pthread_mutex_lock(&command_tag->rmutex);
+
+				command_tag->handler = "dataHandler";
+				command_tag->data = buf;
+				command_tag->client_fd = 0;
+
+				pthread_cond_signal(&command_tag->cond);
+				pthread_mutex_unlock(&command_tag->mutex);
+
+				pthread_cond_wait(&command_tag->rcond,
+				    &command_tag->rmutex);
+				pthread_mutex_unlock(&command_tag->rmutex);
+			} else
+				terminate = 1;
 		}
-		if (r > 0 && FD_ISSET(fd, &fds)) {
-			printf("trx data available\n");
-			nread = read(fd, buf, sizeof(buf));
-		} else {
-			printf("no trx data available\n");
-		}
-		pthread_mutex_unlock(&command_tag->ai_mutex);
-
-		if (nread <= 0)
-			break;
-
-		for (n = 0; n < nread; n++) {
-			if (buf[n] == 0x0a || buf[n] == 0x0d) {
-				buf[n] = '\0';
-				break;
-			}
-		}
-		pthread_mutex_lock(&command_tag->mutex);
-		pthread_mutex_lock(&command_tag->rmutex);
-
-		command_tag->handler = "dataHandler";
-		command_tag->data = buf;
-		command_tag->client_fd = 0;
-
-		pthread_cond_signal(&command_tag->cond);
-		pthread_mutex_unlock(&command_tag->mutex);
-
-		pthread_cond_wait(&command_tag->rcond, &command_tag->rmutex);
-		pthread_mutex_unlock(&command_tag->rmutex);
-
-	} while (nread >= 0);
-	close(fd);
+	};
 	return NULL;
 }

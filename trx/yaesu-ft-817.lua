@@ -103,6 +103,7 @@ return {
 	initialize = initialize,
 	startStatusUpdates = nil,
 	stopStatusUpdates = nil,
+	handleStatusUpdates = nil,
 	lock = lock,
 	unlock = unlock,
 	setFrequency = setFrequency,

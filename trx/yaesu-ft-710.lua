@@ -61,6 +61,13 @@ local function stopStatusUpdates()
 	return 'status updates off'
 end
 
+local function handleStatusUpdates(data)
+	print('FT-710: handle status update, data:', data)
+	return {
+		rawData = data
+	}
+end
+
 local function lock()
 	trx.write('LK1;')
 	return 'locked'
@@ -78,8 +85,8 @@ end
 
 local function getFrequency()
 	trx.write('FA;')
-	local reply = trx.read()
-	return reply
+	local reply = trx.read(12)
+	return tonumber(string.sub(reply, 3, 11))
 end
 
 local function setMode(band, mode)
@@ -109,7 +116,7 @@ local function getMode(band)
 	end
 
 	trx.write(string.format('MD%s;', bcode))
-	local reply = trx.read()
+	local reply = trx.read(5)
 	local mode = string.sub(reply, 4, 4)
 
 	for k, v in pairs(validModes) do
@@ -124,6 +131,7 @@ return {
 	initialize = initialize,
 	startStatusUpdates = startStatusUpdates,
 	stopStatusUpdates = stopStatusUpdates,
+	handleStatusUpdates = handleStatusUpdates,
 	lock = lock,
 	unlock = unlock,
 	setFrequency = setFrequency,

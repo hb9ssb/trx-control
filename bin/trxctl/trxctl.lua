@@ -136,8 +136,6 @@ local function startStatusUpdates()
 	}
 	trxctl.writeln(json.encode(request))
 	local reply = json.decode(trxctl.readln())
-	print(reply.mode)
-
 end
 
 local function stopStatusUpdates()
@@ -146,7 +144,6 @@ local function stopStatusUpdates()
 	}
 	trxctl.writeln(json.encode(request))
 	local reply = json.decode(trxctl.readln(q))
-	print(reply.mode)
 end
 
 return {

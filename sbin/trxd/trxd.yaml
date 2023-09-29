@@ -31,7 +31,7 @@ trx:
 
     # This is the default transceiver in case the client does not explicitely
     # select a transceiver by name.
-    default: true
+    # default: true
 
   dummy:
     name: Dummy
@@ -42,6 +42,7 @@ trx:
     name: FT-710
     device: /dev/ttyUSB0
     driver: yaesu-ft-710
+    default: true
 
   ft-991a:
     name: FT-991A

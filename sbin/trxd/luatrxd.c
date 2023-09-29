@@ -22,12 +22,16 @@
 
 /* Provide the 'trxd' Lua module to the driver upper half */
 
-#include <unistd.h>
+#include <err.h>
+#include <pthread.h>
+#include <signal.h>
 #include <string.h>
+#include <unistd.h>
 
 #include <lua.h>
 #include <lauxlib.h>
 
+#include "trx-control.h"
 #include "trxd.h"
 
 extern command_tag_t *command_tag;
@@ -141,8 +145,8 @@ luatrxd_start_handling(lua_State *L)
 		if (!strcmp(t->device, device)) {
 			if (lua_gettop(L) == 2)
 				eol = lua_tointeger(L, 2);
-			printf("eol character is %02x (%c)\n", eol, eol);
-			t->handler_running = 1;
+			if (pipe(t->handler_pipefd))
+				err(1, "pipe");
 			t->handler_eol = eol;
 			pthread_create(&t->trx_handler, NULL, trx_handler, t);
 			lua_pushboolean(L, 1);
@@ -163,7 +167,7 @@ luatrxd_stop_handling(lua_State *L)
 	device = luaL_checkstring(L, 1);
 	for (t = command_tag; t != NULL; t = t->next) {
 		if (!strcmp(t->device, device)) {
-			t->handler_running = 0;
+			write(t->handler_pipefd[1], 0x00, 1);
 			pthread_join(t->trx_handler, NULL);
 			lua_pushboolean(L, 1);
 			break;
@@ -172,6 +176,18 @@ luatrxd_stop_handling(lua_State *L)
 	if (t == NULL)
 		lua_pushnil(L);
 	return 1;
+}
+
+static int
+luatrxd_send_to_client(lua_State *L)
+{
+	int fd;
+	char *data;
+
+	fd = luaL_checkinteger(L, 1);
+	data = (char *)luaL_checkstring(L, 2);
+	trxd_writeln(fd, data);
+	return 0;
 }
 
 int
@@ -185,6 +201,7 @@ luaopen_trxd(lua_State *L)
 		{ "stopPolling",		luatrxd_stop_polling },
 		{ "startHandling",		luatrxd_start_handling },
 		{ "stopHandling",		luatrxd_stop_handling },
+		{ "sendToClient",		luatrxd_send_to_client },
 		{ NULL, NULL }
 	};
 

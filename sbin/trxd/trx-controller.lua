@@ -22,21 +22,14 @@
 
 local driver = {}
 local device = ''
-local frequencyListeners = {}
+local statusUpdateListeners = {}
 local lastFrequency = 0
 local lastMode = ''
 
 local function registerDriver(name, dev, newDriver)
-	print(string.format('register driver for %s on %s', name, dev))
-
 	driver = newDriver
 	device = dev
 
-	if driver.statusUpdatesRequirePolling == true then
-		print('this transceiver requires polling for status updates')
-	else
-		print('this transceiver supports automatic status updates')
-	end
 	if type(driver.initialize) == 'function' then
 		driver.initialize()
 	end
@@ -47,7 +40,9 @@ local function getTransceiverList()
 end
 
 local function setFrequency(freq)
-	return driver.setFrequency(freq)
+	if type(driver.setFrequency) == 'function' then
+		return driver.setFrequency(freq)
+	end
 end
 
 local function getFrequency()
@@ -70,18 +65,21 @@ local function unlockTransceiver()
 	return driver.unlock()
 end
 
-local function listenFrequency(fd)
-	print 'listen for frequency changes'
-	frequencyListeners[#frequencyListeners + 1] = fd
+local function addStatusUpdateListener(fd)
+	for k, v in ipairs(statusUpdateListeners) do
+		if v == fd then
+			return 'already listening'
+		end
+	end
+
+	statusUpdateListeners[#statusUpdateListeners + 1] = fd
 	return 'listening'
 end
 
-local function unlistenFrequency(fd)
-	print 'unlisten for frequency changes'
-
-	for k, v in ipairs(frequencyListeners) do
+local function removeStatusUpdateListener(fd)
+	for k, v in ipairs(statusUpdateListeners) do
 		if v == fd then
-			frequencyListeners[k] = nil
+			statusUpdateListeners[k] = nil
 			return 'unlisten'
 		end
 	end
@@ -89,7 +87,7 @@ local function unlistenFrequency(fd)
 end
 
 -- Handle request from a network client
-local function requestHandler(data)
+local function requestHandler(data, fd)
 	local request = json.decode(data)
 
 	if request == nil then
@@ -148,6 +146,10 @@ local function requestHandler(data)
 			reply.status = 'Error'
 			reply.reason = 'Can not start status updates'
 		end
+
+		if reply.status == 'Ok' then
+			addStatusUpdateListener(fd)
+		end
 	elseif request.request == 'stop-status-updates' then
 		if driver.statusUpdatesRequirePolling == true then
 			trxd.stopPolling(device)
@@ -157,6 +159,10 @@ local function requestHandler(data)
 		else
 			reply.status = 'Error'
 			reply.reason = 'Can not stop status updates'
+		end
+
+		if reply.status == 'Ok' then
+			removeStatusUpdateListener(fd)
 		end
 	elseif request.request == 'status-update' then
 		local frequency, mode = getFrequency()
@@ -177,6 +183,16 @@ end
 
 -- Handle incoming data from the transceiver
 local function dataHandler(data)
+	if type(driver.handleStatusUpdates) == 'function' then
+		local reply = driver.handleStatusUpdates(data)
+		if reply ~= nil then
+			local jsonData = json.encode(reply)
+			print(jsonData)
+			for k, v in pairs(statusUpdateListeners) do
+				trxd.sendToClient(v, jsonData)
+			end
+		end
+	end
 end
 
 return {

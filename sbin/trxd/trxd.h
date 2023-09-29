@@ -54,8 +54,8 @@ typedef struct command_tag {
 	pthread_t		 trx_handler;
 	int			 is_running;
 	int			 poller_running;
-	int			 handler_running;
 	int			 handler_eol;
+	int			 handler_pipefd[2];
 
 	struct command_tag	*new_tag;
 	struct command_tag	*next;
