@@ -25,6 +25,7 @@
 #include <sys/ioctl.h>
 #include <sys/stat.h>
 
+#include <err.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <pthread.h>
@@ -167,14 +168,10 @@ trx_control(void *arg)
 	while (1) {
 		int nargs = 1;
 
-		if (pthread_mutex_lock(&tag->mutex))
-			goto terminate;
-
-		if (pthread_cond_wait(&tag->cond, &tag->mutex))
-			goto terminate;
-
-		if (pthread_mutex_lock(&tag->ai_mutex))
-			goto terminate;
+		if (pthread_mutex_lock(&tag->qmutex))
+			err(1, "trx-controller: pthread_mutex_lock failed");
+		if (pthread_cond_wait(&tag->qcond, &tag->qmutex))
+			err(1, "trx-controller: pthread_cond_wait failed");
 
 		lua_geti(L, LUA_REGISTRYINDEX, driver_ref);
 		lua_getfield(L, -1, tag->handler);
@@ -229,9 +226,7 @@ trx_control(void *arg)
 		pthread_cond_signal(&tag->rcond);
 		pthread_mutex_unlock(&tag->rmutex);
 
-		pthread_mutex_unlock(&tag->ai_mutex);
-
-		pthread_mutex_unlock(&tag->mutex);
+		pthread_mutex_unlock(&tag->qmutex);
 	}
 
 terminate:

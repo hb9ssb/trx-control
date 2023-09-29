@@ -33,10 +33,10 @@
 
 typedef struct command_tag {
 	pthread_mutex_t		 mutex;
-	pthread_cond_t		 cond;
+	pthread_mutex_t		 qmutex;
+	pthread_cond_t		 qcond;
 	pthread_mutex_t		 rmutex;
 	pthread_cond_t		 rcond;
-	pthread_mutex_t		 ai_mutex;
 
 	const char		*name;
 	const char		*device;
@@ -54,6 +54,7 @@ typedef struct command_tag {
 	pthread_t		 trx_handler;
 	int			 is_running;
 	int			 poller_running;
+	int			 poller_suspended;
 	int			 handler_eol;
 	int			 handler_pipefd[2];
 

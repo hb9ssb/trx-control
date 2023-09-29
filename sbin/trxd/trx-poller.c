@@ -24,9 +24,6 @@
 
 #include <err.h>
 #include <pthread.h>
-#include <sched.h>
-#include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
 
@@ -39,38 +36,26 @@ void *
 trx_poller(void *arg)
 {
 	command_tag_t *t = (command_tag_t *)arg;
-	struct timeval tv;
-	int fd = *(int *)arg;
-	int status, nread, n;
-	char buf[256], out[1024], *p;
-	const char *command, *param;
 
-	status = pthread_detach(pthread_self());
-	if (status)
-		err(1, "can't detach");
+	if (pthread_detach(pthread_self()))
+		err(1, "trx-poller: pthread_detach failed");
 
-	printf("poller starts running for %s on %s\n", t->name, t->device);
 
 	while (t->poller_running) {
 		pthread_mutex_lock(&t->mutex);
 		pthread_mutex_lock(&t->rmutex);
 
-		/* XXX Maybe create a specific handler for the poller */
-		t->handler = "requestHandler";
+		t->handler = "pollHandler";
 		t->data = STATUS_REQUEST;
 		t->client_fd = 0;
 
-		pthread_cond_signal(&t->cond);
-		pthread_mutex_unlock(&t->mutex);
+		pthread_cond_signal(&t->qcond);
 
 		pthread_cond_wait(&t->rcond, &t->rmutex);
 
-		if (t->reply != NULL)
-			printf("poller got %s\n", t->reply);
-
 		pthread_mutex_unlock(&t->rmutex);
+		pthread_mutex_unlock(&t->mutex);
 		usleep(POLLING_INTERVAL);
 	}
-	printf("poller stops running for %s on %s\n", t->name, t->device);
 	return NULL;
 }

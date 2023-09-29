@@ -28,11 +28,12 @@ trx:
     name: FT-897
     device: /dev/ttyUSB2
     driver: yaesu-ft-897
-
+    default: true
     # This is the default transceiver in case the client does not explicitely
     # select a transceiver by name.
     # default: true
 
+xy:
   dummy:
     name: Dummy
     device: /dev/null

@@ -154,5 +154,6 @@ trxd_writeln(int fd, char *buf)
 		}
 		len -= nwritten;
 	} while (len > 0);
+	tcdrain(fd);
 	return l;
 }

@@ -46,15 +46,14 @@ trx_handler(void *arg)
 	struct timeval tv;
 	sigset_t mask;
 
-	status = pthread_detach(pthread_self());
-	if (status)
-		err(1, "can't detach");
+	if (pthread_detach(pthread_self()))
+		err(1, "trx-handler: pthread_detach failed");
 
 	fd = command_tag->cat_device;
 
 	epfd = epoll_create(1);
 	if (epfd == -1)
-		err(1, "epoll_create");
+		err(1, "trx-handler: epoll_create failed");
 
 	ev[0].events = EPOLLIN;
 	ev[0].data.fd = fd;
@@ -73,7 +72,7 @@ trx_handler(void *arg)
 			if (errno == EINTR)
 				continue;
 			else
-				err(1, "epoll_wait");
+				err(1, "trx-handler: epoll_wait failed");
 		}
 		for (n = 0; n < nfds; n++) {
 			if (events[n].data.fd == fd) {
@@ -92,12 +91,13 @@ trx_handler(void *arg)
 				command_tag->data = buf;
 				command_tag->client_fd = 0;
 
-				pthread_cond_signal(&command_tag->cond);
-				pthread_mutex_unlock(&command_tag->mutex);
+				pthread_cond_signal(&command_tag->qcond);
 
 				pthread_cond_wait(&command_tag->rcond,
 				    &command_tag->rmutex);
 				pthread_mutex_unlock(&command_tag->rmutex);
+				pthread_mutex_unlock(&command_tag->mutex);
+
 			} else
 				terminate = 1;
 		}

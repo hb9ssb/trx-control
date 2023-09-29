@@ -178,7 +178,30 @@ local function requestHandler(data, fd)
 		reply.status = 'Error'
 		reply.reason = 'Unknown request'
 	end
+
 	return json.encode(reply)
+end
+
+local function pollHandler(data, fd)
+	local frequency, mode = getFrequency()
+	if lastFrequency ~= frequency or lastMode ~= mode then
+		local status = {
+			request = 'status-update',
+			status = {
+				frequency = frequency,
+				mode = mode
+			}
+		}
+		local jsonData = json.encode(status)
+		print(jsonData)
+		for k, v in pairs(statusUpdateListeners) do
+			trxd.sendToClient(v, jsonData)
+		end
+		lastFrequency = frequency
+		lastMode = mode
+	else
+		return nil
+	end
 end
 
 -- Handle incoming data from the transceiver
@@ -186,7 +209,11 @@ local function dataHandler(data)
 	if type(driver.handleStatusUpdates) == 'function' then
 		local reply = driver.handleStatusUpdates(data)
 		if reply ~= nil then
-			local jsonData = json.encode(reply)
+			local status = {
+				request = 'status-update',
+				status = reply
+			}
+			local jsonData = json.encode(status)
 			print(jsonData)
 			for k, v in pairs(statusUpdateListeners) do
 				trxd.sendToClient(v, jsonData)
@@ -198,5 +225,6 @@ end
 return {
 	registerDriver = registerDriver,
 	requestHandler = requestHandler,
+	pollHandler = pollHandler,
 	dataHandler = dataHandler
 }

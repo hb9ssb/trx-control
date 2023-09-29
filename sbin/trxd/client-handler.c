@@ -53,16 +53,14 @@ client_handler(void *arg)
 	if (t == NULL)
 		t = command_tag;
 
-	status = pthread_detach(pthread_self());
-	if (status)
-		err(1, "can't detach");
+	if (pthread_detach(pthread_self()))
+		err(1, "client-handler: pthread_detach failed");
 
 	for (;;) {
 		buf = trxd_readln(fd);
 
 		if (buf == NULL)
 			break;
-
 
 		pthread_mutex_lock(&t->mutex);
 		pthread_mutex_lock(&t->rmutex);
@@ -72,16 +70,17 @@ client_handler(void *arg)
 		t->client_fd = fd;
 		t->new_tag = t;
 
-		pthread_cond_signal(&t->cond);
-		pthread_mutex_unlock(&t->mutex);
+		if (pthread_cond_signal(&t->qcond))
+			err(1, "client-handler: pthread_cond_signal failed");
 
 		pthread_cond_wait(&t->rcond, &t->rmutex);
+		pthread_mutex_unlock(&t->rmutex);
+
+		pthread_mutex_unlock(&t->mutex);
 
 		free(buf);
 		if (t->reply)
 			trxd_writeln(fd, t->reply);
-
-		pthread_mutex_unlock(&t->rmutex);
 
 		/* Check if we changed the transceiver */
 		if (t->new_tag != t)
