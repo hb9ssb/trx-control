@@ -51,6 +51,8 @@ local function initialize()
 	end
 end
 
+-- Handling auto information
+
 local function startStatusUpdates()
 	trx.write('AI1;')
 	return string.byte(';')
@@ -61,19 +63,96 @@ local function stopStatusUpdates()
 	return 'status updates off'
 end
 
-local function handleStatusUpdates(data)
-	print('FT-710: handle status update, data:', data)
+-- Decoders for auto information
+
+local function frequencyVfoA(data)
+	local hz = tonumber(string.sub(data, 3, 11))
+	return { frequency = { ['vfo-a'] = hz } }
+end
+
+local function frequencyVfoB(data)
+	local hz = tonumber(string.sub(data, 3, 11))
+	return { frequency = { ['vfo-b'] = hz } }
+end
+
+local function informationVfoA(data)
+	mode = string.sub(data, 3, 5)
+	local hz = tonumber(string.sub(data, 6, 14))
+
 	return {
-		rawData = data
+		['vfo-a'] = {
+			mode = mode,
+			frequency = hz
+		}
 	}
 end
 
-local function lock()
+local function lockDecoder(data)
+	if string.sub(data, 3, 3) == '0' then
+		print('lock off')
+		return { lock = 'off' }
+	else
+		print 'lock on'
+		return { lock = 'on' }
+	end
+end
+
+local function mode(data)
+	local band = string.sub(data, 3, 3)
+	local mode = string.sub(data, 4, 4)
+
+	if band == '0' then
+		band = 'main'
+	else
+		band = 'sub'
+	end
+	local name = 'unknown mode'
+
+	for k, v in pairs(validModes) do
+		if v == mode then
+			name = k
+			break
+		end
+	end
+
+	return {
+		operatingMode = {
+			band = band,
+			mode = name
+		}
+	}
+end
+
+local decoders = {
+	FA = frequencyVfoA,
+	FB = frequencyVfoB,
+	IF = informationVfoA,
+	LK = lockDecoder,
+	MD = mode
+}
+
+local function handleStatusUpdates(data)
+	print('FT-710: handle status update, data:', data)
+
+	local command = string.sub(data, 1, 2)
+	local decoder = decoders[command]
+	if decoder ~= nil then
+		local reply = decoder(data)
+		print(reply.lock)
+		return reply
+	end
+
+	return { unknownCommand = command }
+end
+
+-- direct commands
+
+local function setLock()
 	trx.write('LK1;')
 	return 'locked'
 end
 
-local function unlock()
+local function setUnlock()
 	trx.write('LK0;')
 	return 'unlocked'
 end
@@ -132,8 +211,8 @@ return {
 	startStatusUpdates = startStatusUpdates,
 	stopStatusUpdates = stopStatusUpdates,
 	handleStatusUpdates = handleStatusUpdates,
-	lock = lock,
-	unlock = unlock,
+	setLock = setLock,
+	setUnlock = setUnlock,
 	setFrequency = setFrequency,
 	getFrequency = getFrequency,
 	getMode = getMode,
