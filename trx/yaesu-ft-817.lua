@@ -38,12 +38,12 @@ local function initialize()
 	trx.setspeed(38400)
 end
 
-local function lock()
+local function setLock()
 	trx.write('\x00\x00\x00\x00\x00')
 	return 'locked'
 end
 
-local function unlock()
+local function setUnlock()
 	trx.write('\x00\x00\x00\x00\x80')
 	return 'unlocked'
 end
@@ -104,8 +104,8 @@ return {
 	startStatusUpdates = nil,
 	stopStatusUpdates = nil,
 	handleStatusUpdates = nil,
-	lock = lock,
-	unlock = unlock,
+	setLock = setLock,
+	setUnlock = setUnlock,
 	setFrequency = setFrequency,
 	getFrequency = getFrequency,
 	getMode = getMode,

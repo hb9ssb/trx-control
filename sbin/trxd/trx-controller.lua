@@ -59,11 +59,11 @@ local function getMode()
 end
 
 local function lockTransceiver()
-	return driver.lock()
+	return driver.setLock()
 end
 
 local function unlockTransceiver()
-	return driver.unlock()
+	return driver.setUnlock()
 end
 
 local function addStatusUpdateListener(fd)
