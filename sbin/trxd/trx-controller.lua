@@ -23,6 +23,7 @@
 local driver = {}
 local device = ''
 local statusUpdateListeners = {}
+local numStatusUpdateListeners = 0
 local statusUpdates = false
 local lastFrequency = 0
 local lastMode = ''
@@ -74,6 +75,7 @@ local function addStatusUpdateListener(fd)
 	end
 
 	statusUpdateListeners[#statusUpdateListeners + 1] = fd
+	numStatusUpdateListeners = numStatusUpdateListeners + 1
 	return 'listening'
 end
 
@@ -81,6 +83,7 @@ local function removeStatusUpdateListener(fd)
 	for k, v in ipairs(statusUpdateListeners) do
 		if v == fd then
 			statusUpdateListeners[k] = nil
+			numStatusUpdateListeners = numStatusUpdateListeners - 1
 			return 'unlisten'
 		end
 	end
@@ -138,32 +141,40 @@ local function requestHandler(data, fd)
 	elseif request.request == 'unlock-trx' then
 		unlockTransceiver()
 	elseif request.request == 'start-status-updates' then
-		if driver.statusUpdatesRequirePolling == true then
-			trxd.startPolling(device)
-		elseif type(driver.startStatusUpdates) == 'function' then
-			local eol = driver.startStatusUpdates()
-			trxd.startHandling(device, eol)
-		else
-			reply.status = 'Error'
-			reply.reason = 'Can not start status updates'
+		addStatusUpdateListener(fd)
+
+		-- if this is the first listener, start the poller or
+		-- input handler
+
+		if numStatusUpdateListeners == 1 then
+			if driver.statusUpdatesRequirePolling == true then
+				trxd.startPolling(device)
+			elseif type(driver.startStatusUpdates) == 'function' then
+				local eol = driver.startStatusUpdates()
+				trxd.startHandling(device, eol)
+			else
+				reply.status = 'Error'
+				reply.reason = 'Can not start status updates'
+				removeStatusUpdateListener(fd)
+			end
 		end
 
-		if reply.status == 'Ok' then
-			addStatusUpdateListener(fd)
-		end
 	elseif request.request == 'stop-status-updates' then
-		if driver.statusUpdatesRequirePolling == true then
-			trxd.stopPolling(device)
-		elseif type(driver.stopStatusUpdates) == 'function' then
-			driver.stopStatusUpdates()
-			trxd.stopHandling(device)
-		else
-			reply.status = 'Error'
-			reply.reason = 'Can not stop status updates'
-		end
+		removeStatusUpdateListener(fd)
 
-		if reply.status == 'Ok' then
-			removeStatusUpdateListener(fd)
+		-- if this was the last listener, stop the poller or
+		-- input handler
+
+		if numStatusUpdateListeners == 0 then
+			if driver.statusUpdatesRequirePolling == true then
+				trxd.stopPolling(device)
+			elseif type(driver.stopStatusUpdates) == 'function' then
+				driver.stopStatusUpdates()
+				trxd.stopHandling(device)
+			else
+				reply.status = 'Error'
+				reply.reason = 'Can not stop status updates'
+			end
 		end
 	else
 		reply.status = 'Error'
