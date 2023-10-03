@@ -20,7 +20,8 @@ CFLAGS+=	-I../../lib/libtrx-control -I../../external/mit/lua/src \
 		-I../../external/mit/luajson -pthread -D_GNU_SOURCE
 LDFLAGS+=	-L../../lib/libtrx-control -ltrx-control \
 		-L../../lib/liblua -llua -lyaml -lm
-VPATH=		../../external/mit/luayaml ../../external/mit/luajson
+VPATH=		../../external/mit/luayaml ../../external/mit/luajson \
+		../../lib/libtrx-control
 
 build:		trxd
 
@@ -47,6 +48,18 @@ trxd.yaml:
 .c.o:
 		cc -O3 -fPIC -c -o $@ ${CFLAGS} $<
 
-trxd.o:		trxd.c trxd.h
+# Dependencies
+client-handler.o:	client-handler.c trxd.h trx-control.h
 
 luatrx.o:	luatrx.c trxd.h
+
+luatrxd.o:	luatrxd.c trxd.h trx-control.h
+
+trx-controller.o:	trx-controller.c pathnames.h trxd.h
+
+trx-handler.o:	trx-handler.c trxd.h
+
+trx-poller.o:	trx-poller.c trxd.h
+
+trxd.o:		trxd.c trxd.h trx-control.h
+

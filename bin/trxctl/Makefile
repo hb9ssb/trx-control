@@ -13,7 +13,8 @@ CFLAGS+=	-I../../lib/libtrx-control -I../../external/mit/lua/src \
 		-D_GNU_SOURCE
 LDFLAGS+=	-L../../lib/libtrx-control -ltrx-control \
 		-L../../lib/liblua -llua -lm -lreadline
-VPATH=		../../external/mit/luajson
+VPATH=		../../external/mit/luajson \
+		../../lib/libtrx-control
 
 build:		trxctl
 
@@ -36,3 +37,9 @@ trxctl.lua:
 
 .c.o:
 		cc -O3 -fPIC -c -o $@ ${CFLAGS} $<
+
+# Dependencies
+
+luatrxctl.o:	luatrxctl.c trx-control.h
+
+trxctl.o:	trxctl.c trx-control.h

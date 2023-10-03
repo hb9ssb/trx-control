@@ -15,7 +15,7 @@ CFLAGS+=	-I../../lib/libtrx-control -I../../external/mit/lua/src \
 		-D_GNU_SOURCE
 LDFLAGS+=	-L../../lib/libtrx-control -ltrx-control \
 		-L../../lib/liblua -llua -lm -lXm -lXt -lX11 -lXm
-VPATH=		../../external/mit/luajson
+VPATH=		../../external/mit/luajson ../../lib/libtrx-control
 
 build:		xqrg
 
@@ -41,3 +41,10 @@ XQRG:
 
 .c.o:
 		cc -O3 -fPIC -c -o $@ ${CFLAGS} $<
+
+# Dependencies
+luaxqrg.o:	luaxqrg.c xqrg.h trx-control.h
+
+qrg.o:		qrg.c xqrg.h
+
+xqrg.o:		xqrg.c xqrg.h trx-control.h
