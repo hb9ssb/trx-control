@@ -44,11 +44,7 @@ local function initialize()
 	trx.write('ID;')
 	local reply = trx.read(7)
 
---
--- not sure how to determine this "ID" number
---
-
-	if reply ~= 'ID0800;' then
+	if reply ~= 'ID0462;' then
 		print 'this is not a Yaesu FTdx3000 transceiver'
 	else
 		print 'this is a Yaesu FTdx3000 transceiver'
