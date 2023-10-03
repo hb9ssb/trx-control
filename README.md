@@ -30,7 +30,9 @@ Initially, trx-control will support the following transceivers:
 A special dummy transceiver driver exists for development and testing
 purposes.
 
-The client/server protocol is documented in the projects wiki at
+## More information
+
+More information can be found the wiki at
 https://github.com/hb9ssb/trx-control/wiki
 
 ## Signal group
