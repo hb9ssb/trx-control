@@ -22,10 +22,9 @@
 
 /* Handle incoming data from the trx */
 
-#include <sys/epoll.h>
-
 #include <err.h>
 #include <errno.h>
+#include <poll.h>
 #include <pthread.h>
 #include <sched.h>
 #include <stdio.h>
@@ -35,73 +34,62 @@
 
 #include "trxd.h"
 
-#define MAX_EVENTS	2
 void *
 trx_handler(void *arg)
 {
 	command_tag_t *command_tag = (command_tag_t *)arg;
-	struct epoll_event ev[MAX_EVENTS], events[MAX_EVENTS];
+	struct pollfd pfds[2];
 	int status, nread, n, r, fd, epfd, nfds, terminate;
 	char buf[128], *p;
 	struct timeval tv;
-	sigset_t mask;
 
 	if (pthread_detach(pthread_self()))
-		err(1, "trx-handler: pthread_detach failed");
+		err(1, "trx-handler: pthread_detach");
 
 	fd = command_tag->cat_device;
 
-	epfd = epoll_create(1);
-	if (epfd == -1)
-		err(1, "trx-handler: epoll_create failed");
-
-	ev[0].events = EPOLLIN;
-	ev[0].data.fd = fd;
-	ev[1].events = EPOLLIN;
-	ev[1].data.fd = command_tag->handler_pipefd[0];
-
-	if (epoll_ctl(epfd, EPOLL_CTL_ADD, fd, &ev[0]) == -1)
-		err(1, "epoll_ctl");
-	if (epoll_ctl(epfd, EPOLL_CTL_ADD, command_tag->handler_pipefd[0],
-	    &ev[1]) == -1)
-		err(1, "epoll_ctl");
+	pfds[0].fd = fd;
+	pfds[0].events = POLLIN;
+	pfds[1].fd = command_tag->handler_pipefd[0];
+	pfds[1].events = POLLIN;
 
 	for (terminate = 0; terminate == 0; ) {
-		pthread_mutex_lock(&command_tag->mutex);
-		nfds = epoll_wait(epfd, events, MAX_EVENTS, 0);
-		if (nfds == -1) {
-			if (errno == EINTR)
-				continue;
-			else
-				err(1, "trx-handler: epoll_wait failed");
+		if (pthread_mutex_lock(&command_tag->mutex))
+			err(1, "trx-handler: pthread_mutex_lock");
+
+		if (poll(pfds, 2, 0) == -1)
+			err(1, "trx-handler: poll");
+		if (pfds[0].revents) {
+			for (n = 0; n < sizeof(buf) - 1; n++) {
+				read(fd, &buf[n], 1);
+				if (buf[n] == command_tag->handler_eol)
+					break;
+			}
+			buf[++n] = '\0';
+
+			if (pthread_mutex_lock(&command_tag->rmutex))
+				err(1, "trx-handler: pthread_mutex_lock");
+
+			command_tag->handler = "dataHandler";
+			command_tag->data = buf;
+			command_tag->client_fd = 0;
+
+			if (pthread_cond_signal(&command_tag->qcond))
+				err(1, "trx-handler: pthread_cond_signal");
+
+			if (pthread_cond_wait(&command_tag->rcond,
+			    &command_tag->rmutex))
+				err(1, "trx-handler: pthread_cond_wait");
+
+			if (pthread_mutex_unlock(&command_tag->rmutex))
+				err(1, "trx-handler: pthread_mutex_undlock");
+			if (pthread_mutex_unlock(&command_tag->mutex))
+				err(1, "trx-handler: pthread_mutex_unlock");
 		}
-		for (n = 0; n < nfds; n++) {
-			if (events[n].data.fd == fd) {
-
-				for (n = 0; n < sizeof(buf) - 1; n++) {
-					read(fd, &buf[n], 1);
-					if (buf[n] == command_tag->handler_eol)
-						break;
-				}
-				buf[++n] = '\0';
-
-				pthread_mutex_lock(&command_tag->rmutex);
-
-				command_tag->handler = "dataHandler";
-				command_tag->data = buf;
-				command_tag->client_fd = 0;
-
-				pthread_cond_signal(&command_tag->qcond);
-
-				pthread_cond_wait(&command_tag->rcond,
-				    &command_tag->rmutex);
-				pthread_mutex_unlock(&command_tag->rmutex);
-				pthread_mutex_unlock(&command_tag->mutex);
-
-			} else
-				terminate = 1;
-		}
-		pthread_mutex_unlock(&command_tag->mutex);
+		if (pfds[1].revents)
+			terminate = 1;
+		if (pthread_mutex_unlock(&command_tag->mutex))
+			err(1, "trx-handler: pthread_mutex_lock");
 	};
 	return NULL;
 }
