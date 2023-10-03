@@ -38,21 +38,27 @@ trx_poller(void *arg)
 	command_tag_t *t = (command_tag_t *)arg;
 
 	if (pthread_detach(pthread_self()))
-		err(1, "trx-poller: pthread_detach failed");
-
+		err(1, "trx-poller: pthread_detach");
 
 	while (t->poller_running) {
-		pthread_mutex_lock(&t->mutex);
+		if (pthread_mutex_lock(&t->mutex))
+			err(1, "trx-poller: pthread_mutex_lock (mutex)");
+
 		pthread_mutex_lock(&t->rmutex);
+			err(1, "trx-poller: pthread_mutex_lock (rmutex)");
 
 		t->handler = "pollHandler";
 
-		pthread_cond_signal(&t->qcond);
+		if (pthread_cond_signal(&t->qcond))
+			err(1, "trx-poller: pthread_cond_signal");
 
-		pthread_cond_wait(&t->rcond, &t->rmutex);
+		if (pthread_cond_wait(&t->rcond, &t->rmutex))
+			err(1, "trx-poller: pthread_cond_wait");
 
 		pthread_mutex_unlock(&t->rmutex);
+			err(1, "trx-poller: pthread_mutex_unlock (rmutex)");
 		pthread_mutex_unlock(&t->mutex);
+			err(1, "trx-poller: pthread_mutex_unlock (mutex)");
 		usleep(POLLING_INTERVAL);
 	}
 	return NULL;

@@ -54,7 +54,7 @@ client_handler(void *arg)
 		t = command_tag;
 
 	if (pthread_detach(pthread_self()))
-		err(1, "client-handler: pthread_detach failed");
+		err(1, "client-handler: pthread_detach");
 
 	for (;;) {
 		buf = trxd_readln(fd);
@@ -71,7 +71,7 @@ client_handler(void *arg)
 		t->new_tag = t;
 
 		if (pthread_cond_signal(&t->qcond))
-			err(1, "client-handler: pthread_cond_signal failed");
+			err(1, "client-handler: pthread_cond_signal");
 
 		pthread_cond_wait(&t->rcond, &t->rmutex);
 		pthread_mutex_unlock(&t->rmutex);

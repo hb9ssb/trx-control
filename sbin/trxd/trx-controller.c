@@ -72,13 +72,14 @@ trx_control(void *arg)
 
 	fd = open(tag->device, O_RDWR);
 	if (fd == -1) {
-		syslog(LOG_ERR, "Can't open CAT device %s: %s",
+		syslog(LOG_ERR, "Can't open transceiver device %s: %s",
 		    tag->device, strerror(errno));
 		goto terminate;
 	}
 	if (isatty(fd)) {
 		if (tcgetattr(fd, &tty) < 0)
-			syslog(LOG_ERR, "Can't get CAT device tty attributes");
+			syslog(LOG_ERR, "Can't get transceiver device tty "
+			    "attributes");
 		else {
 			cfmakeraw(&tty);
 			tty.c_cflag |= CLOCAL;
@@ -169,9 +170,9 @@ trx_control(void *arg)
 		int nargs = 1;
 
 		if (pthread_mutex_lock(&tag->qmutex))
-			err(1, "trx-controller: pthread_mutex_lock failed");
+			err(1, "trx-controller: pthread_mutex_lock");
 		if (pthread_cond_wait(&tag->qcond, &tag->qmutex))
-			err(1, "trx-controller: pthread_cond_wait failed");
+			err(1, "trx-controller: pthread_cond_wait");
 
 		lua_geti(L, LUA_REGISTRYINDEX, driver_ref);
 		lua_getfield(L, -1, tag->handler);
