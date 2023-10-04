@@ -40,7 +40,7 @@ client_handler(void *arg)
 {
 	command_tag_t *t;
 	int fd = *(int *)arg;
-	int status, nread, n;
+	int status, nread, n, terminate;
 	char *buf, *p;
 	const char *command, *param;
 
@@ -56,11 +56,13 @@ client_handler(void *arg)
 	if (pthread_detach(pthread_self()))
 		err(1, "client-handler: pthread_detach");
 
-	for (;;) {
+	for (terminate = 0; !terminate ;) {
 		buf = trxd_readln(fd);
 
-		if (buf == NULL)
+		if (buf == NULL) {
+			terminate = 1;
 			break;
+		}
 
 		pthread_mutex_lock(&t->mutex);
 		pthread_mutex_lock(&t->rmutex);

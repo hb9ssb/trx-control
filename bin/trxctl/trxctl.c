@@ -94,7 +94,7 @@ rl_gets()
 		line_read = NULL;
 	}
 
-	line_read = readline(" > ");
+	line_read = readline(NULL);
 
 	if (line_read && *line_read)
 		add_history(line_read);
@@ -199,12 +199,24 @@ main(int argc, char *argv[])
 
 		if (pfds[1].revents) {
 			line = trxd_readln(fd);
-			printf("< %s\n", line);
+			if (line == NULL) {
+				/* Terminate prompt */
+				printf("\n");
+				fprintf(stderr, "trxd disconnected\n");
+				terminate = 1;
+				break;
+			} else
+				printf("< %s\n", line);
 		}
 
 		if (pfds[0].revents) {
-			line = rl_gets();
 			char *param;
+			line = rl_gets();
+			if (line == NULL) {
+				printf("got EOF on console\n");
+				terminate = 1;
+				break;
+			}
 
 			param = strchr(line, ' ');
 			if (param) {
