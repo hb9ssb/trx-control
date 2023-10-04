@@ -25,12 +25,15 @@
 
 #include <netinet/in.h>
 
+#include <err.h>
 #include <getopt.h>
 #include <netdb.h>
+#include <poll.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <syslog.h>
+#include <termios.h>
 #include <unistd.h>
 #include <wordexp.h>
 
@@ -91,7 +94,7 @@ rl_gets()
 		line_read = NULL;
 	}
 
-	line_read = readline("trxctl> ");
+	line_read = readline(" > ");
 
 	if (line_read && *line_read)
 		add_history(line_read);
@@ -103,8 +106,9 @@ main(int argc, char *argv[])
 {
 	lua_State *L;
 	wordexp_t p;
-	int c, n, list, cmdhandler_ref;
+	int c, n, list, cmdhandler_ref, terminate;
 	char *host, *port, *trx, buf[128], *line;
+	struct pollfd pfds[2];
 
 	verbosity = 0;
 	host = DEFAULT_HOST;
@@ -181,50 +185,71 @@ main(int argc, char *argv[])
 	wordexp(HISTORY, &p, 0);
 	read_history(p.we_wordv[0]);
 
-	while ((line = rl_gets())) {
-		char *param;
+	pfds[0].fd = 0;
+	pfds[0].events = POLLIN;
+	pfds[1].fd = fd;
+	pfds[1].events = POLLIN;
 
-		param = strchr(line, ' ');
-		if (param) {
-			*param++ = '\0';
-			while (*param == ' ')
-				++param;
+	for (terminate = 0; !terminate; ) {
+		printf("trxctl > ");
+		fflush(stdout);
+
+		if (poll(pfds, 2, -1) == -1)
+			err(1, "poll");
+
+		if (pfds[1].revents) {
+			line = trxd_readln(fd);
+			printf("< %s\n", line);
 		}
 
-		if (!strcmp(line, "quit"))
-			break;
+		if (pfds[0].revents) {
+			line = rl_gets();
+			char *param;
 
-		for (n = 0; command_map[n].command != NULL; n++)
-			if (!strcmp(command_map[n].command, line))
-				break;
-
-		if (command_map[n].command != NULL) {
-			lua_geti(L, LUA_REGISTRYINDEX, cmdhandler_ref);
-			lua_getfield(L, -1, command_map[n].func);
-			if (lua_type(L, -1) != LUA_TFUNCTION) {
-				fprintf(stderr, "command not supported, "
-				    "please submit a bug report\n");
-			} else {
-				if (param)
-					lua_pushstring(L, param);
-				switch (lua_pcall(L, param ? 1 : 0, 1, 0)) {
-				case LUA_OK:
-					break;
-				case LUA_ERRRUN:
-				case LUA_ERRMEM:
-				case LUA_ERRERR:
-					syslog(LOG_ERR, "Lua error: %s",
-					    lua_tostring(L, -1));
-					break;
-				}
-				if (lua_type(L, -1) == LUA_TSTRING)
-					printf("trxctl > %s\n",
-					    lua_tostring(L, -1));
+			param = strchr(line, ' ');
+			if (param) {
+				*param++ = '\0';
+				while (*param == ' ')
+					++param;
 			}
-			lua_pop(L, 1);
-		} else if (*line)
-			printf("no such command\n");
 
+			if (!strcmp(line, "quit")) {
+				terminate = 1;
+				break;
+			}
+			for (n = 0; command_map[n].command != NULL; n++)
+				if (!strcmp(command_map[n].command, line))
+					break;
+
+			if (command_map[n].command != NULL) {
+				lua_geti(L, LUA_REGISTRYINDEX, cmdhandler_ref);
+				lua_getfield(L, -1, command_map[n].func);
+				if (lua_type(L, -1) != LUA_TFUNCTION) {
+					fprintf(stderr, "command not supported,"
+					    " please submit a bug report\n");
+				} else {
+					if (param)
+						lua_pushstring(L, param);
+					switch (lua_pcall(L, param ? 1 : 0, 1,
+					    0)) {
+					case LUA_OK:
+						break;
+					case LUA_ERRRUN:
+					case LUA_ERRMEM:
+					case LUA_ERRERR:
+						syslog(LOG_ERR, "Lua error: %s",
+						    lua_tostring(L, -1));
+						break;
+					}
+					if (lua_type(L, -1) == LUA_TSTRING)
+						printf("trxctl > %s\n",
+						    lua_tostring(L, -1));
+				}
+				lua_pop(L, 1);
+			} else if (*line)
+				printf("no such command\n");
+
+		}
 	}
 	write_history(p.we_wordv[0]);
 	wordfree(&p);
