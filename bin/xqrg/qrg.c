@@ -124,12 +124,10 @@ clear_display(void)
 }
 
 void
-update_status(void)
+qrg_status(char *s)
 {
-	char s[80];
 	XmString label;
 
-	snprintf(s, sizeof s, "Idle");
 	label = XmStringCreateLocalized(s);
 	XtVaSetValues(status, XmNlabelString, label, NULL);
 	XmStringFree(label);
@@ -219,6 +217,23 @@ qrg_addchar(char c)
 	if (x == 20) {
 		y = 1 - y;
 		x = 0;
+	}
+	qrg_update();
+}
+
+void
+qrg_addstring(char *s)
+{
+	char *p;
+	scroll_stop();
+
+	p = y == 0 ? top_line : bottom_line;
+	for (; *s; s++) {
+		*(p + x++) = *s;
+		if (x == 20) {
+			y = 1 - y;
+			x = 0;
+		}
 	}
 	qrg_update();
 }

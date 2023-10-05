@@ -25,12 +25,15 @@
 
 #include <netinet/in.h>
 
+#include <err.h>
 #include <getopt.h>
 #include <netdb.h>
+#include <poll.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <syslog.h>
+#include <termios.h>
 #include <unistd.h>
 #include <wordexp.h>
 
@@ -52,7 +55,9 @@ extern void luaopen_trxctl(lua_State *);
 extern void luaopen_json(lua_State *);
 
 int fd = 0;
-int verbosity = 0;
+int verbose = 0;
+int cmdhandler_ref = LUA_REFNIL;
+lua_State *L;
 
 static struct {
 	const char *command;
@@ -81,6 +86,53 @@ usage(void)
 	exit(1);
 }
 
+int
+handle_status_updates()
+{
+	struct pollfd pfd;
+	char *line;
+
+	pfd.fd = fd;
+	pfd.events = POLLIN;
+
+	if (poll(&pfd, 1, -0) == -1)
+		err(1, "poll");
+
+	if (pfd.revents) {
+		line = trxd_readln(fd);
+		if (line == NULL) {
+			/* Terminate prompt */
+			printf("\n");
+			errx(1, "trxd disconnected\n");
+		} else {
+			lua_geti(L, LUA_REGISTRYINDEX, cmdhandler_ref);
+			lua_getfield(L, -1, "handleStatusUpdate");
+			if (lua_type(L, -1) != LUA_TFUNCTION) {
+				fprintf(stderr, "status updates not supported,"
+				    " please submit a bug report\n");
+			} else {
+
+				lua_pushstring(L, line);
+				switch (lua_pcall(L, 1, 1, 0)) {
+				case LUA_OK:
+					break;
+				case LUA_ERRRUN:
+				case LUA_ERRMEM:
+				case LUA_ERRERR:
+					syslog(LOG_ERR, "Lua error: %s",
+					    lua_tostring(L, -1));
+					break;
+				}
+				if (lua_type(L, -1) == LUA_TSTRING)
+					printf("\n%s\n", lua_tostring(L, -1));
+			}
+			lua_pop(L, 1);
+			free(line);
+			rl_forced_update_display();
+		}
+	}
+}
+
 char *
 rl_gets()
 {
@@ -91,7 +143,7 @@ rl_gets()
 		line_read = NULL;
 	}
 
-	line_read = readline("trxctl> ");
+	line_read = readline("trxctl > ");
 
 	if (line_read && *line_read)
 		add_history(line_read);
@@ -101,12 +153,11 @@ rl_gets()
 int
 main(int argc, char *argv[])
 {
-	lua_State *L;
 	wordexp_t p;
-	int c, n, list, cmdhandler_ref;
-	char *host, *port, *trx, buf[128], *line;
+	int c, n, list, terminate;
+	char *host, *port, *trx, buf[128], *line, *param;
 
-	verbosity = 0;
+	verbose = 0;
 	host = DEFAULT_HOST;
 	port = DEFAULT_PORT;
 
@@ -143,7 +194,7 @@ main(int argc, char *argv[])
 			trx = optarg;
 			break;
 		case 'v':
-			verbosity++;
+			verbose++;
 			break;
 		default:
 			usage();
@@ -174,15 +225,21 @@ main(int argc, char *argv[])
 
 	fd = trxd_connect(host, port);
 	if (fd < 0) {
-		fprintf(stderr, "connection failed\n");
+		fprintf(stderr, "connection to %s:%s failed\n", host, port);
 		exit(1);
 	}
 
 	wordexp(HISTORY, &p, 0);
 	read_history(p.we_wordv[0]);
+	rl_event_hook = handle_status_updates;
 
-	while ((line = rl_gets())) {
-		char *param;
+	for (terminate = 0; !terminate; ) {
+		line = rl_gets();
+
+		if (line == NULL) {
+			terminate = 1;
+			break;
+		}
 
 		param = strchr(line, ' ');
 		if (param) {
@@ -191,9 +248,10 @@ main(int argc, char *argv[])
 				++param;
 		}
 
-		if (!strcmp(line, "quit"))
+		if (!strcmp(line, "quit")) {
+			terminate = 1;
 			break;
-
+		}
 		for (n = 0; command_map[n].command != NULL; n++)
 			if (!strcmp(command_map[n].command, line))
 				break;
@@ -202,12 +260,13 @@ main(int argc, char *argv[])
 			lua_geti(L, LUA_REGISTRYINDEX, cmdhandler_ref);
 			lua_getfield(L, -1, command_map[n].func);
 			if (lua_type(L, -1) != LUA_TFUNCTION) {
-				fprintf(stderr, "command not supported, "
-				    "please submit a bug report\n");
+				fprintf(stderr, "command not supported,"
+				    " please submit a bug report\n");
 			} else {
 				if (param)
 					lua_pushstring(L, param);
-				switch (lua_pcall(L, param ? 1 : 0, 1, 0)) {
+				switch (lua_pcall(L, param ? 1 : 0, 1,
+				    0)) {
 				case LUA_OK:
 					break;
 				case LUA_ERRRUN:

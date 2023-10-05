@@ -34,13 +34,14 @@
 #include "trx-control.h"
 
 extern command_tag_t *command_tag;
+extern int verbose;
 
 void *
 client_handler(void *arg)
 {
 	command_tag_t *t;
 	int fd = *(int *)arg;
-	int status, nread, n;
+	int status, nread, n, terminate;
 	char *buf, *p;
 	const char *command, *param;
 
@@ -56,35 +57,42 @@ client_handler(void *arg)
 	if (pthread_detach(pthread_self()))
 		err(1, "client-handler: pthread_detach");
 
-	for (;;) {
+	for (terminate = 0; !terminate ;) {
 		buf = trxd_readln(fd);
 
-		if (buf == NULL)
-			break;
+		if (buf == NULL) {
+			terminate = 1;
+			buf = strdup("{\"request\": \"stop-status-updates\"}");
+		}
 
-		pthread_mutex_lock(&t->mutex);
-		pthread_mutex_lock(&t->rmutex);
+		if (pthread_mutex_lock(&t->mutex))
+			err(1, "client-handler: pthread_mutex_lock");
+		if (verbose > 1)
+			printf("client-handler: mutex locked\n");
 
 		t->handler = "requestHandler";
 		t->data = buf;
 		t->client_fd = fd;
 		t->new_tag = t;
 
-		if (pthread_cond_signal(&t->qcond))
+		if (pthread_cond_signal(&t->cond))
 			err(1, "client-handler: pthread_cond_signal");
 
-		pthread_cond_wait(&t->rcond, &t->rmutex);
-		pthread_mutex_unlock(&t->rmutex);
+		if (verbose > 1)
+			printf("client-handler: cond signaled\n");
 
-		pthread_mutex_unlock(&t->mutex);
-
+		if (pthread_cond_wait(&t->cond, &t->mutex))
+			err(1, "client-handler: pthread_cond_wait");
+		if (verbose > 1)
+			printf("client-handler: cond changed\n");
 		free(buf);
-		if (t->reply)
+		if (t->reply && !terminate)
 			trxd_writeln(fd, t->reply);
 
 		/* Check if we changed the transceiver */
 		if (t->new_tag != t)
 			t = t->new_tag;
+		pthread_mutex_unlock(&t->mutex);
 	}
 	close(fd);
 	free(arg);

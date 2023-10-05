@@ -52,11 +52,13 @@
 #define BIND_ADDR	"localhost"
 #define LISTEN_PORT	"14285"
 
+int verbose = 0;
+
 extern int luaopen_yaml(lua_State *);
 extern int luaopen_trxd(lua_State *);
 
 extern void *client_handler(void *);
-extern void *trx_control(void *);
+extern void *trx_controller(void *);
 
 extern int trx_control_running;
 
@@ -65,7 +67,7 @@ command_tag_t *command_tag = NULL;
 static void
 usage(void)
 {
-	(void)fprintf(stderr, "usage: trxd [-dl] [-b address] [-c path] "
+	(void)fprintf(stderr, "usage: trxd [-dlv] [-b address] [-c path] "
 	    "[-g group] [-p port] [-u user] [-P path]\n");
 	exit(1);
 }
@@ -99,10 +101,11 @@ main(int argc, char *argv[])
 			{ "listen-port",	required_argument, 0, 'l' },
 			{ "pid-file",		required_argument, 0, 'P' },
 			{ "user",		required_argument, 0, 'u' },
+			{ "verbose",		no_argument, 0, 'v' },
 			{ 0, 0, 0, 0 }
 		};
 
-		ch = getopt_long(argc, argv, "c:dlb:g:p:u:P:", long_options,
+		ch = getopt_long(argc, argv, "c:dlb:g:p:u:vP:", long_options,
 		    &option_index);
 
 		if (ch == -1)
@@ -131,6 +134,9 @@ main(int argc, char *argv[])
 			break;
 		case 'u':
 			user = optarg;
+			break;
+		case 'v':
+			verbose++;
 			break;
 		case 'P':
 			pidfile = optarg;
@@ -343,20 +349,11 @@ main(int argc, char *argv[])
 		if (pthread_mutex_init(&t->mutex, NULL))
 			goto terminate;
 
-		if (pthread_mutex_init(&t->qmutex, NULL))
-			goto terminate;
-
-		if (pthread_cond_init(&t->qcond, NULL))
-			goto terminate;
-
-		if (pthread_mutex_init(&t->rmutex, NULL))
-			goto terminate;
-
-		if (pthread_cond_init(&t->rcond, NULL))
+		if (pthread_cond_init(&t->cond, NULL))
 			goto terminate;
 
 		/* Create the trx-control thread */
-		pthread_create(&t->trx_control, NULL, trx_control, t);
+		pthread_create(&t->trx_controller, NULL, trx_controller, t);
 		lua_pop(L, 1);
 	}
 

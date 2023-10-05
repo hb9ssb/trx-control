@@ -25,12 +25,15 @@
 #include <err.h>
 #include <pthread.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <unistd.h>
 
 #include "trxd.h"
 
 #define STATUS_REQUEST	"{\"request\": \"status-update\"}"
 #define POLLING_INTERVAL	200000	/* microseconds */
+
+extern int verbose;
 
 void *
 trx_poller(void *arg)
@@ -42,23 +45,25 @@ trx_poller(void *arg)
 
 	while (t->poller_running) {
 		if (pthread_mutex_lock(&t->mutex))
-			err(1, "trx-poller: pthread_mutex_lock (mutex)");
-
-		pthread_mutex_lock(&t->rmutex);
-			err(1, "trx-poller: pthread_mutex_lock (rmutex)");
+			err(1, "trx-poller: pthread_mutex_lock");
+		if (verbose > 1)
+			printf("trx-poller:mutex locked\n");
 
 		t->handler = "pollHandler";
 
-		if (pthread_cond_signal(&t->qcond))
+		if (pthread_cond_signal(&t->cond))
 			err(1, "trx-poller: pthread_cond_signal");
 
-		if (pthread_cond_wait(&t->rcond, &t->rmutex))
+		if (pthread_cond_wait(&t->cond, &t->mutex))
 			err(1, "trx-poller: pthread_cond_wait");
+		if (verbose > 1)
+			printf("trx-poller:cond changed\n");
 
-		pthread_mutex_unlock(&t->rmutex);
-			err(1, "trx-poller: pthread_mutex_unlock (rmutex)");
-		pthread_mutex_unlock(&t->mutex);
-			err(1, "trx-poller: pthread_mutex_unlock (mutex)");
+		if (pthread_mutex_unlock(&t->mutex))
+			err(1, "trx-poller: pthread_mutex_unlock");
+		if (verbose > 1)
+			printf("trx-poller: mutex unlocked\n");
+
 		usleep(POLLING_INTERVAL);
 	}
 	return NULL;

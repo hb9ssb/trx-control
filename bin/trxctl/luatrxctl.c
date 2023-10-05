@@ -32,7 +32,7 @@
 #include "trx-control.h"
 
 extern int fd;
-extern int verbosity;
+extern int verbose;
 
 static int
 luatrxctl_connect(lua_State *L)
@@ -51,7 +51,7 @@ luatrxctl_readln(lua_State *L)
 
 	buf = trxd_readln(fd);
 	if (buf != NULL) {
-		if (verbosity)
+		if (verbose)
 			printf("< %s\n", buf);
 		lua_pushstring(L, buf);
 		free(buf);
@@ -68,7 +68,7 @@ luatrxctl_writeln(lua_State *L)
 	size_t len;
 
 	data = (char *)luaL_checklstring(L, 1, &len);
-	if (verbosity)
+	if (verbose)
 		printf("> %s\n", data);
 
 	if (trxd_writeln(fd, data) == len + 2)

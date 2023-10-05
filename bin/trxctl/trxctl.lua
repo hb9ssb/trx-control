@@ -146,6 +146,22 @@ local function stopStatusUpdates()
 	local reply = json.decode(trxctl.readln(q))
 end
 
+local function ts(s)
+	s = tostring(s)
+	return s:reverse():gsub('(%d%d%d)', '%1.'):reverse():gsub('^.', '')
+end
+
+local function handleStatusUpdate(jsonData)
+	local data = json.decode(jsonData)
+
+	if data == nil then
+		return string.format('received unparseable data %s', data)
+	end
+
+	return string.format('%13s Hz %s',
+		    ts(data.status.frequency), string.upper(data.status.mode))
+end
+
 return {
 	useTrx = useTrx,
 	listTrx = listTrx,
@@ -156,5 +172,6 @@ return {
 	setMode = setMode,
 	getMode = getMode,
 	startStatusUpdates = startStatusUpdates,
-	stopStatusUpdates = stopStatusUpdates
+	stopStatusUpdates = stopStatusUpdates,
+	handleStatusUpdate = handleStatusUpdate
 }

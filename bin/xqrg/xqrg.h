@@ -29,14 +29,14 @@ extern Widget toplevel;		/* The toplevel shell */
 #define PATH_XQRG	"/usr/share/xqrg"
 
 typedef struct ConfigRec {
-        String  script;
 	String	host;
 	String	port;
+	Boolean	verbose;
 } ConfigRec;
 
-#define XtNscript	"script"
 #define XtNhost		"host"
 #define XtNport		"port"
+#define XtNverbose	"verbose"
 
 /* Functions to create a compound area */
 Widget create_qrg(Widget);
@@ -46,9 +46,10 @@ extern int luaopen_xqrg(lua_State *);
 extern void scroll_start(const char *);
 extern void scroll_stop(void);
 extern void clear_display(void);
-extern void update_status(void);
 
+extern void qrg_status(char *);
 extern void qrg_addchar(char);
+extern void qrg_addstring(char *);
 extern void qrg_reset(void);
 extern void qrg_clrscr(void);
 extern void qrg_clreol(void);
