@@ -70,28 +70,18 @@ trx_handler(void *arg)
 			}
 			buf[++n] = '\0';
 
-			if (pthread_mutex_lock(&command_tag->rmutex))
-				err(1, "trx-handler: pthread_mutex_lock");
-			if (verbose > 1)
-				printf("trx-handler: rmutex locked\n");
-
 			command_tag->handler = "dataHandler";
 			command_tag->data = buf;
 			command_tag->client_fd = 0;
 
-			if (pthread_cond_signal(&command_tag->qcond))
+			if (pthread_cond_signal(&command_tag->cond))
 				err(1, "trx-handler: pthread_cond_signal");
 			if (verbose > 1)
-				printf("trx-handler: qcond signaled\n");
+				printf("trx-handler: cond signaled\n");
 
-			if (pthread_cond_wait(&command_tag->rcond,
-			    &command_tag->rmutex))
+			if (pthread_cond_wait(&command_tag->cond,
+			    &command_tag->mutex))
 				err(1, "trx-handler: pthread_cond_wait");
-
-			if (pthread_mutex_unlock(&command_tag->rmutex))
-				err(1, "trx-handler: pthread_mutex_undlock");
-			if (verbose > 1)
-				printf("trx-handler: rmutex unlocked\n");
 
 			if (pthread_mutex_unlock(&command_tag->mutex))
 				err(1, "trx-handler: pthread_mutex_unlock");

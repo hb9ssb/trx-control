@@ -184,22 +184,14 @@ trx_controller(void *arg)
 	if (verbose)
 		printf("trx-controller: ready to control %s\n", tag->name);
 
-	if (pthread_mutex_unlock(&tag->mutex))
-		err(1, "trx-controller: pthread_mutex_unlock");
-	if (verbose > 1)
-		printf("trx-controller: mutex unlocked\n");
-
 	while (1) {
 		int nargs = 1;
 
-		if (pthread_mutex_lock(&tag->qmutex))
-			err(1, "trx-controller: pthread_mutex_lock");
-		if (verbose > 1)
-			printf("trx-controller: qmutex locked\n");
-		if (pthread_cond_wait(&tag->qcond, &tag->qmutex))
+		if (pthread_cond_wait(&tag->cond, &tag->mutex))
 			err(1, "trx-controller: pthread_cond_wait");
+
 		if (verbose > 1)
-			printf("trx-controller: qcond changed\n");
+			printf("trx-controller: cond changed\n");
 
 		if (verbose) {
 			printf("trx-controller: request for %s", tag->handler);
@@ -257,25 +249,16 @@ trx_controller(void *arg)
 		}
 		lua_pop(L, 2);
 
-		if (pthread_mutex_lock(&tag->rmutex))
-			err(1, "trx-controller: pthread_mutex_lock (rmutex)");
+		if (pthread_cond_signal(&tag->cond))
+			err(1, "trx-controller: pthread_cond_signal");
 		if (verbose > 1)
-			printf("trx-controller: rmutex locked\n");
-		if (pthread_cond_signal(&tag->rcond))
-			err(1, "trx-controller: pthread_cond_signal (rcond)");
-		if (verbose > 1)
-			printf("trx-controller: rcond signaled\n");
+			printf("trx-controller: cond signaled\n");
+		pthread_mutex_unlock(&tag->mutex);
 
-		if (pthread_mutex_unlock(&tag->rmutex))
-			err(1, "trx-controller: pthread_mutex_unlock (rmutex)");
+		if (pthread_mutex_lock(&tag->mutex))
+			err(1, "trx-controller: pthread_mutex_lock");
 		if (verbose > 1)
-			printf("trx-controller: rmutex unlocked\n");
-
-		if (pthread_mutex_unlock(&tag->qmutex))
-			err(1, "trx-controller: pthread_mutex_unlock (qmutex)");
-		if (verbose > 1)
-			printf("trx-controller: qmutex unlocked\n");
-
+			printf("trx-controller: mutex locked\n");
 	}
 
 terminate:

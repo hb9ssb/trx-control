@@ -349,16 +349,7 @@ main(int argc, char *argv[])
 		if (pthread_mutex_init(&t->mutex, NULL))
 			goto terminate;
 
-		if (pthread_mutex_init(&t->qmutex, NULL))
-			goto terminate;
-
-		if (pthread_cond_init(&t->qcond, NULL))
-			goto terminate;
-
-		if (pthread_mutex_init(&t->rmutex, NULL))
-			goto terminate;
-
-		if (pthread_cond_init(&t->rcond, NULL))
+		if (pthread_cond_init(&t->cond, NULL))
 			goto terminate;
 
 		/* Create the trx-control thread */

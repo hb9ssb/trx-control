@@ -66,44 +66,25 @@ client_handler(void *arg)
 		}
 
 		if (pthread_mutex_lock(&t->mutex))
-			err(1, "client-handler: pthread_mutex_lock (mutex)");
+			err(1, "client-handler: pthread_mutex_lock");
 		if (verbose > 1)
 			printf("client-handler: mutex locked\n");
-		if (pthread_mutex_lock(&t->rmutex))
-			err(1, "client-handler: pthread_mutex_lock (rmutex)");
-		if (verbose > 1)
-			printf("client-handler: rmutex locked\n");
 
 		t->handler = "requestHandler";
 		t->data = buf;
 		t->client_fd = fd;
 		t->new_tag = t;
 
-		if (pthread_mutex_lock(&t->qmutex))
-			err(1, "client-handler: pthread_mutex_lock (qmutex)");
-
-		if (pthread_cond_signal(&t->qcond))
-			err(1, "client-handler: pthread_cond_signal");
-		if (pthread_mutex_unlock(&t->qmutex))
-			err(1, "client-handler: pthread_mutex_unlock (qmutex)");
-
-		if (verbose > 1)
-			printf("client-handler: qcond signaled\n");
-
-
-		if (pthread_cond_wait(&t->rcond, &t->rmutex))
+		if (pthread_cond_signal(&t->cond))
 			err(1, "client-handler: pthread_cond_signal");
 
-		if (pthread_mutex_unlock(&t->rmutex))
-			err(1, "client-handler: pthread_mutex_unlock (rmutex)");
 		if (verbose > 1)
-			printf("client-handler:rmutex unlocked\n");
+			printf("client-handler: cond signaled\n");
 
-		if (pthread_mutex_unlock(&t->mutex))
-			err(1, "client-handler: pthread_mutex unlock (mutex)");
+		if (pthread_cond_wait(&t->cond, &t->mutex))
+			err(1, "client-handler: pthread_cond_wait");
 		if (verbose > 1)
-			printf("client-handler: mutex unlocked\n");
-
+			printf("client-handler: cond changed\n");
 		free(buf);
 		if (t->reply && !terminate)
 			trxd_writeln(fd, t->reply);
@@ -111,6 +92,7 @@ client_handler(void *arg)
 		/* Check if we changed the transceiver */
 		if (t->new_tag != t)
 			t = t->new_tag;
+		pthread_mutex_unlock(&t->mutex);
 	}
 	close(fd);
 	free(arg);

@@ -33,10 +33,7 @@
 
 typedef struct command_tag {
 	pthread_mutex_t		 mutex;
-	pthread_mutex_t		 qmutex;
-	pthread_cond_t		 qcond;
-	pthread_mutex_t		 rmutex;
-	pthread_cond_t		 rcond;
+	pthread_cond_t		 cond;
 
 	const char		*name;
 	const char		*device;
