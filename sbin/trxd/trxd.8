@@ -18,14 +18,14 @@
 .\" FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 .\" IN THE SOFTWARE.
 .\"
-.TH TRXD 8 "28 September 2023" "trx-control"
+.TH TRXD 8 "5 October 2023" "trx-control"
 .
 .SH NAME
 trxd
 .
 .
 .SH SYNOPSIS
-trxd [-dl] [-b address] [-c path] [-g group] [-p port] [-u user] [-P path]
+trxd [-dlv] [-b address] [-c path] [-g group] [-p port] [-u user] [-P path]
 .
 .
 .SH DESCRIPTION
@@ -62,6 +62,9 @@ Do not daemonize (run in foreground).
 .TP
 -l
 Log connection attempts.
+.TP
+-v
+Increase verbosity.
 .TP
 -p <port>
 Set the listen port.
