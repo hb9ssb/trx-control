@@ -18,20 +18,53 @@
 .\" FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 .\" IN THE SOFTWARE.
 .\"
-.TH XQRG 1 "20 September 2023" "trx-control"
+.TH XQRG 1 "5 October 2023" "trx-control"
 .
 .SH NAME
 xqrg
 .
 .
+.SH SYNOPSIS
+xqrg [-v] [-h host] [-p port] trx
+.
+.
 .SH "DESCRIPTION"
 .
 .IR xqrg (1)
-is a graphical client to display the current frequency it gets from a
+is a graphical client to display the current frequency and operating mode
+of a transceiver controlled by a
 .IR trxd (8)
-daemon, using the automatic status updates.
+daemon.
 .
 .
+.SH OPTIONS
+.
+.TP
+-v
+Run in verbose mode, i.e. display data exchanged between
+.IR xqrg (1)
+and
+.IR trxd (8) .
+.
+.TP
+-h <host>
+Set the hostname to connect to.
+By default,
+.IR xqrg (1)
+connects to "localhost".
+.
+.TP
+-p <port>
+Set the port to connect to.
+By default
+.IR xqrg (1)
+connects to port "14285".
+.TP
+<trx>
+Use the named transceiver <trx>.
+.
+.
+
 .SH AUTHORS
 .
 The trx-control software was written by

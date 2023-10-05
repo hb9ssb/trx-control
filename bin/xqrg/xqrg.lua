@@ -19,3 +19,71 @@
 -- IN THE SOFTWARE.
 
 -- xqrg support / input handler
+
+local trx, host, port = ...
+
+local function useTrx(trx)
+	local d = {
+		request = 'select-trx',
+		name = trx
+	}
+
+	xqrg.writeln(json.encode(d))
+	local reply = json.decode(xqrg.readln())
+	if reply.status ~= 'Ok' then
+		print(string.format('%s: %s', reply.status, reply.reason))
+	end
+end
+
+local function getFrequency(freq)
+	local request = {
+		request = 'get-frequency'
+	}
+
+	xqrg.writeln(json.encode(request))
+	local reply = json.decode(xqrg.readln())
+	return reply.frequency
+end
+
+local function getMode()
+	local request = {
+		request = 'get-mode'
+	}
+
+	xqrg.writeln(json.encode(request))
+	local reply = json.decode(xqrg.readln())
+	return reply.mode
+end
+
+local function startStatusUpdates()
+	local request = {
+		request = 'start-status-updates'
+	}
+	xqrg.writeln(json.encode(request))
+	local reply = json.decode(xqrg.readln())
+end
+
+useTrx(trx)
+
+local frequency = getFrequency()
+local mode = getMode()
+
+xqrg.position(0)
+xqrg.addstring(string.format('%12s Hz %s', frequency, mode))
+
+xqrg.status(string.format('Connected to %s@%s:%s', trx, host, port))
+
+startStatusUpdates()
+
+local function dataHandler(s)
+	local data = json.decode(s)
+	if data == nil then
+		print('Undecodable string')
+	else
+		xqrg.clrscr()
+		xqrg.addstring(string.format('%12s Hz %s',
+		    data.status.frequency, data.status.mode))
+	end
+end
+
+return dataHandler

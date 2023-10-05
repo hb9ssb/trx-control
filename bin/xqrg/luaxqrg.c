@@ -32,18 +32,9 @@
 #include "trx-control.h"
 #include "xqrg.h"
 
-extern int emulator_ref;
-extern int fd;
-extern int verbosity;
 
-static int
-luaxqrg_emulator(lua_State *L)
-{
-        if (emulator_ref)
-                luaL_unref(L, LUA_REGISTRYINDEX, emulator_ref);
-        emulator_ref = luaL_ref(L, LUA_REGISTRYINDEX);
-        return 0;
-}
+extern int fd;
+extern int verbose;
 
 static int
 luaxqrg_addchar(lua_State *L)
@@ -52,6 +43,12 @@ luaxqrg_addchar(lua_State *L)
         return 0;
 }
 
+static int
+luaxqrg_addstring(lua_State *L)
+{
+        qrg_addstring((char *)luaL_checkstring(L, 1));
+        return 0;
+}
 static int
 luaxqrg_scrollup(lua_State *L)
 {
@@ -94,7 +91,7 @@ luaxqrg_readln(lua_State *L)
 
 	buf = trxd_readln(fd);
 	if (buf != NULL) {
-		if (verbosity)
+		if (verbose)
 			printf("< %s\n", buf);
 		lua_pushstring(L, buf);
 		free(buf);
@@ -111,7 +108,7 @@ luaxqrg_writeln(lua_State *L)
 	size_t len;
 
 	data = (char *)luaL_checklstring(L, 1, &len);
-	if (verbosity)
+	if (verbose)
 		printf("> %s\n", data);
 
 	if (trxd_writeln(fd, data) == len + 2)
@@ -129,12 +126,19 @@ luaxqrg_scroll_start(lua_State *L)
 	return 0;
 }
 
+static int
+luaxqrg_status(lua_State *L)
+{
+	qrg_status((char *)luaL_checkstring(L, 1));
+	return 0;
+}
+
 int
 luaopen_xqrg(lua_State *L)
 {
 	struct luaL_Reg luaxqrg[] = {
-                { "emulator",		luaxqrg_emulator },
 		{ "addchar",		luaxqrg_addchar },
+		{ "addstring",		luaxqrg_addstring },
 		{ "scrollup",		luaxqrg_scrollup },
 		{ "position",		luaxqrg_position },
                 { "reset",		luaxqrg_reset },
@@ -144,6 +148,7 @@ luaopen_xqrg(lua_State *L)
 		{ "readln",		luaxqrg_readln },
 		{ "writeln",		luaxqrg_writeln },
 		{ "scroll_start",	luaxqrg_scroll_start },
+		{ "status",		luaxqrg_status },
 		{ NULL, NULL }
 	};
 
