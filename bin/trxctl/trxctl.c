@@ -124,11 +124,11 @@ handle_status_updates()
 					break;
 				}
 				if (lua_type(L, -1) == LUA_TSTRING)
-					printf("%s\n", lua_tostring(L, -1));
+					printf("\n%s\n", lua_tostring(L, -1));
 			}
 			lua_pop(L, 1);
-
 			free(line);
+			rl_forced_update_display();
 		}
 	}
 }
