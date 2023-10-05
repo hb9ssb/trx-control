@@ -174,11 +174,6 @@ trx_controller(void *arg)
 	}
 	lua_pop(L, 1);
 
-#if 0
-	/* handle incoming data from the trx */
-	pthread_create(&trx_handler_thread, NULL, trx_handler, tag);
-#endif
-
 	tag->is_running = 1;
 
 	/*
