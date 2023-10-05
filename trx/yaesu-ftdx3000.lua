@@ -23,6 +23,11 @@
 
 -- Yaesu FTdx3000 CAT driver
 
+-- The FTdx3000 CAT interface is very similar to the FT-710 CAT interface,
+-- so we reuse that and only those functions that are different.
+
+local ftdx3000 = require 'yaesu-ft-710'
+
 local validModes = {
 	['lsb'] = '1',
 	['usb'] = '2',
@@ -49,51 +54,6 @@ local function initialize()
 	else
 		print 'this is a Yaesu FTdx3000 transceiver'
 	end
-end
-
-local function startStatusUpdates()
-	trx.write('AI1;')
-	return string.byte(';')
-end
-
-local function stopStatusUpdates()
-	trx.write('AI0;')
-	return 'status updates off'
-end
-
-local function handleStatusUpdates(data)
-	print('FTdx3000: handle status update, data:', data)
-	return {
-		rawData = data
-	}
-end
-
--- There are 8 different lock codes for combinations of 2 VFOs
--- for the FTdx3000. Codes: LK0 thru LK7
---  How would I add the capability to pick 1 of the 8 possibilities.
---  LK0 and LK1 only unlock and lock VFO-A
-
-local function lock()
-	trx.write('LK1;')
-	return 'locked'
-end
-
-local function unlock()
-	trx.write('LK0;')
-	return 'unlocked'
-end
-
--- Need to set and get Frequency for VFO-B also
-
-local function setFrequency(freq)
-	trx.write(string.format('FA%s;', freq))
-	return freq
-end
-
-local function getFrequency()
-	trx.write('FA;')
-	local reply = trx.read(12)
-	return tonumber(string.sub(reply, 3, 11))
 end
 
 local function setMode(band, mode)
