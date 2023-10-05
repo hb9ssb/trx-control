@@ -63,13 +63,18 @@ local function startStatusUpdates()
 	local reply = json.decode(xqrg.readln())
 end
 
+local function ts(s)
+	s = tostring(s)
+	return s:reverse():gsub('(%d%d%d)', '%1.'):reverse():gsub('^.', '')
+end
+
 useTrx(trx)
 
 local frequency = getFrequency()
 local mode = getMode()
 
 xqrg.position(0)
-xqrg.addstring(string.format('%12s Hz %s', frequency, mode))
+xqrg.addstring(string.format('%13s Hz %s', ts(frequency), string.upper(mode)))
 
 xqrg.status(string.format('Connected to %s@%s:%s', trx, host, port))
 
@@ -81,8 +86,8 @@ local function dataHandler(s)
 		print('Undecodable string')
 	else
 		xqrg.clrscr()
-		xqrg.addstring(string.format('%12s Hz %s',
-		    data.status.frequency, data.status.mode))
+		xqrg.addstring(string.format('%13s Hz %s',
+		    ts(data.status.frequency), string.upper(data.status.mode)))
 	end
 end
 
