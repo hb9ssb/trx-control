@@ -192,7 +192,7 @@ trx_controller(void *arg)
 	if (pthread_mutex_unlock(&tag->mutex))
 		err(1, "trx-controller: pthread_mutex_unlock");
 	if (verbose > 1)
-		printf("trx-controller: mutex unlocked");
+		printf("trx-controller: mutex unlocked\n");
 
 	while (1) {
 		int nargs = 1;
@@ -205,6 +205,13 @@ trx_controller(void *arg)
 			err(1, "trx-controller: pthread_cond_wait");
 		if (verbose > 1)
 			printf("trx-controller: qcond changed\n");
+
+		if (verbose) {
+			printf("trx-controller: request for %s", tag->handler);
+			if (tag->data)
+				printf(" with data '%s'\n", tag->data);
+			printf("\n");
+		}
 
 		lua_geti(L, LUA_REGISTRYINDEX, driver_ref);
 		lua_getfield(L, -1, tag->handler);

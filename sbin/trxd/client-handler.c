@@ -62,7 +62,7 @@ client_handler(void *arg)
 
 		if (buf == NULL) {
 			terminate = 1;
-			break;
+			buf = strdup("{\"request\": \"stop-status-updates\"}");
 		}
 
 		if (pthread_mutex_lock(&t->mutex))
@@ -105,7 +105,7 @@ client_handler(void *arg)
 			printf("client-handler: mutex unlocked\n");
 
 		free(buf);
-		if (t->reply)
+		if (t->reply && !terminate)
 			trxd_writeln(fd, t->reply);
 
 		/* Check if we changed the transceiver */
