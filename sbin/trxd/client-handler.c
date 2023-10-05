@@ -34,6 +34,7 @@
 #include "trx-control.h"
 
 extern command_tag_t *command_tag;
+extern int verbose;
 
 void *
 client_handler(void *arg)
@@ -64,21 +65,44 @@ client_handler(void *arg)
 			break;
 		}
 
-		pthread_mutex_lock(&t->mutex);
-		pthread_mutex_lock(&t->rmutex);
+		if (pthread_mutex_lock(&t->mutex))
+			err(1, "client-handler: pthread_mutex_lock (mutex)");
+		if (verbose > 1)
+			printf("client-handler: mutex locked\n");
+		if (pthread_mutex_lock(&t->rmutex))
+			err(1, "client-handler: pthread_mutex_lock (rmutex)");
+		if (verbose > 1)
+			printf("client-handler: rmutex locked\n");
 
 		t->handler = "requestHandler";
 		t->data = buf;
 		t->client_fd = fd;
 		t->new_tag = t;
 
+		if (pthread_mutex_lock(&t->qmutex))
+			err(1, "client-handler: pthread_mutex_lock (qmutex)");
+
 		if (pthread_cond_signal(&t->qcond))
 			err(1, "client-handler: pthread_cond_signal");
+		if (pthread_mutex_unlock(&t->qmutex))
+			err(1, "client-handler: pthread_mutex_unlock (qmutex)");
 
-		pthread_cond_wait(&t->rcond, &t->rmutex);
-		pthread_mutex_unlock(&t->rmutex);
+		if (verbose > 1)
+			printf("client-handler: qcond signaled\n");
 
-		pthread_mutex_unlock(&t->mutex);
+
+		if (pthread_cond_wait(&t->rcond, &t->rmutex))
+			err(1, "client-handler: pthread_cond_signal");
+
+		if (pthread_mutex_unlock(&t->rmutex))
+			err(1, "client-handler: pthread_mutex_unlock (rmutex)");
+		if (verbose > 1)
+			printf("client-handler:rmutex unlocked\n");
+
+		if (pthread_mutex_unlock(&t->mutex))
+			err(1, "client-handler: pthread_mutex unlock (mutex)");
+		if (verbose > 1)
+			printf("client-handler: mutex unlocked\n");
 
 		free(buf);
 		if (t->reply)

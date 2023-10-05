@@ -49,7 +49,7 @@ typedef struct command_tag {
 	char			*reply;
 	int			 client_fd;
 	int			 cat_device;
-	pthread_t		 trx_control;
+	pthread_t		 trx_controller;
 	pthread_t		 trx_poller;
 	pthread_t		 trx_handler;
 	int			 is_running;

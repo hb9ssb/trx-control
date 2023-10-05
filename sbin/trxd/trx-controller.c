@@ -50,9 +50,10 @@ extern int luaopen_json(lua_State *);
 extern void *trx_handler(void *);
 
 extern command_tag_t *command_tag;
+extern int verbose;
 
 void *
-trx_control(void *arg)
+trx_controller(void *arg)
 {
 	command_tag_t *tag = (command_tag_t *)arg;
 	struct termios tty;
@@ -63,7 +64,20 @@ trx_control(void *arg)
 	pthread_t trx_handler_thread;
 
 	L = NULL;
-	pthread_detach(pthread_self());
+	if (pthread_detach(pthread_self()))
+		err(1, "trx-controller: pthread_detach");
+
+	if (verbose)
+		printf("trx-controller: initialising trx %s\n", tag->name);
+
+	/*
+	 * Lock this transceivers mutex, so that no other thread accesses
+	 * while we are initialising.
+	 */
+	if (pthread_mutex_lock(&tag->mutex))
+		err(1, "trx-controller: pthread_mutex_lock");
+	if (verbose > 1)
+		printf("trx-controller: mutex locked\n");
 
 	if (strchr(tag->driver, '/')) {
 		syslog(LOG_ERR, "driver must not contain slashes");
@@ -166,13 +180,31 @@ trx_control(void *arg)
 #endif
 
 	tag->is_running = 1;
+
+	/*
+	 * We are ready to go, unlock the mutex, so that client-handlers,
+	 * trx-handlers, and, try-pollers can access it.
+	 */
+
+	if (verbose)
+		printf("trx-controller: ready to control %s\n", tag->name);
+
+	if (pthread_mutex_unlock(&tag->mutex))
+		err(1, "trx-controller: pthread_mutex_unlock");
+	if (verbose > 1)
+		printf("trx-controller: mutex unlocked");
+
 	while (1) {
 		int nargs = 1;
 
 		if (pthread_mutex_lock(&tag->qmutex))
 			err(1, "trx-controller: pthread_mutex_lock");
+		if (verbose > 1)
+			printf("trx-controller: qmutex locked\n");
 		if (pthread_cond_wait(&tag->qcond, &tag->qmutex))
 			err(1, "trx-controller: pthread_cond_wait");
+		if (verbose > 1)
+			printf("trx-controller: qcond changed\n");
 
 		lua_geti(L, LUA_REGISTRYINDEX, driver_ref);
 		lua_getfield(L, -1, tag->handler);
@@ -223,11 +255,25 @@ trx_control(void *arg)
 		}
 		lua_pop(L, 2);
 
-		pthread_mutex_lock(&tag->rmutex);
-		pthread_cond_signal(&tag->rcond);
-		pthread_mutex_unlock(&tag->rmutex);
+		if (pthread_mutex_lock(&tag->rmutex))
+			err(1, "trx-controller: pthread_mutex_lock (rmutex)");
+		if (verbose > 1)
+			printf("trx-controller: rmutex locked\n");
+		if (pthread_cond_signal(&tag->rcond))
+			err(1, "trx-controller: pthread_cond_signal (rcond)");
+		if (verbose > 1)
+			printf("trx-controller: rcond signaled\n");
 
-		pthread_mutex_unlock(&tag->qmutex);
+		if (pthread_mutex_unlock(&tag->rmutex))
+			err(1, "trx-controller: pthread_mutex_unlock (rmutex)");
+		if (verbose > 1)
+			printf("trx-controller: rmutex unlocked\n");
+
+		if (pthread_mutex_unlock(&tag->qmutex))
+			err(1, "trx-controller: pthread_mutex_unlock (qmutex)");
+		if (verbose > 1)
+			printf("trx-controller: qmutex unlocked\n");
+
 	}
 
 terminate:

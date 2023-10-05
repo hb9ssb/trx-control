@@ -34,6 +34,8 @@
 
 #include "trxd.h"
 
+extern int verbose;
+
 void *
 trx_handler(void *arg)
 {
@@ -56,7 +58,8 @@ trx_handler(void *arg)
 	for (terminate = 0; terminate == 0; ) {
 		if (pthread_mutex_lock(&command_tag->mutex))
 			err(1, "trx-handler: pthread_mutex_lock");
-
+		if (verbose > 1)
+			printf("trx-handler: mutex locked\n");
 		if (poll(pfds, 2, 0) == -1)
 			err(1, "trx-handler: poll");
 		if (pfds[0].revents) {
@@ -69,6 +72,8 @@ trx_handler(void *arg)
 
 			if (pthread_mutex_lock(&command_tag->rmutex))
 				err(1, "trx-handler: pthread_mutex_lock");
+			if (verbose > 1)
+				printf("trx-handler: rmutex locked\n");
 
 			command_tag->handler = "dataHandler";
 			command_tag->data = buf;
@@ -76,6 +81,8 @@ trx_handler(void *arg)
 
 			if (pthread_cond_signal(&command_tag->qcond))
 				err(1, "trx-handler: pthread_cond_signal");
+			if (verbose > 1)
+				printf("trx-handler: qcond signaled\n");
 
 			if (pthread_cond_wait(&command_tag->rcond,
 			    &command_tag->rmutex))
@@ -83,13 +90,20 @@ trx_handler(void *arg)
 
 			if (pthread_mutex_unlock(&command_tag->rmutex))
 				err(1, "trx-handler: pthread_mutex_undlock");
+			if (verbose > 1)
+				printf("trx-handler: rmutex unlocked\n");
+
 			if (pthread_mutex_unlock(&command_tag->mutex))
 				err(1, "trx-handler: pthread_mutex_unlock");
+			if (verbose > 1)
+				printf("trx-handler: mutex unlocked");
 		}
 		if (pfds[1].revents)
 			terminate = 1;
 		if (pthread_mutex_unlock(&command_tag->mutex))
 			err(1, "trx-handler: pthread_mutex_lock");
+		if (verbose > 1)
+			printf("trx-handler: mutex unlocked\n");
 	};
 	return NULL;
 }
