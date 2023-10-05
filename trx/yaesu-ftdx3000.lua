@@ -100,15 +100,4 @@ local function getMode(band)
 	return 'unknown mode'
 end
 
-return {
-	initialize = initialize,
-	startStatusUpdates = startStatusUpdates,
-	stopStatusUpdates = stopStatusUpdates,
-	handleStatusUpdates = handleStatusUpdates,
-	lock = lock,
-	unlock = unlock,
-	setFrequency = setFrequency,
-	getFrequency = getFrequency,
-	getMode = getMode,
-	setMode = setMode
-}
+return ftdx3000
