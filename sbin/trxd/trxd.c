@@ -228,7 +228,7 @@ main(int argc, char *argv[])
 			    lua_tostring(L, -1));
 			break;
 		}
-	} else if (strcmp(cfg_file, _PATH_CFG)) {
+	} else {
 		syslog(LOG_ERR, "configuration file '%s' not accessible",
 		    cfg_file);
 		lua_close(L);
