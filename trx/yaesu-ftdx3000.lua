@@ -28,7 +28,7 @@
 
 local ftdx3000 = require 'yaesu-ft-710'
 
-local validModes = {
+ftdx3000.validModes = {
 	['lsb'] = '1',
 	['usb'] = '2',
 	['cw'] = '3',
@@ -44,7 +44,7 @@ local validModes = {
 	['am-n'] = 'D',
 }
 
-local function initialize()
+ftdx3000.initialize = function ()
 	trx.setspeed(38400)
 	trx.write('ID;')
 	local reply = trx.read(7)
@@ -56,7 +56,7 @@ local function initialize()
 	end
 end
 
-local function setMode(band, mode)
+ftdx3000.setMode = function (band, mode)
 	print('FTdx3000', band, mode)
 	local bcode = '0'
 -- FTdx3000 does not use main/sub. The first character (bcode)
@@ -79,7 +79,7 @@ local function setMode(band, mode)
 	end
 end
 
-local function getMode(band)
+ftdx3000 getMode = function (band)
 	local bcode = '0'
 -- FTdx3000 does not use main/sub
 --[[
