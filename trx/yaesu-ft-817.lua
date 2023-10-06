@@ -58,19 +58,23 @@ end
 local function getFrequency()
 	trx.write('\x00\x00\x00\x00\x03')
 	local f = trx.read(5)
-	local frequency = trx.bcdToString(string.sub(f, 1, 4))
-	local modeCode = string.byte(string.sub(f, 5))
-	local mode = ''
-	for k, v in pairs(validModes) do
-		if v == modeCode then
-			mode = k
+	if f ~= nil then
+		local frequency = trx.bcdToString(string.sub(f, 1, 4))
+		local modeCode = string.byte(string.sub(f, 5))
+		local mode = ''
+		for k, v in pairs(validModes) do
+			if v == modeCode then
+				mode = k
+			end
 		end
+		if #mode == 0 then
+			mode = nil
+		end
+		local fn = tonumber(frequency) * 10
+		return fn, mode
+	else
+		return nil
 	end
-	if #mode == 0 then
-		mode = nil
-	end
-	local fn = tonumber(frequency) * 10
-	return fn, mode
 end
 
 local function setMode(band, mode)
