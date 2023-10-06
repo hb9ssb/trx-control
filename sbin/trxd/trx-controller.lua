@@ -195,7 +195,6 @@ local function pollHandler(data, fd)
 			}
 		}
 		local jsonData = json.encode(status)
-		print(jsonData)
 		for k, v in pairs(statusUpdateListeners) do
 			trxd.sendToClient(v, jsonData)
 		end
@@ -216,7 +215,6 @@ local function dataHandler(data)
 				status = reply
 			}
 			local jsonData = json.encode(status)
-			print(jsonData)
 			for k, v in pairs(statusUpdateListeners) do
 				trxd.sendToClient(v, jsonData)
 			end

@@ -74,7 +74,6 @@ local function getFrequency()
 end
 
 local function setMode(band, mode)
-	print (string.format('ft-817: set mode to %s', mode))
 	local newMode = validModes[mode]
 	if newMode ~= nil then
 		trx.write(string.format('%c\x00\x00\x00\x07', newMode))
@@ -85,7 +84,6 @@ local function setMode(band, mode)
 end
 
 local function getMode()
-	print 'ft-817: get mode'
 	trx.write('\x00\x00\x00\x00\x03')
 	local f = trx.read(5)
 	local m = string.byte(f, 5)
