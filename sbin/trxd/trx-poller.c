@@ -50,14 +50,17 @@ trx_poller(void *arg)
 			printf("trx-poller:mutex locked\n");
 
 		t->handler = "pollHandler";
+		t->data  = NULL;
 
 		if (pthread_cond_signal(&t->cond))
 			err(1, "trx-poller: pthread_cond_signal");
+		if (pthread_mutex_unlock(&t->mutex))
+			err(1, "trx-poller: pthread_mutex_unlock");
 
 		if (pthread_cond_wait(&t->cond, &t->mutex))
 			err(1, "trx-poller: pthread_cond_wait");
 		if (verbose > 1)
-			printf("trx-poller:cond changed\n");
+			printf("trx-poller cond changed\n");
 
 		if (pthread_mutex_unlock(&t->mutex))
 			err(1, "trx-poller: pthread_mutex_unlock");

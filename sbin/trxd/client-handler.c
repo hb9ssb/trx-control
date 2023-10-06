@@ -77,14 +77,19 @@ client_handler(void *arg)
 
 		if (pthread_cond_signal(&t->cond))
 			err(1, "client-handler: pthread_cond_signal");
-
 		if (verbose > 1)
 			printf("client-handler: cond signaled\n");
+
+		if (pthread_mutex_unlock(&t->mutex))
+			err(1, "client-handler: pthread_mutex_unlock");
+		if (verbose > 1)
+			printf("client-handler: mutex unlocked\n");
 
 		if (pthread_cond_wait(&t->cond, &t->mutex))
 			err(1, "client-handler: pthread_cond_wait");
 		if (verbose > 1)
 			printf("client-handler: cond changed\n");
+
 		free(buf);
 		if (t->reply && !terminate)
 			trxd_writeln(fd, t->reply);
@@ -92,7 +97,12 @@ client_handler(void *arg)
 		/* Check if we changed the transceiver */
 		if (t->new_tag != t)
 			t = t->new_tag;
-		pthread_mutex_unlock(&t->mutex);
+
+		if (pthread_mutex_unlock(&t->mutex))
+			err(1, "client-handler: pthread_mutex_unlock");
+		if (verbose > 1)
+			printf("client-handler: mutex unlocked\n");
+
 	}
 	close(fd);
 	free(arg);

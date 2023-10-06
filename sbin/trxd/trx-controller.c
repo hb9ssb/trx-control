@@ -189,7 +189,6 @@ trx_controller(void *arg)
 
 		if (pthread_cond_wait(&tag->cond, &tag->mutex))
 			err(1, "trx-controller: pthread_cond_wait");
-
 		if (verbose > 1)
 			printf("trx-controller: cond changed\n");
 
@@ -253,7 +252,11 @@ trx_controller(void *arg)
 			err(1, "trx-controller: pthread_cond_signal");
 		if (verbose > 1)
 			printf("trx-controller: cond signaled\n");
-		pthread_mutex_unlock(&tag->mutex);
+
+		if (pthread_mutex_unlock(&tag->mutex))
+			err(1, "trx-controller: pthread_mutex_unlock");
+		if (verbose > 1)
+			printf("trx-controller: mutex unlocked\n");
 
 		if (pthread_mutex_lock(&tag->mutex))
 			err(1, "trx-controller: pthread_mutex_lock");
