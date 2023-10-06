@@ -84,7 +84,7 @@ local function dataHandler(s)
 	local data = json.decode(s)
 	if data == nil then
 		print('Undecodable string')
-	else
+	elseif data.status.frequency ~= nil and data.status.mode ~= nil then
 		xqrg.clrscr()
 		xqrg.addstring(string.format('%13s Hz %s',
 		    ts(data.status.frequency), string.upper(data.status.mode)))
