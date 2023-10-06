@@ -22,6 +22,8 @@
 
 /* Provide the 'trx' Lua module to transceiver drivers */
 
+#include <err.h>
+#include <poll.h>
 #include <stdlib.h>
 #include <termios.h>
 #include <unistd.h>
@@ -74,22 +76,36 @@ luatrx_setspeed(lua_State *L)
 static int
 luatrx_read(lua_State *L)
 {
+	struct pollfd pfd;
 	char buf[256];
-	size_t len, nread;
+	size_t len, nread, nfds;
 	int fd;
 
 	len = luaL_checkinteger(L, 1);
 
 	fd = get_fd(L);
 
+	pfd.fd = fd;
+	pfd.events = POLLIN;
+
 	nread = 0;
-	while (nread < len)
-		nread += read(fd, &buf[nread], len - nread);
+	while (nread < len) {
+		nfds = poll(&pfd, 1, 500);
+		if (nfds == -1)
+			return luaL_error(L, "poll error");
+		if (nfds == 1) {
+			nread += read(fd, &buf[nread], len - nread);
+		} else {
+			nread = 0;
+			break;
+		}
+	}
 
 	if (nread > 0)
 		lua_pushlstring(L, buf, nread);
 	else
 		lua_pushnil(L);
+
 	return 1;
 }
 
