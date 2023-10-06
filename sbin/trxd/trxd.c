@@ -352,6 +352,12 @@ main(int argc, char *argv[])
 		if (pthread_cond_init(&t->cond, NULL))
 			goto terminate;
 
+		if (pthread_mutex_init(&t->mutex2, NULL))
+			goto terminate;
+
+		if (pthread_cond_init(&t->cond2, NULL))
+			goto terminate;
+
 		/* Create the trx-control thread */
 		pthread_create(&t->trx_controller, NULL, trx_controller, t);
 		lua_pop(L, 1);

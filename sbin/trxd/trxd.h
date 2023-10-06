@@ -32,8 +32,13 @@
 #define SWITCH_TAG	"switch-tag:"
 
 typedef struct command_tag {
+	/* The first mutex locks the trx-controller */
 	pthread_mutex_t		 mutex;
 	pthread_cond_t		 cond;
+
+	/* The second mutex locks the result value from trx-controller */
+	pthread_mutex_t		 mutex2;
+	pthread_cond_t		 cond2;
 
 	const char		*name;
 	const char		*device;

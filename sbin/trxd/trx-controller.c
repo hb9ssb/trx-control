@@ -248,7 +248,7 @@ trx_controller(void *arg)
 		}
 		lua_pop(L, 2);
 
-		if (pthread_cond_signal(&tag->cond))
+		if (pthread_cond_signal(&tag->cond2))
 			err(1, "trx-controller: pthread_cond_signal");
 		if (verbose > 1)
 			printf("trx-controller: cond signaled\n");
