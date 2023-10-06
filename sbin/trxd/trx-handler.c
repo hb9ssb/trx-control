@@ -39,7 +39,7 @@ extern int verbose;
 void *
 trx_handler(void *arg)
 {
-	command_tag_t *command_tag = (command_tag_t *)arg;
+	command_tag_t *t = (command_tag_t *)arg;
 	struct pollfd pfds[2];
 	int status, nread, n, r, fd, epfd, nfds, terminate;
 	char buf[128], *p;
@@ -48,59 +48,62 @@ trx_handler(void *arg)
 	if (pthread_detach(pthread_self()))
 		err(1, "trx-handler: pthread_detach");
 
-	fd = command_tag->cat_device;
+	fd = t->cat_device;
 
 	pfds[0].fd = fd;
 	pfds[0].events = POLLIN;
-	pfds[1].fd = command_tag->handler_pipefd[0];
+	pfds[1].fd = t->handler_pipefd[0];
 	pfds[1].events = POLLIN;
 
 	for (terminate = 0; terminate == 0; ) {
-		if (pthread_mutex_lock(&command_tag->mutex))
+		if (pthread_mutex_lock(&t->mutex))
 			err(1, "trx-handler: pthread_mutex_lock");
 		if (verbose > 1)
 			printf("trx-handler: mutex locked\n");
-
-		if (pthread_mutex_lock(&command_tag->mutex2))
-			err(1, "trx-handler: pthread_mutex_lock");
-		if (verbose > 1)
-			printf("trx-handler: mutex2 locked\n");
 
 		if (poll(pfds, 2, 0) == -1)
 			err(1, "trx-handler: poll");
 		if (pfds[0].revents) {
 			for (n = 0; n < sizeof(buf) - 1; n++) {
 				read(fd, &buf[n], 1);
-				if (buf[n] == command_tag->handler_eol)
+				if (buf[n] == t->handler_eol)
 					break;
 			}
 			buf[++n] = '\0';
 
-			command_tag->handler = "dataHandler";
-			command_tag->data = buf;
-			command_tag->client_fd = 0;
+			t->handler = "dataHandler";
+			t->reply = NULL;
+			t->data = buf;
+			t->client_fd = 0;
 
-			if (pthread_mutex_unlock(&command_tag->mutex))
-				err(1, "trx-handler: pthread_mutex_unlock");
+			if (pthread_mutex_lock(&t->mutex2))
+				err(1, "trx-handler: pthread_mutex_lock");
 			if (verbose > 1)
-				printf("trx-handler: mutex unlocked\n");
+				printf("trx-handler: mutex2 locked\n");
 
-			if (pthread_cond_signal(&command_tag->cond))
+			if (pthread_cond_signal(&t->cond))
 				err(1, "trx-handler: pthread_cond_signal");
 			if (verbose > 1)
 				printf("trx-handler: cond signaled\n");
 
-			if (pthread_cond_wait(&command_tag->cond2,
-			    &command_tag->mutex2))
-				err(1, "trx-handler: pthread_cond_wait");
+			if (pthread_mutex_unlock(&t->mutex))
+				err(1, "trx-handler: pthread_mutex_unlock");
+			if (verbose > 1)
+				printf("trx-handler: mutex unlocked\n");
+
+			while (t->reply == NULL) {
+				if (pthread_cond_wait(&t->cond2, &t->mutex2))
+					err(1, "trx-handler: "
+					    "pthread_cond_wait");
+			}
+			if (pthread_mutex_unlock(&t->mutex2))
+				err(1, "trx-handler: pthread_mutex_unlock");
+			if (verbose > 1)
+				printf("trx-handler: mutex2 unlocked\n");
+
 		}
 		if (pfds[1].revents)
 			terminate = 1;
-
-		if (pthread_mutex_unlock(&command_tag->mutex2))
-			err(1, "trx-handler: pthread_mutex_lock");
-		if (verbose > 1)
-			printf("trx-handler: mutex2 unlocked\n");
 		sched_yield();
 	};
 	return NULL;

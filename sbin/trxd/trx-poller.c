@@ -47,29 +47,33 @@ trx_poller(void *arg)
 		if (pthread_mutex_lock(&t->mutex))
 			err(1, "trx-poller: pthread_mutex_lock");
 		if (verbose > 1)
-			printf("trx-poller:mutex locked\n");
+			printf("trx-poller: mutex locked\n");
+
+		t->handler = "pollHandler";
+		t->reply = NULL;
+		t->data  = NULL;
 
 		if (pthread_mutex_lock(&t->mutex2))
 			err(1, "trx-poller: pthread_mutex_lock");
 		if (verbose > 1)
 			printf("trx-poller: mutex2 locked\n");
 
-		t->handler = "pollHandler";
-		t->data  = NULL;
-
+		if (pthread_cond_signal(&t->cond))
+			err(1, "trx-poller: pthread_cond_signal");
+		if (verbose > 1)
+			printf("trx-poller: cond signaled\n");
 
 		if (pthread_mutex_unlock(&t->mutex))
 			err(1, "trx-poller: pthread_mutex_unlock");
 		if (verbose > 1)
 			printf("trx-poller: mutex unlocked\n");
 
-		if (pthread_cond_signal(&t->cond))
-			err(1, "trx-poller: pthread_cond_signal");
-
-		if (pthread_cond_wait(&t->cond2, &t->mutex2))
-			err(1, "trx-poller: pthread_cond_wait");
-		if (verbose > 1)
-			printf("trx-poller cond changed\n");
+		while (t->reply == NULL) {
+			if (pthread_cond_wait(&t->cond2, &t->mutex2))
+				err(1, "trx-poller: pthread_cond_wait");
+			if (verbose > 1)
+				printf("trx-poller: cond2 changed\n");
+		}
 
 		if (pthread_mutex_unlock(&t->mutex2))
 			err(1, "trx-poller: pthread_mutex_unlock");

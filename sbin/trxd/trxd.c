@@ -317,6 +317,7 @@ main(int argc, char *argv[])
 
 		t = malloc(sizeof(command_tag_t));
 		t->next = NULL;
+		t->handler = t->reply = NULL;
 		t->is_running = 0;
 		t->poller_running = 0;
 
