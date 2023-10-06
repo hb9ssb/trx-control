@@ -25,6 +25,7 @@
 #include <err.h>
 #include <pthread.h>
 #include <stdlib.h>
+#include <string.h>
 #include <stdio.h>
 #include <unistd.h>
 
@@ -58,27 +59,36 @@ trx_poller(void *arg)
 		if (verbose > 1)
 			printf("trx-poller: mutex2 locked\n");
 
-		if (pthread_cond_signal(&t->cond))
+		if (pthread_cond_signal(&t->cond2))
 			err(1, "trx-poller: pthread_cond_signal");
 		if (verbose > 1)
-			printf("trx-poller: cond signaled\n");
+			printf("trx-poller: cond2 signaled\n");
 
-		if (pthread_mutex_unlock(&t->mutex))
+		if (pthread_mutex_unlock(&t->mutex2))
 			err(1, "trx-poller: pthread_mutex_unlock");
 		if (verbose > 1)
 			printf("trx-poller: mutex unlocked\n");
 
 		while (t->reply == NULL) {
-			if (pthread_cond_wait(&t->cond2, &t->mutex2))
+			if (pthread_cond_wait(&t->cond3, &t->mutex2))
 				err(1, "trx-poller: pthread_cond_wait");
 			if (verbose > 1)
 				printf("trx-poller: cond2 changed\n");
 		}
 
+		if (strlen(t->reply))
+			printf("trx-poller: got unexpected reply '%s'\n",
+			    t->reply);
+
 		if (pthread_mutex_unlock(&t->mutex2))
 			err(1, "trx-poller: pthread_mutex_unlock");
 		if (verbose > 1)
 			printf("trx-poller: mutex2 unlocked\n");
+
+		if (pthread_mutex_unlock(&t->mutex))
+			err(1, "trx-poller: pthread_mutex_unlock");
+		if (verbose > 1)
+			printf("trx-poller: mutex unlocked\n");
 
 		usleep(POLLING_INTERVAL);
 	}

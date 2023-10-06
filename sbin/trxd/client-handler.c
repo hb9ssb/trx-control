@@ -82,18 +82,18 @@ client_handler(void *arg)
 			printf("client-handler: mutex2 locked\n");
 
 		/* We signal cond, and mutex gets owned by trx-controller */
-		if (pthread_cond_signal(&t->cond))
+		if (pthread_cond_signal(&t->cond2))
 			err(1, "client-handler: pthread_cond_signal");
 		if (verbose > 1)
 			printf("client-handler: cond signaled\n");
 
-		if (pthread_mutex_unlock(&t->mutex))
+		if (pthread_mutex_unlock(&t->mutex2))
 			err(1, "client-handler: pthread_mutex_unlock");
 		if (verbose > 1)
 			printf("client-handler: mutex unlocked\n");
 
 		while (t->reply == NULL) {
-			if (pthread_cond_wait(&t->cond2, &t->mutex2))
+			if (pthread_cond_wait(&t->cond3, &t->mutex2))
 				err(1, "client-handler: pthread_cond_wait");
 			if (verbose > 1)
 				printf("client-handler: cond2 changed\n");
@@ -111,6 +111,12 @@ client_handler(void *arg)
 			err(1, "client-handler: pthread_mutex_unlock");
 		if (verbose > 1)
 			printf("client-handler: mutex2 unlocked\n");
+
+		if (pthread_mutex_unlock(&t->mutex))
+			err(1, "client-handler: pthread_mutex_unlock");
+		if (verbose > 1)
+			printf("client-handler: mutex unlocked\n");
+
 	}
 	close(fd);
 	free(arg);
