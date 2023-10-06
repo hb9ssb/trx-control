@@ -206,7 +206,7 @@ trx_controller(void *arg)
 				printf("trx-controller: cond changed\n");
 		}
 
-		if (verbose) {
+		if (verbose > 1) {
 			printf("trx-controller: request for %s", tag->handler);
 			if (tag->data)
 				printf(" with data '%s'\n", tag->data);
