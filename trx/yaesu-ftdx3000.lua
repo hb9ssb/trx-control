@@ -79,7 +79,7 @@ ftdx3000.setMode = function (band, mode)
 	end
 end
 
-ftdx3000 getMode = function (band)
+ftdx3000.getMode = function (band)
 	local bcode = '0'
 -- FTdx3000 does not use main/sub
 --[[
