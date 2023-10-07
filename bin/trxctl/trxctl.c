@@ -67,10 +67,8 @@ static struct {
 	"list-trx",		"listTrx",
 	"set-frequency",	"setFrequency",
 	"get-frequency",	"getFrequency",
-	"listen-frequency",	"listenFrequency",
 	"set-mode",		"setMode",
 	"get-mode",		"getMode",
-	"unlisten-frequency",	"unlistenFrequency",
 	"start-status-updates",	"startStatusUpdates",
 	"stop-status-updates",	"stopStatusUpdates",
 	"lock",			"lockTrx",
@@ -81,8 +79,7 @@ static struct {
 static void
 usage(void)
 {
-	(void)fprintf(stderr, "usage: trxctl [-lv] [-p port] [-u name] command "
-	    "[args ...]\n");
+	(void)fprintf(stderr, "usage: trxctl [-lv] [-p port]\n");
 	exit(1);
 }
 
@@ -154,8 +151,8 @@ int
 main(int argc, char *argv[])
 {
 	wordexp_t p;
-	int c, n, list, terminate;
-	char *host, *port, *trx, buf[128], *line, *param;
+	int c, n, terminate;
+	char *host, *port, buf[128], *line, *param;
 
 	verbose = 0;
 	host = DEFAULT_HOST;
@@ -164,15 +161,13 @@ main(int argc, char *argv[])
 	while (1) {
 		int option_index = 0;
 		static struct option long_options[] = {
-			{ "list",		no_argument, 0, 'l' },
-			{ "use",		required_argument, 0, 'u' },
 			{ "host",		required_argument, 0, 'h' },
 			{ "verbose",		no_argument, 0, 'v' },
 			{ "port",		required_argument, 0, 'p' },
 			{ 0, 0, 0, 0 }
 		};
 
-		c = getopt_long(argc, argv, "h:lu:vp:", long_options,
+		c = getopt_long(argc, argv, "h:vp:", long_options,
 		    &option_index);
 
 		if (c == -1)
@@ -184,14 +179,8 @@ main(int argc, char *argv[])
 		case 'h':
 			host = optarg;
 			break;
-		case 'l':
-			list = 1;
-			break;
 		case 'p':
 			port = optarg;
-			break;
-		case 'u':
-			trx = optarg;
 			break;
 		case 'v':
 			verbose++;
@@ -202,6 +191,9 @@ main(int argc, char *argv[])
 	}
 	argc -= optind;
 	argv += optind;
+
+	if (argc > 0)
+		usage();
 
 	L = luaL_newstate();
 	if (L == NULL) {

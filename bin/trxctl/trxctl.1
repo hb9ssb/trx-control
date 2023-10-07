@@ -18,10 +18,14 @@
 .\" FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 .\" IN THE SOFTWARE.
 .\"
-.TH TRXCTL 1 "20 September 2023" "trx-control"
+.TH TRXCTL 1 "7 October 2023" "trx-control"
 .
 .SH NAME
 trxctl
+.
+.
+.SH SYNOPSIS
+trxctl [-v] [-h host] [-p port]
 .
 .
 .SH "DESCRIPTION"
@@ -31,11 +35,68 @@ is a command to control amateur radio transceivers over a TCP/IP connection,
 talking to a
 .IR trxd (8)
 daemon.
+It presents a command prompt, "trxctl > " and waits for commands.
+It uses the trx-control client/server protocol to send commands to
+.IR trxd (8) .
+If automatic status updates are requested (see the COMMANDS section below),
+it will display status changes on the console.
+.
+.
+.SH OPTIONS
+.
+.TP
+-v
+Run in verbose mode.
+.TP
+-h host
+Set the hostname to connect to.
+Connects to "localhost" by default.
+.TP
+-p port
+Set the port to connect to connect to.
+Connects to "14285" by default.
+.
+.
+.SH COMMANDS
+.
+.TP
+list-trx
+List all transceivers controlled by the
+.IR trxd (8)
+daemon we are connected to.
+.TP
+use <trx>
+Use the transceiver <trx>.
+.TP
+set-frequency <hz>
+Set the working frequency in hertz.
+.TP
+get-frequency
+Get and display the current frequency in hertz.
+.TP
+set-mode <band> <mode>
+Set the operational mode of <band> to <mode>.
+Not all transceivers support the <band> parameter.
+.TP
+get-mode
+Get and display the current operational mode.
+.TP
+start-status-updates
+Start receiving automatic status updates.
+.TP
+stop-status-updates
+Stop receiving automatic status updates.
+.TP
+lock
+Lock the transceiver.
+.TP
+unlock
+Unlock the transceiver.
 .
 .
 .SH AUTHORS
 .
-The trx-control software was written by
+The trxctl utility was written by
 .MT marc\@msys.ch
 Marc Balmer HB9SSB
 .ME .
