@@ -57,6 +57,7 @@ typedef struct command_tag {
 	int			 is_running;
 	int			 poller_running;
 	int			 poller_suspended;
+	int			 handler_running;
 	int			 handler_eol;
 	int			 handler_pipefd[2];
 

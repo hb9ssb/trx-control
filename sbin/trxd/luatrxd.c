@@ -122,8 +122,10 @@ luatrxd_stop_polling(lua_State *L)
 	device = luaL_checkstring(L, 1);
 	for (t = command_tag; t != NULL; t = t->next) {
 		if (!strcmp(t->device, device)) {
-			t->poller_running = 0;
-			pthread_join(t->trx_poller, NULL);
+			if (t->poller_running) {
+				t->poller_running = 0;
+				pthread_join(t->trx_poller, NULL);
+			}
 			lua_pushboolean(L, 1);
 			break;
 		}
@@ -148,6 +150,7 @@ luatrxd_start_handling(lua_State *L)
 			if (pipe(t->handler_pipefd))
 				err(1, "pipe");
 			t->handler_eol = eol;
+			t->handler_running = 1;
 			pthread_create(&t->trx_handler, NULL, trx_handler, t);
 			lua_pushboolean(L, 1);
 			break;
@@ -167,8 +170,11 @@ luatrxd_stop_handling(lua_State *L)
 	device = luaL_checkstring(L, 1);
 	for (t = command_tag; t != NULL; t = t->next) {
 		if (!strcmp(t->device, device)) {
-			write(t->handler_pipefd[1], 0x00, 1);
-			pthread_join(t->trx_handler, NULL);
+			if (t->handler_running) {
+				t->handler_running = 0;
+				write(t->handler_pipefd[1], 0x00, 1);
+				pthread_join(t->trx_handler, NULL);
+			}
 			lua_pushboolean(L, 1);
 			break;
 		}
