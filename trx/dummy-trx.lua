@@ -22,8 +22,8 @@
 
 -- Dummy driver for development and testing purposes
 
-local frequency = 'no frequency set'
-local mode = 'no mode set'
+local frequency = 14285000
+local mode = 'usb'
 
 local validModes = {
 	usb = true,
@@ -53,7 +53,7 @@ end
 
 local function getFrequency()
 	print 'dummy-trx: get frequency'
-	return frequency
+	return frequency, mode
 end
 
 local function setMode(mode)
