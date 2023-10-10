@@ -89,7 +89,7 @@ trx_handler(void *arg)
 			if (pthread_mutex_unlock(&t->mutex2))
 				err(1, "trx-handler: pthread_mutex_unlock");
 			if (verbose > 1)
-				printf("trx-handler: mutex unlocked\n");
+				printf("trx-handler: mutex2 unlocked\n");
 
 			while (t->reply == NULL) {
 				if (pthread_cond_wait(&t->cond2, &t->mutex2))

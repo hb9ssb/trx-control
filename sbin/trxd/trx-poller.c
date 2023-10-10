@@ -20,7 +20,7 @@
  * IN THE SOFTWARE.
  */
 
-/* Handle transceivers that need polling for status updates */
+/* Handle transceivers that require polling for status updates */
 
 #include <err.h>
 #include <pthread.h>
@@ -77,8 +77,7 @@ trx_poller(void *arg)
 		}
 
 		if (strlen(t->reply))
-			printf("trx-poller: got unexpected reply '%s'\n",
-			    t->reply);
+			printf("trx-poller: unexpected reply '%s'\n", t->reply);
 
 		if (pthread_mutex_unlock(&t->mutex2))
 			err(1, "trx-poller: pthread_mutex_unlock");

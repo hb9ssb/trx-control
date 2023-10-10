@@ -83,27 +83,21 @@ trx_controller(void *arg)
 	if (verbose > 1)
 		printf("trx-controller: mutex2 locked\n");
 
-	if (strchr(tag->driver, '/')) {
-		syslog(LOG_ERR, "driver must not contain slashes");
-		goto terminate;
-	}
+	if (strchr(tag->driver, '/'))
+		err(1, "trx-controller: driver name must not contain slashes");
 
 	fd = open(tag->device, O_RDWR);
-	if (fd == -1) {
-		syslog(LOG_ERR, "Can't open transceiver device %s: %s",
-		    tag->device, strerror(errno));
-		goto terminate;
-	}
+	if (fd == -1)
+		err(1, "trx-controller: open");
+
 	if (isatty(fd)) {
 		if (tcgetattr(fd, &tty) < 0)
-			syslog(LOG_ERR, "Can't get transceiver device tty "
-			    "attributes");
+			err(1, "trx-controller: tcgetattr");
 		else {
 			cfmakeraw(&tty);
 			tty.c_cflag |= CLOCAL;
 			if (tcsetattr(fd, TCSADRAIN, &tty) < 0)
-				syslog(LOG_ERR,
-				    "Can't set CAT device tty attributes");
+				err(1, "trx-controller: tcsetattr");
 		}
 	}
 
@@ -111,10 +105,9 @@ trx_controller(void *arg)
 
 	/* Setup Lua */
 	L = luaL_newstate();
-	if (L == NULL) {
-		syslog(LOG_ERR, "cannot initialize Lua state");
-		goto terminate;
-	}
+	if (L == NULL)
+		err(1, "trx-controller: luaL_newstate");
+
 	luaL_openlibs(L);
 
 	lua_pushinteger(L, fd);
@@ -134,45 +127,35 @@ trx_controller(void *arg)
 	lua_setfield(L, -2, "path");
 	lua_pop(L, 1);
 
-	if (luaL_dofile(L, _PATH_TRX_CONTROLLER)) {
-		syslog(LOG_ERR, "Lua error: %s", lua_tostring(L, -1));
-		goto terminate;
-	}
-	if (lua_type(L, -1) != LUA_TTABLE) {
-		syslog(LOG_ERR, "trx driver did not return a table");
-		goto terminate;
-	} else
+	if (luaL_dofile(L, _PATH_TRX_CONTROLLER))
+		err(1, "trx-controller: %s", lua_tostring(L, -1));
+	if (lua_type(L, -1) != LUA_TTABLE)
+		err(1, "trx-controller: table expected");
+	else
 		driver_ref = luaL_ref(L, LUA_REGISTRYINDEX);
 
 	snprintf(trx_driver, sizeof(trx_driver), "%s/%s.lua", _PATH_TRX,
 	    tag->driver);
 
-	if (stat(trx_driver, &sb)) {
-		syslog(LOG_ERR, "driver for trx-type %s not found",
-		    tag->driver);
-		goto terminate;
-	}
+	if (stat(trx_driver, &sb))
+		err(1, "trx-controller: %s", tag->driver);
 
 	lua_geti(L, LUA_REGISTRYINDEX, driver_ref);
 	lua_getfield(L, -1, "registerDriver");
 	lua_pushstring(L, tag->name);
 	lua_pushstring(L, tag->device);
-	if (luaL_dofile(L, trx_driver)) {
-		syslog(LOG_ERR, "Lua error: %s", lua_tostring(L, -1));
-		goto terminate;
-	}
-	if (lua_type(L, -1) != LUA_TTABLE) {
-		syslog(LOG_ERR, "trx driver %s did not return a table",
-		    tag->driver);
-		goto terminate;
-	} else {
+	if (luaL_dofile(L, trx_driver))
+		err(1, "trx-controller: %s", lua_tostring(L, -1));
+	if (lua_type(L, -1) != LUA_TTABLE)
+		err(1, "trx-controller: %s: table expected", tag->driver);
+	else {
 		switch (lua_pcall(L, 3, 0, 0)) {
 		case LUA_OK:
 			break;
 		case LUA_ERRRUN:
 		case LUA_ERRMEM:
 		case LUA_ERRERR:
-			syslog(LOG_ERR, "Lua error: %s", lua_tostring(L, -1));
+			err(1, "trx-controller: %s", lua_tostring(L, -1));
 			break;
 		}
 	}
@@ -186,7 +169,7 @@ trx_controller(void *arg)
 	 */
 
 	if (verbose)
-		printf("trx-controller: ready to control %s\n", tag->name);
+		printf("trx-controller: ready to control trx %s\n", tag->name);
 
 	if (pthread_mutex_unlock(&tag->mutex))
 		err(1, "trx-controller: pthread_mutex_unlock");
@@ -268,9 +251,6 @@ trx_controller(void *arg)
 		if (verbose > 1)
 			printf("trx-controller: cond2 signaled\n");
 	}
-
-terminate:
-	if (L)
-		lua_close(L);
+	lua_close(L);
 	return NULL;
 }
