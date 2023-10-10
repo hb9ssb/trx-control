@@ -81,10 +81,10 @@ trx_handler(void *arg)
 			if (verbose > 1)
 				printf("trx-handler: mutex2 locked\n");
 
-			if (pthread_cond_signal(&t->cond2))
+			if (pthread_cond_signal(&t->cond1))
 				err(1, "trx-handler: pthread_cond_signal");
 			if (verbose > 1)
-				printf("trx-handler: cond signaled\n");
+				printf("trx-handler: cond1 signaled\n");
 
 			if (pthread_mutex_unlock(&t->mutex2))
 				err(1, "trx-handler: pthread_mutex_unlock");
@@ -92,7 +92,7 @@ trx_handler(void *arg)
 				printf("trx-handler: mutex unlocked\n");
 
 			while (t->reply == NULL) {
-				if (pthread_cond_wait(&t->cond3, &t->mutex2))
+				if (pthread_cond_wait(&t->cond2, &t->mutex2))
 					err(1, "trx-handler: "
 					    "pthread_cond_wait");
 			}

@@ -59,10 +59,10 @@ trx_poller(void *arg)
 		if (verbose > 1)
 			printf("trx-poller: mutex2 locked\n");
 
-		if (pthread_cond_signal(&t->cond2))
+		if (pthread_cond_signal(&t->cond1))
 			err(1, "trx-poller: pthread_cond_signal");
 		if (verbose > 1)
-			printf("trx-poller: cond2 signaled\n");
+			printf("trx-poller: cond1 signaled\n");
 
 		if (pthread_mutex_unlock(&t->mutex2))
 			err(1, "trx-poller: pthread_mutex_unlock");
@@ -70,7 +70,7 @@ trx_poller(void *arg)
 			printf("trx-poller: mutex unlocked\n");
 
 		while (t->reply == NULL) {
-			if (pthread_cond_wait(&t->cond3, &t->mutex2))
+			if (pthread_cond_wait(&t->cond2, &t->mutex2))
 				err(1, "trx-poller: pthread_cond_wait");
 			if (verbose > 1)
 				printf("trx-poller: cond2 changed\n");

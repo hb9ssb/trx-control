@@ -36,10 +36,10 @@ typedef struct command_tag {
 	pthread_mutex_t		 mutex;
 
 	pthread_mutex_t		 mutex2;
-	pthread_cond_t		 cond2;	/* A handler is set */
+	pthread_cond_t		 cond1;	/* A handler is set */
 	const char		*handler;
 
-	pthread_cond_t		 cond3;	/* A reply is set */
+	pthread_cond_t		 cond2;	/* A reply is set */
 	char			*reply;
 
 	const char		*name;

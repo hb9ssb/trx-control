@@ -353,10 +353,10 @@ main(int argc, char *argv[])
 		if (pthread_mutex_init(&t->mutex2, NULL))
 			goto terminate;
 
-		if (pthread_cond_init(&t->cond2, NULL))
+		if (pthread_cond_init(&t->cond1, NULL))
 			goto terminate;
 
-		if (pthread_cond_init(&t->cond3, NULL))
+		if (pthread_cond_init(&t->cond2, NULL))
 			goto terminate;
 
 		/* Create the trx-control thread */

@@ -198,12 +198,12 @@ trx_controller(void *arg)
 
 		/* Wait on cond, this releases the mutex */
 		if (verbose > 1)
-			printf("trx-controller: wait for cond2\n");
+			printf("trx-controller: wait for cond1\n");
 		while (tag->handler == NULL) {
-			if (pthread_cond_wait(&tag->cond2, &tag->mutex2))
+			if (pthread_cond_wait(&tag->cond1, &tag->mutex2))
 				err(1, "trx-controller: pthread_cond_wait");
 			if (verbose > 1)
-				printf("trx-controller: cond changed\n");
+				printf("trx-controller: cond1 changed\n");
 		}
 
 		if (verbose > 1) {
@@ -263,7 +263,7 @@ trx_controller(void *arg)
 		lua_pop(L, 2);
 		tag->handler = NULL;
 
-		if (pthread_cond_signal(&tag->cond3))
+		if (pthread_cond_signal(&tag->cond2))
 			err(1, "trx-controller: pthread_cond_signal");
 		if (verbose > 1)
 			printf("trx-controller: cond2 signaled\n");
