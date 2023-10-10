@@ -148,7 +148,7 @@ end
 
 local function ts(s)
 	s = tostring(s)
-	return s:reverse():gsub('(%d%d%d)', '%1.'):reverse():gsub('^.', '')
+	return s:reverse():gsub('(%d%d%d)', '%1.'):reverse():gsub('^[.]', '')
 end
 
 local function handleStatusUpdate(jsonData)
