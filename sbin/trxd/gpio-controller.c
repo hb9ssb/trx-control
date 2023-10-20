@@ -20,7 +20,7 @@
  * IN THE SOFTWARE.
  */
 
-/* Control GPIO pins on the host machone */
+/* Control GPIO pins on the host machine */
 
 #include <sys/ioctl.h>
 #include <sys/stat.h>
