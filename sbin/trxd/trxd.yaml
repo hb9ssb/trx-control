@@ -44,3 +44,12 @@ trx:
     name: FT-991A
     device: /dev/ttyUSB1
     driver: yaesu-ft-991a
+
+# The list of relays we can control
+relays:
+  dummy:
+    name: Dummy
+    type: HID
+    idVendor: 0x1234
+    idProduct: 0x5678
+    driver: dummy-relay
