@@ -1,5 +1,6 @@
 SRCS=		trxd.c \
 		trx-controller.c \
+		gpio-controller.c \
 		client-handler.c \
 		trx-handler.c \
 		trx-poller.c \
@@ -56,6 +57,8 @@ luatrx.o:	luatrx.c trxd.h
 luatrxd.o:	luatrxd.c trxd.h trx-control.h
 
 trx-controller.o:	trx-controller.c pathnames.h trxd.h
+
+gpio-controller.o:	gpio-controller.c pathnames.h trxd.h
 
 trx-handler.o:	trx-handler.c trxd.h
 

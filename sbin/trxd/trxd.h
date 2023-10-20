@@ -65,4 +65,28 @@ typedef struct trx_controller_tag {
 	struct trx_controller_tag	*next;
 } trx_controller_tag_t;
 
+typedef struct gpio_controller_tag {
+	/* The first mutex locks the trx-controller */
+	pthread_mutex_t		 mutex;
+
+	pthread_mutex_t		 mutex2;
+	pthread_cond_t		 cond1;	/* A handler is set */
+	const char		*handler;
+
+	pthread_cond_t		 cond2;	/* A reply is set */
+	char			*reply;
+
+	char			*data;
+
+	pthread_t		 gpio_controller;
+	pthread_t		 gpio_poller;
+	pthread_t		 gpio_handler;
+	int			 is_running;
+	int			 poller_running;
+	int			 poller_suspended;
+	int			 handler_running;
+
+	struct gpio_controller_tag	*next;
+} gpio_controller_tag_t;
+
 #endif /* __TRXD_H__ */

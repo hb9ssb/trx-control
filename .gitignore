@@ -2,6 +2,6 @@
 *.a
 .DS_Store
 
-bin/trxctl
-bin/xqrg
-sbin/trxd
+bin/trxctl/trxctl
+bin/xqrg/xqrg
+sbin/trxd/trxd
