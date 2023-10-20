@@ -34,7 +34,7 @@
 #include "trx-control.h"
 #include "trxd.h"
 
-extern command_tag_t *command_tag;
+extern trx_controller_tag_t *trx_controller_tag;
 
 extern void *trx_poller(void *);
 extern void *trx_handler(void *);
@@ -55,10 +55,10 @@ luatrxd_send(lua_State *L)
 static int
 luatrxd_get_transceiver_list(lua_State *L)
 {
-	command_tag_t *t;
+	trx_controller_tag_t *t;
 	int n = 1;
 	lua_newtable(L);
-	for (t = command_tag; t != NULL; t = t->next) {
+	for (t = trx_controller_tag; t != NULL; t = t->next) {
 		lua_pushinteger(L, n++);
 		lua_newtable(L);
 		lua_pushstring(L, t->name);
@@ -75,13 +75,13 @@ luatrxd_get_transceiver_list(lua_State *L)
 static int
 luatrxd_select_transceiver(lua_State *L)
 {
-	command_tag_t *t;
+	trx_controller_tag_t *t;
 	int n = 0;
 	const char *name;
 
 	name = luaL_checkstring(L, 1);
 
-	for (t = command_tag; t != NULL; t = t->next, n++) {
+	for (t = trx_controller_tag; t != NULL; t = t->next, n++) {
 		if (!strcmp(t->name, name))
 			break;
 	}
@@ -97,10 +97,10 @@ static int
 luatrxd_start_polling(lua_State *L)
 {
 	const char *device;
-	command_tag_t *t;
+	trx_controller_tag_t *t;
 
 	device = luaL_checkstring(L, 1);
-	for (t = command_tag; t != NULL; t = t->next) {
+	for (t = trx_controller_tag; t != NULL; t = t->next) {
 		if (!strcmp(t->device, device)) {
 			t->poller_running = 1;
 			pthread_create(&t->trx_poller, NULL, trx_poller, t);
@@ -117,10 +117,10 @@ static int
 luatrxd_stop_polling(lua_State *L)
 {
 	const char *device;
-	command_tag_t *t;
+	trx_controller_tag_t *t;
 
 	device = luaL_checkstring(L, 1);
-	for (t = command_tag; t != NULL; t = t->next) {
+	for (t = trx_controller_tag; t != NULL; t = t->next) {
 		if (!strcmp(t->device, device)) {
 			if (t->poller_running) {
 				t->poller_running = 0;
@@ -139,11 +139,11 @@ static int
 luatrxd_start_handling(lua_State *L)
 {
 	const char *device;
-	command_tag_t *t;
+	trx_controller_tag_t *t;
 	char eol = '\n';
 
 	device = luaL_checkstring(L, 1);
-	for (t = command_tag; t != NULL; t = t->next) {
+	for (t = trx_controller_tag; t != NULL; t = t->next) {
 		if (!strcmp(t->device, device)) {
 			if (lua_gettop(L) == 2)
 				eol = lua_tointeger(L, 2);
@@ -165,10 +165,10 @@ static int
 luatrxd_stop_handling(lua_State *L)
 {
 	const char *device;
-	command_tag_t *t;
+	trx_controller_tag_t *t;
 
 	device = luaL_checkstring(L, 1);
-	for (t = command_tag; t != NULL; t = t->next) {
+	for (t = trx_controller_tag; t != NULL; t = t->next) {
 		if (!strcmp(t->device, device)) {
 			if (t->handler_running) {
 				t->handler_running = 0;

@@ -62,7 +62,7 @@ extern void *trx_controller(void *);
 
 extern int trx_control_running;
 
-command_tag_t *command_tag = NULL;
+trx_controller_tag_t *trx_controller_tag = NULL;
 
 static void
 usage(void)
@@ -313,9 +313,9 @@ main(int argc, char *argv[])
 	top = lua_gettop(L);
 	lua_pushnil(L);
 	while (lua_next(L, top)) {
-		command_tag_t *t;
+		trx_controller_tag_t *t;
 
-		t = malloc(sizeof(command_tag_t));
+		t = malloc(sizeof(trx_controller_tag_t));
 		t->next = NULL;
 		t->handler = t->reply = NULL;
 		t->is_running = 0;
@@ -337,11 +337,11 @@ main(int argc, char *argv[])
 		t->is_default = lua_toboolean(L, -1);
 		lua_pop(L, 1);
 
-		if (command_tag == NULL)
-			command_tag = t;
+		if (trx_controller_tag == NULL)
+			trx_controller_tag = t;
 		else {
-			command_tag_t *n;
-			n = command_tag;
+			trx_controller_tag_t *n;
+			n = trx_controller_tag;
 			while (n->next != NULL)
 				n = n->next;
 			n->next = t;

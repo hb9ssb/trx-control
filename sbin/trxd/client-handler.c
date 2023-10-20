@@ -33,26 +33,26 @@
 #include "trxd.h"
 #include "trx-control.h"
 
-extern command_tag_t *command_tag;
+extern trx_controller_tag_t *trx_controller_tag;
 extern int verbose;
 
 void *
 client_handler(void *arg)
 {
-	command_tag_t *t;
+	trx_controller_tag_t *t;
 	int fd = *(int *)arg;
 	int status, nread, n, terminate;
 	char *buf, *p;
 	const char *command, *param;
 
 	/* Check if have a default transceiver */
-	for (t = command_tag; t != NULL; t = t->next)
+	for (t = trx_controller_tag; t != NULL; t = t->next)
 		if (t->is_default)
 			break;
 
 	/* If there is no default transceiver, use the firs one */
 	if (t == NULL)
-		t = command_tag;
+		t = trx_controller_tag;
 
 	if (pthread_detach(pthread_self()))
 		err(1, "client-handler: pthread_detach");

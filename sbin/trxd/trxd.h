@@ -29,9 +29,9 @@
 #define TRXD_USER	"trxd"
 #define TRXD_GROUP	"trxd"
 
-#define SWITCH_TAG	"switch-tag:"
+#define SWITCH_TRX	"switch-trx:"
 
-typedef struct command_tag {
+typedef struct trx_controller_tag {
 	/* The first mutex locks the trx-controller */
 	pthread_mutex_t		 mutex;
 
@@ -61,8 +61,8 @@ typedef struct command_tag {
 	int			 handler_eol;
 	int			 handler_pipefd[2];
 
-	struct command_tag	*new_tag;
-	struct command_tag	*next;
-} command_tag_t;
+	struct trx_controller_tag	*new_tag;
+	struct trx_controller_tag	*next;
+} trx_controller_tag_t;
 
 #endif /* __TRXD_H__ */

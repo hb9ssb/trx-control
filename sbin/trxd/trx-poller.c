@@ -39,7 +39,7 @@ extern int verbose;
 void *
 trx_poller(void *arg)
 {
-	command_tag_t *t = (command_tag_t *)arg;
+	trx_controller_tag_t *t = (trx_controller_tag_t *)arg;
 
 	if (pthread_detach(pthread_self()))
 		err(1, "trx-poller: pthread_detach");

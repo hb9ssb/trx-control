@@ -39,7 +39,7 @@ extern int verbose;
 void *
 trx_handler(void *arg)
 {
-	command_tag_t *t = (command_tag_t *)arg;
+	trx_controller_tag_t *t = (trx_controller_tag_t *)arg;
 	struct pollfd pfds[2];
 	int status, nread, n, r, fd, epfd, nfds, terminate;
 	char buf[128], *p;

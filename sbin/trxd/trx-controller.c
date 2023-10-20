@@ -49,13 +49,13 @@ extern int luaopen_trxd(lua_State *);
 extern int luaopen_json(lua_State *);
 extern void *trx_handler(void *);
 
-extern command_tag_t *command_tag;
+extern trx_controller_tag_t *trx_controller_tag;
 extern int verbose;
 
 void *
 trx_controller(void *arg)
 {
-	command_tag_t *tag = (command_tag_t *)arg;
+	trx_controller_tag_t *tag = (trx_controller_tag_t *)arg;
 	struct termios tty;
 	lua_State *L;
 	int fd, n, driver_ref;
@@ -217,15 +217,15 @@ trx_controller(void *arg)
 			}
 			if (lua_type(L, -1) == LUA_TSTRING) {
 				char *reply = (char *)lua_tostring(L, -1);
-				if (!strncmp(reply, SWITCH_TAG,
-				    strlen(SWITCH_TAG))) {
+				if (!strncmp(reply, SWITCH_TRX,
+				    strlen(SWITCH_TRX))) {
 					char *name;
-					command_tag_t *t;
+					trx_controller_tag_t *t;
 					char buf[256];
 
 					name = strchr(reply, ':');
 					name++;
-					for (t = command_tag; t != NULL;
+					for (t = trx_controller_tag; t != NULL;
 					   t = t->next) {
 						if (!strcmp(t->name, name)) {
 							tag->new_tag = t;
