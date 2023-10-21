@@ -59,10 +59,13 @@ extern int luaopen_trxd(lua_State *);
 
 extern void *client_handler(void *);
 extern void *trx_controller(void *);
+extern void *relay_controller(void *);
 
 extern int trx_control_running;
 
 trx_controller_tag_t *trx_controller_tag = NULL;
+gpio_controller_tag_t *gpio_controller_tag = NULL;
+relay_controller_tag_t *relay_controller_tag = NULL;
 
 static void
 usage(void)
@@ -309,60 +312,123 @@ main(int argc, char *argv[])
 		}
 	}
 
+	/* Setup the trx-controllers */
 	lua_getfield(L, -1, "trx");
-	top = lua_gettop(L);
-	lua_pushnil(L);
-	while (lua_next(L, top)) {
-		trx_controller_tag_t *t;
+	if (lua_istable(L, -1)) {
+		top = lua_gettop(L);
+		lua_pushnil(L);
+		while (lua_next(L, top)) {
+			trx_controller_tag_t *t;
 
-		t = malloc(sizeof(trx_controller_tag_t));
-		t->next = NULL;
-		t->handler = t->reply = NULL;
-		t->is_running = 0;
-		t->poller_running = 0;
+			t = malloc(sizeof(trx_controller_tag_t));
+			t->next = NULL;
+			t->handler = t->reply = NULL;
+			t->is_running = 0;
+			t->poller_running = 0;
 
-		lua_getfield(L, -1, "name");
-		t->name = strdup(lua_tostring(L, -1));
-		lua_pop(L, 1);
+			lua_getfield(L, -1, "name");
+			t->name = strdup(lua_tostring(L, -1));
+			lua_pop(L, 1);
 
-		lua_getfield(L, -1, "device");
-		t->device = strdup(lua_tostring(L, -1));
-		lua_pop(L, 1);
+			lua_getfield(L, -1, "device");
+			t->device = strdup(lua_tostring(L, -1));
+			lua_pop(L, 1);
 
-		lua_getfield(L, -1, "driver");
-		t->driver = strdup(lua_tostring(L, -1));
-		lua_pop(L, 1);
+			lua_getfield(L, -1, "driver");
+			t->driver = strdup(lua_tostring(L, -1));
+			lua_pop(L, 1);
 
-		lua_getfield(L, -1, "default");
-		t->is_default = lua_toboolean(L, -1);
-		lua_pop(L, 1);
+			lua_getfield(L, -1, "default");
+			t->is_default = lua_toboolean(L, -1);
+			lua_pop(L, 1);
 
-		if (trx_controller_tag == NULL)
-			trx_controller_tag = t;
-		else {
-			trx_controller_tag_t *n;
-			n = trx_controller_tag;
-			while (n->next != NULL)
-				n = n->next;
-			n->next = t;
+			if (trx_controller_tag == NULL)
+				trx_controller_tag = t;
+			else {
+				trx_controller_tag_t *n;
+				n = trx_controller_tag;
+				while (n->next != NULL)
+					n = n->next;
+				n->next = t;
+			}
+
+			if (pthread_mutex_init(&t->mutex, NULL))
+				goto terminate;
+
+			if (pthread_mutex_init(&t->mutex2, NULL))
+				goto terminate;
+
+			if (pthread_cond_init(&t->cond1, NULL))
+				goto terminate;
+
+			if (pthread_cond_init(&t->cond2, NULL))
+				goto terminate;
+
+			/* Create the trx-controller thread */
+			pthread_create(&t->trx_controller, NULL, trx_controller, t);
+			lua_pop(L, 1);
 		}
+	} else if (verbose)
+		printf("trxd: no trx defined\n");
 
-		if (pthread_mutex_init(&t->mutex, NULL))
-			goto terminate;
+	/* Setup the relays-controllers */
+	lua_getfield(L, -1, "relays");
+	if (lua_istable(L, -1)) {
+		top = lua_gettop(L);
+		lua_pushnil(L);
+		while (lua_next(L, top)) {
+			relay_controller_tag_t *t;
 
-		if (pthread_mutex_init(&t->mutex2, NULL))
-			goto terminate;
+			t = malloc(sizeof(relay_controller_tag_t));
+			t->next = NULL;
+			t->handler = t->reply = NULL;
+			t->is_running = 0;
+			t->poller_running = 0;
 
-		if (pthread_cond_init(&t->cond1, NULL))
-			goto terminate;
+			lua_getfield(L, -1, "name");
+			t->name = strdup(lua_tostring(L, -1));
+			lua_pop(L, 1);
 
-		if (pthread_cond_init(&t->cond2, NULL))
-			goto terminate;
+			lua_getfield(L, -1, "device");
+			t->device = strdup(lua_tostring(L, -1));
+			lua_pop(L, 1);
 
-		/* Create the trx-control thread */
-		pthread_create(&t->trx_controller, NULL, trx_controller, t);
-		lua_pop(L, 1);
-	}
+			lua_getfield(L, -1, "driver");
+			t->driver = strdup(lua_tostring(L, -1));
+			lua_pop(L, 1);
+
+			lua_getfield(L, -1, "default");
+			t->is_default = lua_toboolean(L, -1);
+			lua_pop(L, 1);
+
+			if (relay_controller_tag == NULL)
+				relay_controller_tag = t;
+			else {
+				relay_controller_tag_t *n;
+				n = relay_controller_tag;
+				while (n->next != NULL)
+					n = n->next;
+				n->next = t;
+			}
+
+			if (pthread_mutex_init(&t->mutex, NULL))
+				goto terminate;
+
+			if (pthread_mutex_init(&t->mutex2, NULL))
+				goto terminate;
+
+			if (pthread_cond_init(&t->cond1, NULL))
+				goto terminate;
+
+			if (pthread_cond_init(&t->cond2, NULL))
+				goto terminate;
+
+			/* Create the relay-controller thread */
+			pthread_create(&t->relay_controller, NULL, relay_controller, t);
+			lua_pop(L, 1);
+		}
+	} else if (verbose)
+		printf("trxd: no relays defined\n");
 
 	/* Setup network listening */
 	for (i = 0; i < MAXLISTEN; i++)
