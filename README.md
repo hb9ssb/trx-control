@@ -1,11 +1,12 @@
 # trx-control
 
-Software to control amateur radio transceivers.
+Software to control amateur radio transceivers and related hardware like
+relays, GPIO-pins and rotators.
 
-trx-control consists of trxd(8), a daemon to control the transceivers,
-trxctl(1), a command line utility to access trxd(8), and, xqrg(1), a
-graphical client to display a transceivers frequency. trxctl(1) and
-xqrg(1) are meant as reference clients only.
+trx-control consists of trxd(8), a daemon to control the transceivers and
+other hardware, trxctl(1), a command line utility to access trxd(8), and,
+xqrg(1), a sample graphical client to display a transceivers frequency.
+trxctl(1) and xqrg(1) are meant as reference clients only.
 Software that wants to make use of trxd(8) should implement the protocol
 and talk to trxd(8) directly over the network.
 
