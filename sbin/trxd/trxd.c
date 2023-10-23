@@ -57,7 +57,7 @@ int verbose = 0;
 extern int luaopen_yaml(lua_State *);
 extern int luaopen_trxd(lua_State *);
 
-extern void *client_handler(void *);
+extern void *socket_handler(void *);
 extern void *trx_controller(void *);
 extern void *relay_controller(void *);
 
@@ -536,7 +536,7 @@ main(int argc, char *argv[])
 			if (log)
 				syslog(LOG_INFO, "connection from %s", hbuf);
 
-			pthread_create(&thread, NULL, client_handler,
+			pthread_create(&thread, NULL, socket_handler,
 			    client_fd);
 		}
 	}

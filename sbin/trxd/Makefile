@@ -2,7 +2,7 @@ SRCS=		trxd.c \
 		trx-controller.c \
 		gpio-controller.c \
 		relay-controller.c \
-		client-handler.c \
+		socket-handler.c \
 		trx-handler.c \
 		trx-poller.c \
 		luatrxd.c \
@@ -51,7 +51,7 @@ trxd.yaml:
 		cc -O3 -fPIC -c -o $@ ${CFLAGS} $<
 
 # Dependencies
-client-handler.o:	client-handler.c trxd.h trx-control.h
+socket-handler.o:	socket-handler.c trxd.h trx-control.h
 
 luatrx.o:	luatrx.c trxd.h
 

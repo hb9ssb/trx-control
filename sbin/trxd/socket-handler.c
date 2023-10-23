@@ -20,7 +20,7 @@
  * IN THE SOFTWARE.
  */
 
-/* Handle network clients */
+/* Handle network clients over TCP/IP sockets */
 
 #include <err.h>
 #include <pthread.h>
@@ -37,7 +37,7 @@ extern trx_controller_tag_t *trx_controller_tag;
 extern int verbose;
 
 void *
-client_handler(void *arg)
+socket_handler(void *arg)
 {
 	trx_controller_tag_t *t;
 	int fd = *(int *)arg;
@@ -55,7 +55,7 @@ client_handler(void *arg)
 		t = trx_controller_tag;
 
 	if (pthread_detach(pthread_self()))
-		err(1, "client-handler: pthread_detach");
+		err(1, "socket-handler: pthread_detach");
 
 	for (terminate = 0; !terminate ;) {
 		buf = trxd_readln(fd);
@@ -66,9 +66,9 @@ client_handler(void *arg)
 		}
 
 		if (pthread_mutex_lock(&t->mutex))
-			err(1, "client-handler: pthread_mutex_lock");
+			err(1, "socket-handler: pthread_mutex_lock");
 		if (verbose > 1)
-			printf("client-handler: mutex locked\n");
+			printf("socket-handler: mutex locked\n");
 
 		t->handler = "requestHandler";
 		t->reply = NULL;
@@ -77,26 +77,26 @@ client_handler(void *arg)
 		t->new_tag = t;
 
 		if (pthread_mutex_lock(&t->mutex2))
-			err(1, "client-handler: pthread_mutex_lock");
+			err(1, "socket-handler: pthread_mutex_lock");
 		if (verbose > 1)
-			printf("client-handler: mutex2 locked\n");
+			printf("socket-handler: mutex2 locked\n");
 
 		/* We signal cond, and mutex gets owned by trx-controller */
 		if (pthread_cond_signal(&t->cond1))
-			err(1, "client-handler: pthread_cond_signal");
+			err(1, "socket-handler: pthread_cond_signal");
 		if (verbose > 1)
-			printf("client-handler: cond1 signaled\n");
+			printf("socket-handler: cond1 signaled\n");
 
 		if (pthread_mutex_unlock(&t->mutex2))
-			err(1, "client-handler: pthread_mutex_unlock");
+			err(1, "socket-handler: pthread_mutex_unlock");
 		if (verbose > 1)
-			printf("client-handler: mutex unlocked\n");
+			printf("socket-handler: mutex unlocked\n");
 
 		while (t->reply == NULL) {
 			if (pthread_cond_wait(&t->cond2, &t->mutex2))
-				err(1, "client-handler: pthread_cond_wait");
+				err(1, "socket-handler: pthread_cond_wait");
 			if (verbose > 1)
-				printf("client-handler: cond2 changed\n");
+				printf("socket-handler: cond2 changed\n");
 		}
 
 		free(buf);
@@ -108,15 +108,14 @@ client_handler(void *arg)
 			t = t->new_tag;
 
 		if (pthread_mutex_unlock(&t->mutex2))
-			err(1, "client-handler: pthread_mutex_unlock");
+			err(1, "socket-handler: pthread_mutex_unlock");
 		if (verbose > 1)
-			printf("client-handler: mutex2 unlocked\n");
+			printf("socket-handler: mutex2 unlocked\n");
 
 		if (pthread_mutex_unlock(&t->mutex))
-			err(1, "client-handler: pthread_mutex_unlock");
+			err(1, "socket-handler: pthread_mutex_unlock");
 		if (verbose > 1)
-			printf("client-handler: mutex unlocked\n");
-
+			printf("socket-handler: mutex unlocked\n");
 	}
 	close(fd);
 	free(arg);
