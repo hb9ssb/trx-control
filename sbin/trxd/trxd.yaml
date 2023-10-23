@@ -12,6 +12,15 @@ no-daemon: false
 bind-address: localhost
 listen-port: 14285
 
+# Optionally listen for WebSocket connections
+websocket:
+  bind-address: localhost
+  listen-port: 14286
+
+  # If a certificate path is defines, wss is used instead of ws
+  certificate: server.pem
+  handshake: trx-control
+
 # We log incoming connection using syslog
 log-connections: true
 
