@@ -1,8 +1,7 @@
 TRX=		dummy-trx.lua \
 		yaesu-ft-710.lua \
 		yaesu-ft-897.lua \
-		yaesu-ft-817.lua \
-		yaesu-ft-991a.lua
+		yaesu-ft-817.lua
 
 TRXDIR?=	/usr/share/trxd/trx
 
