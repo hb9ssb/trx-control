@@ -66,7 +66,7 @@ typedef struct trx_controller_tag {
 } trx_controller_tag_t;
 
 typedef struct gpio_controller_tag {
-	/* The first mutex locks the trx-controller */
+	/* The first mutex locks the gpio-controller */
 	pthread_mutex_t		 mutex;
 
 	pthread_mutex_t		 mutex2;
@@ -90,7 +90,7 @@ typedef struct gpio_controller_tag {
 } gpio_controller_tag_t;
 
 typedef struct relay_controller_tag {
-	/* The first mutex locks the trx-controller */
+	/* The first mutex locks the relay-controller */
 	pthread_mutex_t		 mutex;
 
 	pthread_mutex_t		 mutex2;
@@ -117,4 +117,26 @@ typedef struct relay_controller_tag {
 
 	struct relay_controller_tag	*next;
 } relay_controller_tag_t;
+
+/*
+ * A sender thread is needed per client, so that i/o problems do
+ * do not lock a controller.  Also some protocols, notably websockets,
+ * do not just regular i/o, but need some framing.  The specific
+ * sender thread can deal with this.
+ */
+typedef struct sender_tag {
+	/* The first mutex locks the sender */
+	pthread_mutex_t		 mutex;
+
+	pthread_mutex_t		 mutex2;
+	pthread_cond_t		 cond1;	/* data is ready to be send set */
+
+	char			*data;
+
+	int			 client_fd;
+	pthread_t		 sender;
+
+	struct sender_tag	*next;
+} sender_tag_t;
+
 #endif /* __TRXD_H__ */
