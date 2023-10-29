@@ -126,7 +126,7 @@ local function requestHandler(data, fd)
 	elseif request.request == 'select-trx' then
 		local t = trxd.selectTransceiver(request.name)
 		if t ~= nil then
-			return string.format('switch-tag:%s',
+			return string.format('switch-trx:%s',
 			    request.name)
 		else
 			reply = {
