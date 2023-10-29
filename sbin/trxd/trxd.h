@@ -31,6 +31,8 @@
 
 #define SWITCH_TRX	"switch-trx:"
 
+typedef struct sender_tag sender_tag_t;
+
 typedef struct trx_controller_tag {
 	/* The first mutex locks the trx-controller */
 	pthread_mutex_t		 mutex;
@@ -61,6 +63,7 @@ typedef struct trx_controller_tag {
 	int			 handler_eol;
 	int			 handler_pipefd[2];
 
+	sender_tag_t			*sender;
 	struct trx_controller_tag	*new_tag;
 	struct trx_controller_tag	*next;
 } trx_controller_tag_t;
@@ -128,15 +131,12 @@ typedef struct sender_tag {
 	/* The first mutex locks the sender */
 	pthread_mutex_t		 mutex;
 
-	pthread_mutex_t		 mutex2;
-	pthread_cond_t		 cond1;	/* data is ready to be send set */
+	pthread_cond_t		 cond;	/* data is ready to be send set */
 
 	char			*data;
 
-	int			 client_fd;
+	int			 fd;
 	pthread_t		 sender;
-
-	struct sender_tag	*next;
 } sender_tag_t;
 
 #endif /* __TRXD_H__ */

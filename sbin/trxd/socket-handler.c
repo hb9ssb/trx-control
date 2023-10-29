@@ -33,6 +33,8 @@
 #include "trxd.h"
 #include "trx-control.h"
 
+extern void *socket_sender(void *);
+
 extern trx_controller_tag_t *trx_controller_tag;
 extern int verbose;
 
@@ -40,6 +42,7 @@ void *
 socket_handler(void *arg)
 {
 	trx_controller_tag_t *t;
+	sender_tag_t *s;
 	int fd = *(int *)arg;
 	int status, nread, n, terminate;
 	char *buf, *p;
@@ -50,12 +53,28 @@ socket_handler(void *arg)
 		if (t->is_default)
 			break;
 
-	/* If there is no default transceiver, use the firs one */
+	/* If there is no default transceiver, use the first one */
 	if (t == NULL)
 		t = trx_controller_tag;
 
+
 	if (pthread_detach(pthread_self()))
 		err(1, "socket-handler: pthread_detach");
+
+	s = malloc(sizeof(sender_tag_t));
+	if (s == NULL)
+		err(1, "socket-handler: malloc");
+	t->sender = s;
+	s->data = NULL;
+	s->fd = fd;
+	if (pthread_mutex_init(&s->mutex, NULL))
+		err(1, "socker-handler: pthread_mutex_init");
+
+	if (pthread_cond_init(&s->cond, NULL))
+		err(1, "socker-handler: pthread_cond_init");
+
+	if (pthread_create(&s->sender, NULL, socket_sender, s))
+		err(1, "socker-handler: pthread_create");
 
 	for (terminate = 0; !terminate ;) {
 		buf = trxd_readln(fd);
@@ -69,6 +88,9 @@ socket_handler(void *arg)
 			err(1, "socket-handler: pthread_mutex_lock");
 		if (verbose > 1)
 			printf("socket-handler: mutex locked\n");
+
+		if (pthread_mutex_lock(&t->sender->mutex))
+			err(1, "socket-handler: pthread_mutex_lock");
 
 		t->handler = "requestHandler";
 		t->reply = NULL;
@@ -100,9 +122,16 @@ socket_handler(void *arg)
 		}
 
 		free(buf);
-		if (strlen(t->reply) > 0 && !terminate)
-			trxd_writeln(fd, t->reply);
-
+		if (strlen(t->reply) > 0 && !terminate) {
+			printf("calling the sender thread\n");
+			t->sender->data = t->reply;
+			if (pthread_cond_signal(&t->sender->cond))
+				err(1, "socker-handler: pthread_cond_signal");
+			pthread_mutex_unlock(&t->sender->mutex);
+		} else {
+			printf("not calling the sender thread\n");
+			pthread_mutex_unlock(&t->sender->mutex);
+		}
 		/* Check if we changed the transceiver */
 		if (t->new_tag != t)
 			t = t->new_tag;
@@ -117,6 +146,7 @@ socket_handler(void *arg)
 		if (verbose > 1)
 			printf("socket-handler: mutex unlocked\n");
 	}
+terminate:
 	close(fd);
 	free(arg);
 	return NULL;

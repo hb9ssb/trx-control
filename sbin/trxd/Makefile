@@ -3,6 +3,7 @@ SRCS=		trxd.c \
 		gpio-controller.c \
 		relay-controller.c \
 		socket-handler.c \
+		socket-sender.c \
 		trx-handler.c \
 		trx-poller.c \
 		luatrxd.c \
@@ -52,6 +53,7 @@ trxd.yaml:
 
 # Dependencies
 socket-handler.o:	socket-handler.c trxd.h trx-control.h
+socket-sender.o:	socket-sender.c trxd.h trx-control.h
 
 luatrx.o:	luatrx.c trxd.h
 
