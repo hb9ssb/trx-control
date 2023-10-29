@@ -10,7 +10,10 @@ SRCS=		trxd.c \
 		luatrx.c \
 		luayaml.c \
 		buffer.c \
-		luajson.c
+		luajson.c \
+		websocket-sender.c \
+		websocket.c \
+		base64.c
 
 OBJS=		${SRCS:.c=.o}
 
@@ -22,7 +25,7 @@ CFLAGS+=	-I../../lib/libtrx-control -I../../external/mit/lua/src \
 		-I../../external/mit/luayaml \
 		-I../../external/mit/luajson -pthread -D_GNU_SOURCE
 LDFLAGS+=	-L../../lib/libtrx-control -ltrx-control \
-		-L../../lib/liblua -llua -lyaml -lm
+		-L../../lib/liblua -llua -lyaml -lm -lssl -lcrypto
 VPATH=		../../external/mit/luayaml ../../external/mit/luajson \
 		../../lib/libtrx-control
 
@@ -54,6 +57,9 @@ trxd.yaml:
 # Dependencies
 socket-handler.o:	socket-handler.c trxd.h trx-control.h
 socket-sender.o:	socket-sender.c trxd.h trx-control.h
+websocket-sender.o:	websocket-sender.c trxd.h trx-control.h websocket.h
+websocket.o:		websocket.c websocket.h
+base64.o:		base64.c base64.h
 
 luatrx.o:	luatrx.c trxd.h
 

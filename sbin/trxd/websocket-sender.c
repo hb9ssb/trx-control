@@ -20,7 +20,11 @@
  * IN THE SOFTWARE.
  */
 
-/* Send data to networked clients over plain TCP/IP sockets */
+/* Send data to networked clients over WebSockets */
+
+#include <sys/socket.h>
+
+#include <openssl/ssl.h>
 
 #include <err.h>
 #include <pthread.h>
@@ -32,17 +36,19 @@
 
 #include "trxd.h"
 #include "trx-control.h"
+#include "websocket.h"
 
 extern trx_controller_tag_t *trx_controller_tag;
 extern int verbose;
 
 void *
-socket_sender(void *arg)
+websocket_sender(void *arg)
 {
-	socket_sender_tag_t *s = (socket_sender_tag_t *)arg;
+	websocket_sender_tag_t *s = (websocket_sender_tag_t *)arg;
 	int status, nread, n, terminate;
 	char *buf, *p;
 	const char *command, *param;
+	size_t datasize, framesize;
 
 	if (pthread_detach(pthread_self()))
 		err(1, "socket-sender: pthread_detach");
@@ -64,7 +70,16 @@ socket_sender(void *arg)
 		if (!terminate) {
 			if (verbose)
 				printf("socket-sender: -> %s\n", s->data);
-			trxd_writeln(s->socket, s->data);
+			datasize = strlen(s->data);
+			wsMakeFrame((const uint8_t *)s->data, datasize,
+			    (unsigned char *)buf, &framesize, WS_TEXT_FRAME);
+
+			if (s->ssl)
+				SSL_write(s->ssl, buf, framesize);
+			else
+				send(s->socket, buf, framesize, 0);
+			free(buf);
+
 			s->data = NULL;
 		}
 	}

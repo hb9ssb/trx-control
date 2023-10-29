@@ -42,7 +42,7 @@ void *
 socket_handler(void *arg)
 {
 	trx_controller_tag_t *t;
-	sender_tag_t *s;
+	socket_sender_tag_t *s;
 	int fd = *(int *)arg;
 	int status, nread, n, terminate;
 	char *buf, *p;
@@ -61,12 +61,12 @@ socket_handler(void *arg)
 	if (pthread_detach(pthread_self()))
 		err(1, "socket-handler: pthread_detach");
 
-	s = malloc(sizeof(sender_tag_t));
+	s = malloc(sizeof(socket_sender_tag_t));
 	if (s == NULL)
 		err(1, "socket-handler: malloc");
 	t->sender = s;
 	s->data = NULL;
-	s->fd = fd;
+	s->socket = fd;
 	if (pthread_mutex_init(&s->mutex, NULL))
 		err(1, "socker-handler: pthread_mutex_init");
 

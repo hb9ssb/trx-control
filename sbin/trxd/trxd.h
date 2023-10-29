@@ -25,13 +25,15 @@
 
 #include <pthread.h>
 
+#include <openssl/ssl.h>
+
 #define TRXD_VERSION	"1.0.0"
 #define TRXD_USER	"trxd"
 #define TRXD_GROUP	"trxd"
 
 #define SWITCH_TRX	"switch-trx:"
 
-typedef struct sender_tag sender_tag_t;
+typedef struct socket_sender_tag socket_sender_tag_t;
 
 typedef struct trx_controller_tag {
 	/* The first mutex locks the trx-controller */
@@ -63,7 +65,7 @@ typedef struct trx_controller_tag {
 	int			 handler_eol;
 	int			 handler_pipefd[2];
 
-	sender_tag_t			*sender;
+	socket_sender_tag_t			*sender;
 	struct trx_controller_tag	*new_tag;
 	struct trx_controller_tag	*next;
 } trx_controller_tag_t;
@@ -127,7 +129,7 @@ typedef struct relay_controller_tag {
  * do not just regular i/o, but need some framing.  The specific
  * sender thread can deal with this.
  */
-typedef struct sender_tag {
+typedef struct socket_sender_tag {
 	/* The first mutex locks the sender */
 	pthread_mutex_t		 mutex;
 
@@ -135,8 +137,25 @@ typedef struct sender_tag {
 
 	char			*data;
 
-	int			 fd;
+	int			 socket;
 	pthread_t		 sender;
-} sender_tag_t;
+} socket_sender_tag_t;
+
+typedef struct websocket_sender_tag {
+	/* The first mutex locks the sender */
+	pthread_mutex_t		 mutex;
+
+	pthread_cond_t		 cond;	/* data is ready to be send set */
+
+	char			*data;
+
+	int			 socket;
+
+	/* For secure websockets */
+	SSL_CTX			*ctx;
+	SSL			*ssl;
+
+	pthread_t		 sender;
+} websocket_sender_tag_t;
 
 #endif /* __TRXD_H__ */
