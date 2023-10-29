@@ -68,13 +68,13 @@ socket_handler(void *arg)
 	s->data = NULL;
 	s->socket = fd;
 	if (pthread_mutex_init(&s->mutex, NULL))
-		err(1, "socker-handler: pthread_mutex_init");
+		err(1, "socket-handler: pthread_mutex_init");
 
 	if (pthread_cond_init(&s->cond, NULL))
-		err(1, "socker-handler: pthread_cond_init");
+		err(1, "socket-handler: pthread_cond_init");
 
 	if (pthread_create(&s->sender, NULL, socket_sender, s))
-		err(1, "socker-handler: pthread_create");
+		err(1, "socket-handler: pthread_create");
 
 	for (terminate = 0; !terminate ;) {
 		buf = trxd_readln(fd);
@@ -126,7 +126,7 @@ socket_handler(void *arg)
 			printf("calling the sender thread\n");
 			t->sender->data = t->reply;
 			if (pthread_cond_signal(&t->sender->cond))
-				err(1, "socker-handler: pthread_cond_signal");
+				err(1, "socket-handler: pthread_cond_signal");
 			pthread_mutex_unlock(&t->sender->mutex);
 		} else {
 			printf("not calling the sender thread\n");
