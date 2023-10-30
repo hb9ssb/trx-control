@@ -39,7 +39,7 @@ extern int verbose;
 void *
 socket_sender(void *arg)
 {
-	socket_sender_tag_t *s = (socket_sender_tag_t *)arg;
+	sender_tag_t *s = (sender_tag_t *)arg;
 	int status, nread, n, terminate;
 	char *buf, *p;
 	const char *command, *param;

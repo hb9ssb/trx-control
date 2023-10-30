@@ -26,6 +26,7 @@
 
 #include <openssl/ssl.h>
 
+#include <assert.h>
 #include <err.h>
 #include <pthread.h>
 #include <sched.h>
@@ -41,45 +42,55 @@
 extern trx_controller_tag_t *trx_controller_tag;
 extern int verbose;
 
+#define BUFSIZE		65535
+
 void *
 websocket_sender(void *arg)
 {
-	websocket_sender_tag_t *s = (websocket_sender_tag_t *)arg;
+	sender_tag_t *s = (sender_tag_t *)arg;
 	int status, nread, n, terminate;
 	char *buf, *p;
 	const char *command, *param;
 	size_t datasize, framesize;
 
 	if (pthread_detach(pthread_self()))
-		err(1, "socket-sender: pthread_detach");
+		err(1, "websocket-sender: pthread_detach");
 
 	if (pthread_mutex_lock(&s->mutex))
-		err(1, "socket-sender: pthread_mutex_lock");
+		err(1, "websocket-sender: pthread_mutex_lock");
 	if (verbose > 1)
-		printf("socket-sender: mutex locked\n");
+		printf("websocket-sender: mutex locked\n");
 
 	for (terminate = 0; !terminate ;) {
-		printf("socket-sender: wait for condition to change\n");
+		printf("websocket-sender: wait for condition to change\n");
 		while (s->data == NULL) {
 			if (pthread_cond_wait(&s->cond, &s->mutex))
-				err(1, "socket-sender: pthread_cond_wait");
+				err(1, "websocket-sender: pthread_cond_wait");
 			if (verbose > 1)
-				printf("socket-sender: cond changed\n");
+				printf("websocket-sender: cond changed\n");
 		}
 
 		if (!terminate) {
 			if (verbose)
-				printf("socket-sender: -> %s\n", s->data);
+				printf("websocket-sender: -> %s\n", s->data);
 			datasize = strlen(s->data);
+			buf = malloc(BUFSIZE);
+			framesize = datasize;
+			if (buf == NULL)
+				err(1, "websocket-sender: malloc\n");
+
+			printf("make frame of data size %d, %s\n", datasize, s->data);
+			printf("%p, %p\n", buf, &framesize);
+			assert(buf && *(&framesize));
 			wsMakeFrame((const uint8_t *)s->data, datasize,
 			    (unsigned char *)buf, &framesize, WS_TEXT_FRAME);
+			printf("framesize: %d\n", framesize);
 
 			if (s->ssl)
 				SSL_write(s->ssl, buf, framesize);
 			else
 				send(s->socket, buf, framesize, 0);
 			free(buf);
-
 			s->data = NULL;
 		}
 	}

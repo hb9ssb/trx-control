@@ -27,6 +27,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+#include <err.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <getopt.h>
@@ -53,6 +54,7 @@
 #define LISTEN_PORT	"14285"
 
 int verbose = 0;
+int log_connections = 0;
 
 extern int luaopen_yaml(lua_State *);
 extern int luaopen_trxd(lua_State *);
@@ -60,6 +62,7 @@ extern int luaopen_trxd(lua_State *);
 extern void *socket_handler(void *);
 extern void *trx_controller(void *);
 extern void *relay_controller(void *);
+extern void *websocket_listener(void *);
 
 extern int trx_control_running;
 
@@ -86,7 +89,7 @@ main(int argc, char *argv[])
 	struct addrinfo hints, *res, *res0;
 	lua_State *L;
 	pthread_t trx_control_thread, thread;
-	int fd, listen_fd[MAXLISTEN], i, ch, nodaemon = 0, log = 0, err, val;
+	int fd, listen_fd[MAXLISTEN], i, ch, nodaemon = 0, error, val;
 	int top;
 	const char *bind_addr, *listen_port, *user, *group, *homedir, *pidfile;
 	const char *cfg_file;
@@ -127,7 +130,7 @@ main(int argc, char *argv[])
 			group = optarg;
 			break;
 		case 'l':
-			log = 1;
+			log_connections = 1;
 			break;
 		case 'b':
 			bind_addr = optarg;
@@ -175,7 +178,7 @@ main(int argc, char *argv[])
 	luaopen_trxd(L);
 	lua_setglobal(L, "trxd");
 
-	/* Read the configuration file an extract parameters */
+	/* Read the configuration file and extract parameters */
 	if (!stat(cfg_file, &sb)) {
 		lua_getglobal(L, "yaml");
 		lua_getfield(L, -1, "parsefile");
@@ -218,9 +221,9 @@ main(int argc, char *argv[])
 				nodaemon = lua_toboolean(L, -1);
 				lua_pop(L, 1);
 			}
-			if (log == 0) {
+			if (log_connections == 0) {
 				lua_getfield(L, -1, "log-connections");
-				log = lua_toboolean(L, -1);
+				log_connections = lua_toboolean(L, -1);
 				lua_pop(L, 1);
 			}
 			break;
@@ -325,16 +328,23 @@ main(int argc, char *argv[])
 			t->handler = t->reply = NULL;
 			t->is_running = 0;
 			t->poller_running = 0;
+			t->senders = NULL;
 
 			lua_getfield(L, -1, "name");
+			if (!lua_isstring(L, -1))
+				errx(1, "missing trx name");
 			t->name = strdup(lua_tostring(L, -1));
 			lua_pop(L, 1);
 
 			lua_getfield(L, -1, "device");
+			if (!lua_isstring(L, -1))
+				errx(1, "missing trx device path");
 			t->device = strdup(lua_tostring(L, -1));
 			lua_pop(L, 1);
 
 			lua_getfield(L, -1, "driver");
+			if (!lua_isstring(L, -1))
+				errx(1, "missing trx driver name");
 			t->driver = strdup(lua_tostring(L, -1));
 			lua_pop(L, 1);
 
@@ -365,13 +375,15 @@ main(int argc, char *argv[])
 				goto terminate;
 
 			/* Create the trx-controller thread */
-			pthread_create(&t->trx_controller, NULL, trx_controller, t);
+			pthread_create(&t->trx_controller, NULL, trx_controller,
+			    t);
 			lua_pop(L, 1);
 		}
 	} else if (verbose)
 		printf("trxd: no trx defined\n");
+	lua_pop(L, 1);
 
-	/* Setup the relays-controllers */
+	/* Setup the relay-controllers */
 	lua_getfield(L, -1, "relays");
 	if (lua_istable(L, -1)) {
 		top = lua_gettop(L);
@@ -386,19 +398,19 @@ main(int argc, char *argv[])
 			t->poller_running = 0;
 
 			lua_getfield(L, -1, "name");
+			if (!lua_isstring(L, -1))
+				errx(1, "missing relay name");
+
 			t->name = strdup(lua_tostring(L, -1));
 			lua_pop(L, 1);
 
-			lua_getfield(L, -1, "device");
-			t->device = strdup(lua_tostring(L, -1));
-			lua_pop(L, 1);
+			printf("relay %s\n", t->name);
 
 			lua_getfield(L, -1, "driver");
-			t->driver = strdup(lua_tostring(L, -1));
-			lua_pop(L, 1);
+			if (!lua_isstring(L, -1))
+				errx(1, "missing relay driver name");
 
-			lua_getfield(L, -1, "default");
-			t->is_default = lua_toboolean(L, -1);
+			t->driver = strdup(lua_tostring(L, -1));
 			lua_pop(L, 1);
 
 			if (relay_controller_tag == NULL)
@@ -429,6 +441,48 @@ main(int argc, char *argv[])
 		}
 	} else if (verbose)
 		printf("trxd: no relays defined\n");
+	lua_pop(L, 1);
+
+	/* Setup WebSocket listening */
+	lua_getfield(L, -1, "websocket");
+	if (lua_istable(L, -1)) {
+		printf("setup websocket\n");
+		websocket_listener_t *t;
+
+		t = malloc(sizeof(websocket_listener_t));
+		if (t == NULL)
+			err(1, "trxd: malloc");
+		lua_getfield(L, -1, "bind-address");
+		if (!lua_isstring(L, -1))
+			errx(1, "missing websocket bind-address");
+		t->bind_addr = strdup(lua_tostring(L, -1));
+		lua_pop(L, 1);
+
+		lua_getfield(L, -1, "listen-port");
+		if (!lua_isstring(L, -1))
+			errx(1, "missing websocket listen-port");
+		t->listen_port = strdup(lua_tostring(L, -1));
+		lua_pop(L, 1);
+
+		lua_getfield(L, -1, "handshake");
+		if (!lua_isstring(L, -1))
+			errx(1, "missing websocket handshake name");
+		t->handshake = strdup(lua_tostring(L, -1));
+		lua_pop(L, 1);
+
+		lua_getfield(L, -1, "certificate");
+		if (lua_isstring(L, -1))
+			t->certificate = strdup(lua_tostring(L, -1));
+		else
+			t->certificate = NULL;
+		lua_pop(L, 1);
+
+		/* Create the websocket-listener thread */
+		pthread_create(&t->listener, NULL, websocket_listener, t);
+		lua_pop(L, 1);
+	} else if (verbose)
+		printf("trxd: no websocket\n");
+	lua_pop(L, 1);
 
 	/* Setup network listening */
 	for (i = 0; i < MAXLISTEN; i++)
@@ -437,10 +491,10 @@ main(int argc, char *argv[])
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
-	err = getaddrinfo(bind_addr, listen_port, &hints, &res0);
-	if (err) {
+	error = getaddrinfo(bind_addr, listen_port, &hints, &res0);
+	if (error) {
 		syslog(LOG_ERR, "getaddrinfo: %s:%s: %s",
-		    bind_addr, listen_port, gai_strerror(err));
+		    bind_addr, listen_port, gai_strerror(error));
 		exit(1);
 	}
 
@@ -511,7 +565,7 @@ main(int argc, char *argv[])
 		for (i = 0; i < MAXLISTEN; ++i) {
 			struct sockaddr_storage	 sa;
 			socklen_t		 len;
-			int			 *client_fd, err;
+			int			 *client_fd, error;
 			char			 hbuf[NI_MAXHOST];
 
 			client_fd = malloc(sizeof(int));
@@ -528,13 +582,14 @@ main(int argc, char *argv[])
 				free(client_fd);
 				break;
 			}
-			err = getnameinfo((struct sockaddr *)&sa, len,
+			error = getnameinfo((struct sockaddr *)&sa, len,
 			    hbuf, sizeof(hbuf), NULL, 0, NI_NUMERICHOST);
-			if (err)
+			if (error)
 				syslog(LOG_ERR, "getnameinfo: %s",
-				    gai_strerror(err));
-			if (log)
-				syslog(LOG_INFO, "connection from %s", hbuf);
+				    gai_strerror(error));
+			if (log_connections)
+				syslog(LOG_INFO, "socket connection from %s",
+				    hbuf);
 
 			pthread_create(&thread, NULL, socket_handler,
 			    client_fd);

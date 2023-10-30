@@ -11,6 +11,8 @@ SRCS=		trxd.c \
 		luayaml.c \
 		buffer.c \
 		luajson.c \
+		websocket-listener.c \
+		websocket-handler.c \
 		websocket-sender.c \
 		websocket.c \
 		base64.c

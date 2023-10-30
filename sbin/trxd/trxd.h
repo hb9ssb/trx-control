@@ -33,7 +33,12 @@
 
 #define SWITCH_TRX	"switch-trx:"
 
-typedef struct socket_sender_tag socket_sender_tag_t;
+typedef struct sender_tag sender_tag_t;
+
+typedef struct sender_list {
+	sender_tag_t		*sender;
+	struct sender_list	*next;
+} sender_list_t;
 
 typedef struct trx_controller_tag {
 	/* The first mutex locks the trx-controller */
@@ -65,9 +70,11 @@ typedef struct trx_controller_tag {
 	int			 handler_eol;
 	int			 handler_pipefd[2];
 
-	socket_sender_tag_t			*sender;
+	sender_tag_t			*sender;
 	struct trx_controller_tag	*new_tag;
 	struct trx_controller_tag	*next;
+
+	sender_list_t		*senders;
 } trx_controller_tag_t;
 
 typedef struct gpio_controller_tag {
@@ -123,31 +130,11 @@ typedef struct relay_controller_tag {
 	struct relay_controller_tag	*next;
 } relay_controller_tag_t;
 
-/*
- * A sender thread is needed per client, so that i/o problems do
- * do not lock a controller.  Also some protocols, notably websockets,
- * do not just regular i/o, but need some framing.  The specific
- * sender thread can deal with this.
- */
-typedef struct socket_sender_tag {
-	/* The first mutex locks the sender */
-	pthread_mutex_t		 mutex;
-
-	pthread_cond_t		 cond;	/* data is ready to be send set */
-
-	char			*data;
-
-	int			 socket;
-	pthread_t		 sender;
-} socket_sender_tag_t;
-
-typedef struct websocket_sender_tag {
-	/* The first mutex locks the sender */
-	pthread_mutex_t		 mutex;
-
-	pthread_cond_t		 cond;	/* data is ready to be send set */
-
-	char			*data;
+typedef struct websocket_listener {
+	char			*bind_addr;
+	char			*listen_port;
+	char			*handshake;
+	char			*certificate;
 
 	int			 socket;
 
@@ -155,7 +142,41 @@ typedef struct websocket_sender_tag {
 	SSL_CTX			*ctx;
 	SSL			*ssl;
 
+	pthread_t		 listener;
+} websocket_listener_t;
+
+typedef struct websocket {
+	int			 socket;
+
+	/* For secure websockets */
+	SSL_CTX			*ctx;
+	SSL			*ssl;
+
+	sender_tag_t		*sender;
+	pthread_t		 listen_thread;
+} websocket_t;
+
+/*
+ * A sender thread is needed per client, so that i/o problems do
+ * do not lock a controller.  Also some protocols, notably websockets,
+ * do not just regular i/o, but need some framing.  The specific
+ * sender thread can deal with this.
+ */
+typedef struct sender_tag {
+	/* The first mutex locks the sender */
+	pthread_mutex_t		 mutex;
+
+	pthread_cond_t		 cond;	/* data is ready to be send set */
+
+	char			*data;
+
+	int			 socket;
+
+	/* For secure sockets */
+	SSL_CTX			*ctx;
+	SSL			*ssl;
+
 	pthread_t		 sender;
-} websocket_sender_tag_t;
+} sender_tag_t;
 
 #endif /* __TRXD_H__ */

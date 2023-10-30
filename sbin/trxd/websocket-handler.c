@@ -20,7 +20,11 @@
  * IN THE SOFTWARE.
  */
 
-/* Handle network clients over TCP/IP sockets */
+/* Handle network clients WebSockets */
+
+#include <sys/socket.h>
+
+#include <openssl/ssl.h>
 
 #include <err.h>
 #include <pthread.h>
@@ -32,18 +36,97 @@
 
 #include "trxd.h"
 #include "trx-control.h"
+#include "websocket.h"
 
-extern void *socket_sender(void *);
+extern void *websocket_sender(void *);
 
 extern trx_controller_tag_t *trx_controller_tag;
 extern int verbose;
 
-void *
-socket_handler(void *arg)
+#define BUFSIZE		65535
+
+static int
+websocket_recv(int fd, char **dest)
 {
+	unsigned char *data;
+	char *buf;
+	size_t nread, len, datasize;
+	int type;
+
+	printf("websocket_recv\n");
+	buf = malloc(BUFSIZE);
+
+	nread = len = 0;
+	type = WS_INCOMPLETE_FRAME;
+	do {
+#if 0
+		if (websock->ssl)
+			nread = SSL_read(websock->ssl, buf + len,
+			    BUFSIZE - len);
+		else
+#endif
+			nread = recv(fd, buf + len,
+			    BUFSIZE - len, 0);
+		if (nread <= 0) {
+			type = WS_EMPTY_FRAME;
+		} else {
+			len += nread;
+			type = wsParseInputFrame((unsigned char *)buf, len,
+			    &data, &datasize);
+		}
+		switch (type) {
+		case WS_CLOSING_FRAME:
+			wsMakeFrame(NULL, 0, (unsigned char *)buf, &datasize,
+			    WS_CLOSING_FRAME);
+#if 0
+			if (websock->ssl) {
+				SSL_write(websock->ssl, buf, datasize);
+				SSL_shutdown(websock->ssl);
+				SSL_free(websock->ssl);
+				websock->ssl = NULL;
+			} else {
+#endif
+				send(fd, buf, datasize, 0);
+				close(fd);
+				fd = -1;
+#if 0
+			}
+#endif
+			return -1;
+			break;
+		case WS_PING_FRAME:
+			wsMakeFrame(NULL, 0, (unsigned char *)buf, &datasize,
+			    WS_PONG_FRAME);
+#if 0
+			if (websock->ssl)
+				SSL_write(websock->ssl, buf, datasize);
+			else
+#endif
+				send(fd, buf, datasize, 0);
+			len = 0;
+			type = WS_INCOMPLETE_FRAME;
+			break;
+		case WS_TEXT_FRAME:
+			printf("recv %d bytes,  %s\n", datasize, data);
+			data[datasize] = '\0';
+			*dest = strdup(data);
+			break;
+		case WS_INCOMPLETE_FRAME:
+			break;
+		default:
+			return -1;
+		}
+	} while (type == WS_INCOMPLETE_FRAME);
+	free(buf);
+	return 0;
+}
+
+void *
+websocket_handler(void *arg)
+{
+	websocket_t *w = (websocket_t *)arg;
 	trx_controller_tag_t *t;
 	sender_tag_t *s;
-	int fd = *(int *)arg;
 	int status, nread, n, terminate;
 	char *buf, *p;
 	const char *command, *param;
@@ -57,68 +140,73 @@ socket_handler(void *arg)
 	if (t == NULL)
 		t = trx_controller_tag;
 
-
 	if (pthread_detach(pthread_self()))
-		err(1, "socket-handler: pthread_detach");
+		err(1, "websocket-handler: pthread_detach");
 
 	s = malloc(sizeof(sender_tag_t));
 	if (s == NULL)
-		err(1, "socket-handler: malloc");
+		err(1, "websocket-handler: malloc");
 	t->sender = s;
 	s->data = NULL;
-	s->socket = fd;
+	s->socket = w->socket;
+	s->ssl = NULL;
+	s->ctx = NULL;
+
+	w->sender = s;
+
 	if (pthread_mutex_init(&s->mutex, NULL))
-		err(1, "socket-handler: pthread_mutex_init");
+		err(1, "websocket-handler: pthread_mutex_init");
 
 	if (pthread_cond_init(&s->cond, NULL))
-		err(1, "socket-handler: pthread_cond_init");
+		err(1, "websocket-handler: pthread_cond_init");
 
-	if (pthread_create(&s->sender, NULL, socket_sender, s))
-		err(1, "socket-handler: pthread_create");
+	if (pthread_create(&s->sender, NULL, websocket_sender, s))
+		err(1, "websocket-handler: pthread_create");
 
 	for (terminate = 0; !terminate ;) {
-		buf = trxd_readln(fd);
-
+		printf("wait for data\n");
+		websocket_recv(w->socket, &buf);
+		printf("got buf %s\n", buf);
 		if (buf == NULL) {
 			terminate = 1;
 			buf = strdup("{\"request\": \"stop-status-updates\"}");
 		}
 
 		if (pthread_mutex_lock(&t->mutex))
-			err(1, "socket-handler: pthread_mutex_lock");
+			err(1, "websocket-handler: pthread_mutex_lock");
 		if (verbose > 1)
-			printf("socket-handler: mutex locked\n");
+			printf("websocket-handler: mutex locked\n");
 
 		if (pthread_mutex_lock(&t->sender->mutex))
-			err(1, "socket-handler: pthread_mutex_lock");
+			err(1, "websocket-handler: pthread_mutex_lock");
 
 		t->handler = "requestHandler";
 		t->reply = NULL;
 		t->data = buf;
-		t->client_fd = fd;
+		t->client_fd = w->socket;
 		t->new_tag = t;
 
 		if (pthread_mutex_lock(&t->mutex2))
-			err(1, "socket-handler: pthread_mutex_lock");
+			err(1, "websocket-handler: pthread_mutex_lock");
 		if (verbose > 1)
-			printf("socket-handler: mutex2 locked\n");
+			printf("websocket-handler: mutex2 locked\n");
 
 		/* We signal cond, and mutex gets owned by trx-controller */
 		if (pthread_cond_signal(&t->cond1))
-			err(1, "socket-handler: pthread_cond_signal");
+			err(1, "websocket-handler: pthread_cond_signal");
 		if (verbose > 1)
-			printf("socket-handler: cond1 signaled\n");
+			printf("websocket-handler: cond1 signaled\n");
 
 		if (pthread_mutex_unlock(&t->mutex2))
-			err(1, "socket-handler: pthread_mutex_unlock");
+			err(1, "websocket-handler: pthread_mutex_unlock");
 		if (verbose > 1)
-			printf("socket-handler: mutex unlocked\n");
+			printf("websocket-handler: mutex unlocked\n");
 
 		while (t->reply == NULL) {
 			if (pthread_cond_wait(&t->cond2, &t->mutex2))
-				err(1, "socket-handler: pthread_cond_wait");
+				err(1, "websocket-handler: pthread_cond_wait");
 			if (verbose > 1)
-				printf("socket-handler: cond2 changed\n");
+				printf("websocket-handler: cond2 changed\n");
 		}
 
 		free(buf);
@@ -126,7 +214,7 @@ socket_handler(void *arg)
 			printf("calling the sender thread\n");
 			t->sender->data = t->reply;
 			if (pthread_cond_signal(&t->sender->cond))
-				err(1, "socket-handler: pthread_cond_signal");
+				err(1, "websocket-handler: pthread_cond_signal");
 			pthread_mutex_unlock(&t->sender->mutex);
 		} else {
 			printf("not calling the sender thread\n");
@@ -137,17 +225,17 @@ socket_handler(void *arg)
 			t = t->new_tag;
 
 		if (pthread_mutex_unlock(&t->mutex2))
-			err(1, "socket-handler: pthread_mutex_unlock");
+			err(1, "websocket-handler: pthread_mutex_unlock");
 		if (verbose > 1)
-			printf("socket-handler: mutex2 unlocked\n");
+			printf("websocket-handler: mutex2 unlocked\n");
 
 		if (pthread_mutex_unlock(&t->mutex))
-			err(1, "socket-handler: pthread_mutex_unlock");
+			err(1, "websocket-handler: pthread_mutex_unlock");
 		if (verbose > 1)
-			printf("socket-handler: mutex unlocked\n");
+			printf("websocket-handler: mutex unlocked\n");
 	}
 terminate:
-	close(fd);
+	close(w->socket);
 	free(arg);
 	return NULL;
 }

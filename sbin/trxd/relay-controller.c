@@ -59,7 +59,6 @@ relay_controller(void *arg)
 	char trx_driver[PATH_MAX];
 	pthread_t relay_handler_thread;
 
-	L = NULL;
 	if (pthread_detach(pthread_self()))
 		err(1, "relay-controller: pthread_detach");
 	if (verbose)

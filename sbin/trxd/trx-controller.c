@@ -217,9 +217,6 @@ trx_controller(void *arg)
 			}
 			if (lua_type(L, -1) == LUA_TSTRING) {
 				char *reply = (char *)lua_tostring(L, -1);
-				printf("trx-controller: len switch-trx: = %d\n",
-				    strlen(SWITCH_TRX));
-				printf("trx-controller: reply=%s\n", reply);
 				if (!strncmp(reply, SWITCH_TRX,
 				    strlen(SWITCH_TRX))) {
 					printf("trx-controller: switch trx\n");
