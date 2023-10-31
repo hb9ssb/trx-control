@@ -17,7 +17,7 @@ websocket:
   bind-address: localhost
   listen-port: 14290
 
-  # If a certificate path is defines, wss is used instead of ws
+  # If a certificate path is defined, wss is used instead of ws
   certificate: server.pem
   handshake: trx-control
 
