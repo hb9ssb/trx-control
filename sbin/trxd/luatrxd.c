@@ -26,6 +26,7 @@
 #include <pthread.h>
 #include <signal.h>
 #include <string.h>
+#include <stdlib.h>
 #include <unistd.h>
 
 #include <lua.h>
@@ -38,19 +39,6 @@ extern trx_controller_tag_t *trx_controller_tag;
 
 extern void *trx_poller(void *);
 extern void *trx_handler(void *);
-
-static int
-luatrxd_send(lua_State *L)
-{
-	int fd;
-	size_t len;
-	const char *data;
-
-	fd = luaL_checkinteger(L, 1);
-	data = luaL_checklstring(L, 2, &len);
-	write(fd, data, len);
-	return 0;
-}
 
 static int
 luatrxd_get_transceiver_list(lua_State *L)
@@ -196,17 +184,136 @@ luatrxd_send_to_client(lua_State *L)
 	return 0;
 }
 
+static int
+luatrxd_add_listener(lua_State *L)
+{
+	int n;
+	sender_list_t *s, *l;
+	const char *device;
+	trx_controller_tag_t *t;
+
+	device = luaL_checkstring(L, 1);
+	for (t = trx_controller_tag; t != NULL; t = t->next) {
+		if (!strcmp(t->device, device)) {
+			s = malloc(sizeof(sender_list_t));
+			s->sender = t->sender;
+			s->next = NULL;
+
+			if (t->senders == NULL)
+				t->senders = s;
+			else {
+				for (l = t->senders; l->next; l = l->next) {
+					if (l->sender == t->sender) {
+						free(s);
+						break;
+					}
+				}
+				if (l->sender != t->sender)
+					l->next = s;
+			}
+			break;
+		}
+	}
+	return 0;
+}
+
+static int
+luatrxd_remove_listener(lua_State *L)
+{
+	int n;
+	sender_list_t *p, *l;
+	const char *device;
+	trx_controller_tag_t *t;
+
+	device = luaL_checkstring(L, 1);
+	for (t = trx_controller_tag; t != NULL; t = t->next) {
+		if (!strcmp(t->device, device)) {
+			printf("remove listener\n");
+			p = NULL;
+			for (l = t->senders; l; p = l, l = l->next) {
+				if (l->sender == t->sender) {
+					if (p == NULL)
+						t->senders = NULL;
+					else {
+						p->next = l->next;
+						free(l);
+						break;
+					}
+				}
+			}
+			break;
+		}
+	}
+	return 0;
+}
+
+static int
+luatrxd_notify_listeners(lua_State *L)
+{
+	int n;
+	sender_list_t *l;
+	const char *device;
+	char *data;
+	trx_controller_tag_t *t;
+
+	device = luaL_checkstring(L, 1);
+	data = (char *)luaL_checkstring(L, 2);
+
+	for (t = trx_controller_tag; t != NULL; t = t->next) {
+		if (!strcmp(t->device, device)) {
+			for (l = t->senders; l != NULL; l = l->next) {
+				if (pthread_mutex_lock(&l->sender->mutex))
+					err(1, "luatrxd: pthread_mutex_lock");
+				l->sender->data = data;
+				if (pthread_cond_signal(&l->sender->cond))
+					err(1, "luatrxd: pthread_cond_signal");
+				if (pthread_mutex_unlock(&l->sender->mutex))
+					err(1, "luatrxd: pthread_mutex_unlock");
+			}
+			break;
+		}
+	}
+	return 0;
+}
+
+static int
+luatrxd_num_listeners(lua_State *L)
+{
+	int n;
+	sender_list_t *l;
+	const char *device;
+	trx_controller_tag_t *t;
+
+	device = luaL_checkstring(L, 1);
+	for (t = trx_controller_tag; t != NULL; t = t->next) {
+		if (!strcmp(t->device, device)) {
+			for (n = 0, l = t->senders; l; n++, l = l->next)
+				;
+			printf("num listeners: %s\n", n);
+			lua_pushinteger(L, n);
+			break;
+		}
+	}
+	if (t == NULL)
+		lua_pushnil(L);
+
+	return 1;
+}
+
 int
 luaopen_trxd(lua_State *L)
 {
 	struct luaL_Reg luatrxd[] = {
-		{ "send",			luatrxd_send },
 		{ "getTransceiverList",		luatrxd_get_transceiver_list },
 		{ "selectTransceiver",		luatrxd_select_transceiver },
 		{ "startPolling",		luatrxd_start_polling },
 		{ "stopPolling",		luatrxd_stop_polling },
 		{ "startHandling",		luatrxd_start_handling },
 		{ "stopHandling",		luatrxd_stop_handling },
+		{ "addListener",		luatrxd_add_listener },
+		{ "removeListener",		luatrxd_remove_listener },
+		{ "notifyListeners",		luatrxd_notify_listeners },
+		{ "numListeners",		luatrxd_num_listeners },
 		{ "sendToClient",		luatrxd_send_to_client },
 		{ NULL, NULL }
 	};

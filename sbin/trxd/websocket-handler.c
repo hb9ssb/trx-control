@@ -53,7 +53,6 @@ websocket_recv(int fd, char **dest)
 	size_t nread, len, datasize;
 	int type;
 
-	printf("websocket_recv\n");
 	buf = malloc(BUFSIZE);
 
 	nread = len = 0;
@@ -107,7 +106,6 @@ websocket_recv(int fd, char **dest)
 			type = WS_INCOMPLETE_FRAME;
 			break;
 		case WS_TEXT_FRAME:
-			printf("recv %d bytes,  %s\n", datasize, data);
 			data[datasize] = '\0';
 			*dest = strdup(data);
 			break;
@@ -164,9 +162,11 @@ websocket_handler(void *arg)
 		err(1, "websocket-handler: pthread_create");
 
 	for (terminate = 0; !terminate ;) {
-		printf("wait for data\n");
-		websocket_recv(w->socket, &buf);
-		printf("got buf %s\n", buf);
+		if (websocket_recv(w->socket, &buf) == -1) {
+			pthread_cancel(s->sender);
+			terminate = 1;
+			break;
+		}
 		if (buf == NULL) {
 			terminate = 1;
 			buf = strdup("{\"request\": \"stop-status-updates\"}");
@@ -211,15 +211,13 @@ websocket_handler(void *arg)
 
 		free(buf);
 		if (strlen(t->reply) > 0 && !terminate) {
-			printf("calling the sender thread\n");
 			t->sender->data = t->reply;
 			if (pthread_cond_signal(&t->sender->cond))
 				err(1, "websocket-handler: pthread_cond_signal");
 			pthread_mutex_unlock(&t->sender->mutex);
-		} else {
-			printf("not calling the sender thread\n");
+		} else
+
 			pthread_mutex_unlock(&t->sender->mutex);
-		}
 		/* Check if we changed the transceiver */
 		if (t->new_tag != t)
 			t = t->new_tag;
@@ -235,6 +233,8 @@ websocket_handler(void *arg)
 			printf("websocket-handler: mutex unlocked\n");
 	}
 terminate:
+	if (verbose)
+		printf("websocket-handler: terminating\n");
 	close(w->socket);
 	free(arg);
 	return NULL;

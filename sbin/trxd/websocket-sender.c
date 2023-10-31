@@ -62,7 +62,8 @@ websocket_sender(void *arg)
 		printf("websocket-sender: mutex locked\n");
 
 	for (terminate = 0; !terminate ;) {
-		printf("websocket-sender: wait for condition to change\n");
+		if (verbose > 1)
+			printf("websocket-sender: wait for cond\n");
 		while (s->data == NULL) {
 			if (pthread_cond_wait(&s->cond, &s->mutex))
 				err(1, "websocket-sender: pthread_cond_wait");
@@ -79,12 +80,8 @@ websocket_sender(void *arg)
 			if (buf == NULL)
 				err(1, "websocket-sender: malloc\n");
 
-			printf("make frame of data size %d, %s\n", datasize, s->data);
-			printf("%p, %p\n", buf, &framesize);
-			assert(buf && *(&framesize));
 			wsMakeFrame((const uint8_t *)s->data, datasize,
 			    (unsigned char *)buf, &framesize, WS_TEXT_FRAME);
-			printf("framesize: %d\n", framesize);
 
 			if (s->ssl)
 				SSL_write(s->ssl, buf, framesize);
@@ -94,6 +91,8 @@ websocket_sender(void *arg)
 			s->data = NULL;
 		}
 	}
+	if (verbose)
+		printf("websocket-sender: terminating\n");
 	free(arg);
 	return NULL;
 }

@@ -22,8 +22,6 @@
 
 local driver = {}
 local device = ''
-local statusUpdateListeners = {}
-local numStatusUpdateListeners = 0
 local statusUpdates = false
 local lastFrequency = 0
 local lastMode = ''
@@ -65,29 +63,6 @@ end
 
 local function unlockTransceiver()
 	return driver.setUnlock()
-end
-
-local function addStatusUpdateListener(fd)
-	for k, v in ipairs(statusUpdateListeners) do
-		if v == fd then
-			return 'already listening'
-		end
-	end
-
-	statusUpdateListeners[#statusUpdateListeners + 1] = fd
-	numStatusUpdateListeners = numStatusUpdateListeners + 1
-	return 'listening'
-end
-
-local function removeStatusUpdateListener(fd)
-	for k, v in ipairs(statusUpdateListeners) do
-		if v == fd then
-			statusUpdateListeners[k] = nil
-			numStatusUpdateListeners = numStatusUpdateListeners - 1
-			return 'unlisten'
-		end
-	end
-	return 'not listening'
 end
 
 -- Handle request from a network client
@@ -141,12 +116,12 @@ local function requestHandler(data, fd)
 	elseif request.request == 'unlock-trx' then
 		unlockTransceiver()
 	elseif request.request == 'start-status-updates' then
-		addStatusUpdateListener(fd)
+		trxd.addListener(device)
 
 		-- if this is the first listener, start the poller or
 		-- input handler
 
-		if numStatusUpdateListeners == 1 then
+		if trxd.numListeners(device) == 1 then
 			if driver.statusUpdatesRequirePolling == true then
 				trxd.startPolling(device)
 			elseif type(driver.startStatusUpdates) == 'function' then
@@ -155,17 +130,17 @@ local function requestHandler(data, fd)
 			else
 				reply.status = 'Error'
 				reply.reason = 'Can not start status updates'
-				removeStatusUpdateListener(fd)
+				trxd.removeListener(device)
 			end
 		end
 
 	elseif request.request == 'stop-status-updates' then
-		removeStatusUpdateListener(fd)
+		trxd.removeListener(device)
 
 		-- if this was the last listener, stop the poller or
 		-- input handler
 
-		if numStatusUpdateListeners == 0 then
+		if trxd.numListeners(device) == 0 then
 			if driver.statusUpdatesRequirePolling == true then
 				trxd.stopPolling(device)
 			elseif type(driver.stopStatusUpdates) == 'function' then
@@ -195,9 +170,7 @@ local function pollHandler(data, fd)
 			}
 		}
 		local jsonData = json.encode(status)
-		for k, v in pairs(statusUpdateListeners) do
-			trxd.sendToClient(v, jsonData)
-		end
+		trxd.notifyListeners(device, jsonData)
 		lastFrequency = frequency
 		lastMode = mode
 	else
@@ -215,9 +188,7 @@ local function dataHandler(data)
 				status = reply
 			}
 			local jsonData = json.encode(status)
-			for k, v in pairs(statusUpdateListeners) do
-				trxd.sendToClient(v, jsonData)
-			end
+			trxd.notifyListeners(device, jsonData)
 		end
 	end
 end

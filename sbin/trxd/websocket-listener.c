@@ -243,7 +243,6 @@ websocket_listener(void *arg)
 			w->ctx = NULL;
 
 			if (!websocket_handshake(w, t->handshake)) {
-				printf("websocket-listener: create handler\n");
 				pthread_create(&w->listen_thread, NULL,
 				    websocket_handler, w);
 			} else {

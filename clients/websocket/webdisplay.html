@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+<!--
+ Copyright (c) 2023 Marc Balmer HB9SSB
+
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the "Software"), to
+ deal in the Software without restriction, including without limitation the
+ rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+ sell copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+
+ The above copyright notice and this permission notice shall be included in
+ all copies or substantial portions of the Software.
+
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ IN THE SOFTWARE.
+-->
+
+	<meta http-equiv="Content-Security-Policy"
+		content="connect-src ws://localhost:14290/trx-control;">
+
+	<title>trx-control frequency display</title>
+
+	<script>
+	function connect()
+	{
+		if (typeof websocket != 'undefined') {
+			if (websocket && websocket.readyState == WebSocket.CONNECTING) {
+				return
+			}
+		}
+
+		console.log("connecting")
+		websocket = new WebSocket("ws://localhost:14290/trx-control")
+		websocket.onopen = onOpen
+		websocket.onclose = onClose
+		websocket.onmessage = onMessage
+		websocket.onerror = onError
+	}
+
+	function onOpen(evt)
+	{
+		console.log("onOpen")
+
+		var request = {
+			request: "start-status-updates"
+		};
+
+		websocket.send(JSON.stringify(request))
+	}
+
+	function onClose(evt)
+	{
+		console.log("onClose")
+
+		document.getElementById('frequency').innerHTML = '0'
+		document.getElementById('mode').innerHTML = ''
+
+		setTimeout(connect, 1000)
+	}
+
+	function onMessage(evt)
+	{
+		console.log("onMessage: ", evt.data)
+		var msg = JSON.parse(evt.data)
+
+		if (msg.request == 'status-update') {
+			document.getElementById('frequency').innerHTML = msg.status.frequency
+			document.getElementById('mode').innerHTML =
+			  msg.status.mode.toUpperCase()
+		}
+	}
+
+	function onError(evt)
+	{
+		if (websocket.readyState == WebSocket.CLOSED)
+			setTimeout(connect, 1000)
+	}
+
+	window.addEventListener("load", connect, false)
+	</script>
+
+	<style>
+		h1 {
+			font-size: 10vh;
+			margin: 0px;
+			padding: 0px;
+		}
+	</style>
+</head>
+
+<body>
+	<h1>trx status display</h1>
+
+	<table>
+		<thead>
+			<th>Frequency (Hz)</th>
+			<th>Mode</th>
+		</thead>
+		<tbody>
+			<tr>
+				<td id="frequency">0</td>
+				<td id="mode"></td>
+			</tr>
+		</tbody>
+	</table>
+
+</body>
+
+</html>
