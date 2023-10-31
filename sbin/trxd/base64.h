@@ -26,6 +26,6 @@
 #ifndef __BASE64_H__
 #define __BASE64_H__
 
-extern char *base64(unsigned char *src, size_t len);
+extern char *base64(unsigned char *, size_t);
 
 #endif /* __BASE64_H__ */

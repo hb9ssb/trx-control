@@ -60,26 +60,25 @@ enum wsState {
 };
 
 struct handshake {
-	char *host;
-	char *origin;
-	char *key;
-	char *resource;
+	char		*host;
+	char		*origin;
+	char		*key;
+	char		*resource;
 	enum wsFrameType frameType;
 };
 
-extern enum wsFrameType wsParseHandshake(const uint8_t *inputFrame,
-    size_t inputLength, struct handshake *hs);
+extern enum wsFrameType wsParseHandshake(const uint8_t *, size_t,
+    struct handshake *);
 
-extern void wsGetHandshakeAnswer(const struct handshake *hs, uint8_t *outFrame,
-    size_t *outLength);
+extern void wsGetHandshakeAnswer(const struct handshake *, uint8_t *,
+    size_t *);
 
-extern void wsMakeFrame(const uint8_t *data, size_t dataLength,
-    uint8_t *outFrame, size_t *outLength, enum wsFrameType frameType);
+extern void wsMakeFrame(const uint8_t *, size_t, uint8_t *, size_t *,
+    enum wsFrameType);
 
-enum wsFrameType wsParseInputFrame(uint8_t *inputFrame, size_t inputLength,
-    uint8_t **dataPtr, size_t *dataLength);
+enum wsFrameType wsParseInputFrame(uint8_t *, size_t, uint8_t **, size_t *);
 
-extern void nullHandshake(struct handshake *hs);
-extern void freeHandshake(struct handshake *hs);
+extern void nullHandshake(struct handshake *);
+extern void freeHandshake(struct handshake *);
 
 #endif  /* __WEBSOCKET_H__ */
