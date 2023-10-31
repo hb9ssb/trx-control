@@ -15,7 +15,7 @@ listen-port: 14285
 # Optionally listen for WebSocket connections
 websocket:
   bind-address: localhost
-  listen-port: 14286
+  listen-port: 14290
 
   # If a certificate path is defines, wss is used instead of ws
   certificate: server.pem
@@ -48,11 +48,6 @@ trx:
     device: /dev/ttyUSB0
     driver: yaesu-ft-710
     default: true
-
-  ft-991a:
-    name: FT-991A
-    device: /dev/ttyUSB1
-    driver: yaesu-ft-991a
 
 # The list of relays we can control
 relays:
