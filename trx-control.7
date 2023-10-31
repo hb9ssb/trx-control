@@ -18,7 +18,7 @@
 .\" FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 .\" IN THE SOFTWARE.
 .\"
-.TH TRX-CONTROL 7 "21 October 2023" "trx-control"
+.TH TRX-CONTROL 7 "31 October 2023" "trx-control"
 .SH NAME
 trx-control \- software to control amateur radio transceivers
 .SH DESCRIPTION
@@ -48,7 +48,9 @@ directly over the network.
 .
 .PP
 .IR trxd (8)
-listens on port 14285 by default for incoming connections.
+listens on port 14285 by default for incoming connections over
+plain sockets and can optionally listen for WebSocket connections.
+
 It supports both IPv4 and IPv6.
 .
 .PP

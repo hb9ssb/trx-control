@@ -10,8 +10,9 @@ trxctl(1) and xqrg(1) are meant as reference clients only.
 Software that wants to make use of trxd(8) should implement the protocol
 and talk to trxd(8) directly over the network.
 
-trxd(8) listens on port 14285 by default for incoming connections.
-It supports both IPv4 and IPv6.
+trxd(8) listens on port 14285 by default for incoming connections over
+plain sockets and can optionally listen for WebSocket connections. It supports
+both IPv4 and IPv6.
 
 The effective transceiver control is done using Lua modules,
 this way new transceivers can easily be supported by supplying
