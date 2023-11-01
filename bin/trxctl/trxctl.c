@@ -58,6 +58,7 @@ int fd = 0;
 int verbose = 0;
 int cmdhandler_ref = LUA_REFNIL;
 lua_State *L;
+wordexp_t p;
 
 static struct {
 	const char *command;
@@ -100,6 +101,14 @@ handle_status_updates()
 		if (line == NULL) {
 			/* Terminate prompt */
 			printf("\n");
+
+			/* Make sure the terminal can be used */
+			rl_deprep_terminal();
+
+			/* Write out command history and close the Lua state */
+			write_history(p.we_wordv[0]);
+			wordfree(&p);
+			lua_close(L);
 			errx(1, "trxd disconnected\n");
 		} else {
 			lua_geti(L, LUA_REGISTRYINDEX, cmdhandler_ref);
@@ -150,7 +159,6 @@ rl_gets()
 int
 main(int argc, char *argv[])
 {
-	wordexp_t p;
 	int c, n, terminate;
 	char *host, *port, buf[128], *line, *param;
 
