@@ -44,6 +44,14 @@ extern int verbose;
 
 #define BUFSIZE		65535
 
+static void
+cleanup(void *arg)
+{
+	if (verbose > 1)
+		printf("websocket-sender: cleanup\n");
+	free(arg);
+}
+
 void *
 websocket_sender(void *arg)
 {
@@ -52,6 +60,8 @@ websocket_sender(void *arg)
 	char *buf, *p;
 	const char *command, *param;
 	size_t datasize, framesize;
+
+	pthread_cleanup_push(cleanup, arg);
 
 	if (pthread_detach(pthread_self()))
 		err(1, "websocket-sender: pthread_detach");
@@ -91,8 +101,6 @@ websocket_sender(void *arg)
 			s->data = NULL;
 		}
 	}
-	if (verbose)
-		printf("websocket-sender: terminating\n");
-	free(arg);
+	pthread_cleanup_pop(0);
 	return NULL;
 }

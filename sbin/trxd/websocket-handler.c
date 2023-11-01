@@ -164,10 +164,7 @@ websocket_handler(void *arg)
 	for (terminate = 0; !terminate ;) {
 		if (websocket_recv(w->socket, &buf) == -1) {
 			pthread_cancel(s->sender);
-			terminate = 1;
-			break;
-		}
-		if (buf == NULL) {
+			pthread_join(s->sender, NULL);
 			terminate = 1;
 			buf = strdup("{\"request\": \"stop-status-updates\"}");
 		}
@@ -177,8 +174,9 @@ websocket_handler(void *arg)
 		if (verbose > 1)
 			printf("websocket-handler: mutex locked\n");
 
-		if (pthread_mutex_lock(&t->sender->mutex))
-			err(1, "websocket-handler: pthread_mutex_lock");
+		if (!terminate)
+			if (pthread_mutex_lock(&t->sender->mutex))
+				err(1, "websocket-handler: pthread_mutex_lock");
 
 		t->handler = "requestHandler";
 		t->reply = NULL;
@@ -215,9 +213,9 @@ websocket_handler(void *arg)
 			if (pthread_cond_signal(&t->sender->cond))
 				err(1, "websocket-handler: pthread_cond_signal");
 			pthread_mutex_unlock(&t->sender->mutex);
-		} else
-
+		} else if (!terminate)
 			pthread_mutex_unlock(&t->sender->mutex);
+
 		/* Check if we changed the transceiver */
 		if (t->new_tag != t)
 			t = t->new_tag;

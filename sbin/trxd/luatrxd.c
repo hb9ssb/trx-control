@@ -228,7 +228,6 @@ luatrxd_remove_listener(lua_State *L)
 	device = luaL_checkstring(L, 1);
 	for (t = trx_controller_tag; t != NULL; t = t->next) {
 		if (!strcmp(t->device, device)) {
-			printf("remove listener\n");
 			p = NULL;
 			for (l = t->senders; l; p = l, l = l->next) {
 				if (l->sender == t->sender) {
@@ -287,9 +286,13 @@ luatrxd_num_listeners(lua_State *L)
 	device = luaL_checkstring(L, 1);
 	for (t = trx_controller_tag; t != NULL; t = t->next) {
 		if (!strcmp(t->device, device)) {
-			for (n = 0, l = t->senders; l; n++, l = l->next)
-				;
-			printf("num listeners: %s\n", n);
+			l = t->senders;
+			for (n = 0; l != NULL; n++) {
+				if (l->next == NULL)
+					break;
+				else
+					l = l->next;
+			}
 			lua_pushinteger(L, n);
 			break;
 		}

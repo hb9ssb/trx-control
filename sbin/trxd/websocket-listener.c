@@ -82,12 +82,9 @@ websocket_handshake(websocket_t *websock, char *handshake)
 		nread = recv(websock->socket, buf, BUFSIZE, 0);
 	buf[nread] = '\0';
 
-	printf("check handshake '%s'\n", handshake);
 	if (wsParseHandshake((unsigned char *)buf, nread, &hs) ==
 	    WS_OPENING_FRAME) {
-		printf("got opening frame\n");
 		if (!strcmp(hs.resource, handshake)) {
-			printf("get handshake answer\n");
 			wsGetHandshakeAnswer(&hs, (unsigned char *)buf, &nread);
 			freeHandshake(&hs);
 #if 0
@@ -95,9 +92,7 @@ websocket_handshake(websocket_t *websock, char *handshake)
 				SSL_write(websock->ssl, buf, nread);
 			else
 #endif
-			printf("send reply of %d bytes\n", nread);
-				send(websock->socket, buf, nread, 0);
-			printf("sent reply\n");
+			send(websock->socket, buf, nread, 0);
 			buf[nread] = '\0';
 			rv = 0;
 		} else {
