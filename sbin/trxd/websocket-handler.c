@@ -46,7 +46,7 @@ extern int verbose;
 #define BUFSIZE		65535
 
 static int
-websocket_recv(int fd, char **dest)
+websocket_recv(websocket_t *websock, char **dest)
 {
 	unsigned char *data;
 	char *buf;
@@ -58,13 +58,11 @@ websocket_recv(int fd, char **dest)
 	nread = len = 0;
 	type = WS_INCOMPLETE_FRAME;
 	do {
-#if 0
 		if (websock->ssl)
 			nread = SSL_read(websock->ssl, buf + len,
 			    BUFSIZE - len);
 		else
-#endif
-			nread = recv(fd, buf + len,
+			nread = recv(websock->socket, buf + len,
 			    BUFSIZE - len, 0);
 		if (nread <= 0) {
 			type = WS_EMPTY_FRAME;
@@ -77,31 +75,25 @@ websocket_recv(int fd, char **dest)
 		case WS_CLOSING_FRAME:
 			wsMakeFrame(NULL, 0, (unsigned char *)buf, &datasize,
 			    WS_CLOSING_FRAME);
-#if 0
 			if (websock->ssl) {
 				SSL_write(websock->ssl, buf, datasize);
 				SSL_shutdown(websock->ssl);
 				SSL_free(websock->ssl);
 				websock->ssl = NULL;
 			} else {
-#endif
-				send(fd, buf, datasize, 0);
-				close(fd);
-				fd = -1;
-#if 0
+				send(websock->socket, buf, datasize, 0);
+				close(websock->socket);
+				websock->socket = -1;
 			}
-#endif
 			return -1;
 			break;
 		case WS_PING_FRAME:
 			wsMakeFrame(NULL, 0, (unsigned char *)buf, &datasize,
 			    WS_PONG_FRAME);
-#if 0
 			if (websock->ssl)
 				SSL_write(websock->ssl, buf, datasize);
 			else
-#endif
-				send(fd, buf, datasize, 0);
+				send(websock->socket, buf, datasize, 0);
 			len = 0;
 			type = WS_INCOMPLETE_FRAME;
 			break;
@@ -147,8 +139,8 @@ websocket_handler(void *arg)
 	t->sender = s;
 	s->data = NULL;
 	s->socket = w->socket;
-	s->ssl = NULL;
-	s->ctx = NULL;
+	s->ssl = w->ssl;
+	s->ctx = w->ctx;
 
 	w->sender = s;
 
@@ -162,7 +154,7 @@ websocket_handler(void *arg)
 		err(1, "websocket-handler: pthread_create");
 
 	for (terminate = 0; !terminate ;) {
-		if (websocket_recv(w->socket, &buf) == -1) {
+		if (websocket_recv(w, &buf) == -1) {
 			pthread_cancel(s->sender);
 			pthread_join(s->sender, NULL);
 			terminate = 1;
