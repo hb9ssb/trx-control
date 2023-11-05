@@ -29,6 +29,7 @@
 
 #include <openssl/ssl.h>
 
+#include <err.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <getopt.h>
@@ -41,6 +42,7 @@
 #include <string.h>
 #include <syslog.h>
 #include <unistd.h>
+
 
 #include <lua.h>
 #include <lualib.h>
@@ -87,12 +89,10 @@ websocket_handshake(websocket_t *websock, char *handshake)
 		if (!strcmp(hs.resource, handshake)) {
 			wsGetHandshakeAnswer(&hs, (unsigned char *)buf, &nread);
 			freeHandshake(&hs);
-#if 0
 			if (websock->ssl)
 				SSL_write(websock->ssl, buf, nread);
 			else
-#endif
-			send(websock->socket, buf, nread, 0);
+				send(websock->socket, buf, nread, 0);
 			buf[nread] = '\0';
 			rv = 0;
 		} else {
@@ -125,7 +125,7 @@ websocket_listener(void *arg)
 	websocket_listener_t *t = (websocket_listener_t *)arg;
 	pthread_t thread;
 	struct addrinfo hints, *res, *res0;
-	int fd, listen_fd[MAXLISTEN], i, ch, err, val;
+	int fd, listen_fd[MAXLISTEN], i, ch, error, val, ret;
 
 	/* Setup network listening */
 	for (i = 0; i < MAXLISTEN; i++)
@@ -134,10 +134,10 @@ websocket_listener(void *arg)
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
-	err = getaddrinfo(t->bind_addr, t->listen_port, &hints, &res0);
-	if (err) {
+	error = getaddrinfo(t->bind_addr, t->listen_port, &hints, &res0);
+	if (error) {
 		syslog(LOG_ERR, "getaddrinfo: %s:%s: %s",
-		    t->bind_addr, t->listen_port, gai_strerror(err));
+		    t->bind_addr, t->listen_port, gai_strerror(error));
 		exit(1);
 	}
 
@@ -174,6 +174,20 @@ websocket_listener(void *arg)
 			continue;
 		}
 		i++;
+	}
+
+	if (t->certificate != NULL) {
+		SSL_library_init();
+		SSL_load_error_strings();
+		if ((t->ctx = SSL_CTX_new(SSLv23_method())) == NULL)
+			err(1, "websocket-listener: can't SSL context");
+
+		if (SSL_CTX_use_certificate_chain_file(t->ctx, t->certificate)
+		    != 1)
+			err(1, "websocket-listener: can't load certificate");
+		if (SSL_CTX_use_PrivateKey_file(t->ctx, t->certificate,
+		    SSL_FILETYPE_PEM) != 1)
+			err(1, "websocket-listener: error loading private key");
 	}
 
 	/* Wait for connections as long as trx_control runs */
@@ -223,11 +237,11 @@ websocket_listener(void *arg)
 				free(client_fd);
 				break;
 			}
-			err = getnameinfo((struct sockaddr *)&sa, len,
+			error = getnameinfo((struct sockaddr *)&sa, len,
 			    hbuf, sizeof(hbuf), NULL, 0, NI_NUMERICHOST);
-			if (err)
+			if (error)
 				syslog(LOG_ERR, "getnameinfo: %s",
-				    gai_strerror(err));
+				    gai_strerror(error));
 
 			if (log_connections)
 				syslog(LOG_INFO, "websocket connection from %s",
@@ -236,6 +250,21 @@ websocket_listener(void *arg)
 			w->socket = *client_fd;
 			w->ssl = NULL;
 			w->ctx = NULL;
+
+
+			if (t->ctx != NULL) {
+				w->ctx = t->ctx;
+				if ((w->ssl = SSL_new(w->ctx)) == NULL)
+					warn("websocket-listener: can't "
+					    "createSSL context");
+
+				if (!SSL_set_fd(w->ssl, w->socket))
+					warn("can't set SSL socket");
+				if ((ret = SSL_accept(w->ssl)) <= 0)
+					warn("can't accept SSL "
+					    "connection: SSL error code %d",
+					    SSL_get_error(w->ssl, ret));
+			}
 
 			if (!websocket_handshake(w, t->handshake)) {
 				pthread_create(&w->listen_thread, NULL,
