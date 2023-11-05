@@ -404,8 +404,6 @@ main(int argc, char *argv[])
 			t->name = strdup(lua_tostring(L, -1));
 			lua_pop(L, 1);
 
-			printf("relay %s\n", t->name);
-
 			lua_getfield(L, -1, "driver");
 			if (!lua_isstring(L, -1))
 				errx(1, "missing relay driver name");
@@ -446,7 +444,6 @@ main(int argc, char *argv[])
 	/* Setup WebSocket listening */
 	lua_getfield(L, -1, "websocket");
 	if (lua_istable(L, -1)) {
-		printf("setup websocket\n");
 		websocket_listener_t *t;
 
 		t = malloc(sizeof(websocket_listener_t));
@@ -480,8 +477,7 @@ main(int argc, char *argv[])
 		/* Create the websocket-listener thread */
 		pthread_create(&t->listener, NULL, websocket_listener, t);
 		lua_pop(L, 1);
-	} else if (verbose)
-		printf("trxd: no websocket\n");
+	}
 	lua_pop(L, 1);
 
 	/* Setup network listening */

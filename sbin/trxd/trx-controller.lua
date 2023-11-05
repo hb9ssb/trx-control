@@ -141,6 +141,8 @@ local function requestHandler(data, fd)
 		-- input handler
 
 		if trxd.numListeners(device) == 0 then
+			lastFrequency = 0
+			lastMode = ''
 			if driver.statusUpdatesRequirePolling == true then
 				trxd.stopPolling(device)
 			elseif type(driver.stopStatusUpdates) == 'function' then

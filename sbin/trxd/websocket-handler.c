@@ -159,7 +159,8 @@ websocket_handler(void *arg)
 			pthread_join(s->sender, NULL);
 			terminate = 1;
 			buf = strdup("{\"request\": \"stop-status-updates\"}");
-		}
+		} else if (verbose)
+			printf("websocket-handler: <- %s\n", buf);
 
 		if (pthread_mutex_lock(&t->mutex))
 			err(1, "websocket-handler: pthread_mutex_lock");

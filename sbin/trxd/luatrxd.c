@@ -231,9 +231,11 @@ luatrxd_remove_listener(lua_State *L)
 			p = NULL;
 			for (l = t->senders; l; p = l, l = l->next) {
 				if (l->sender == t->sender) {
-					if (p == NULL)
+					if (p == NULL) {
 						t->senders = NULL;
-					else {
+						free(l);
+						break;
+					} else {
 						p->next = l->next;
 						free(l);
 						break;
@@ -287,10 +289,11 @@ luatrxd_num_listeners(lua_State *L)
 	for (t = trx_controller_tag; t != NULL; t = t->next) {
 		if (!strcmp(t->device, device)) {
 			l = t->senders;
-			for (n = 0; l != NULL; n++) {
-				if (l->next == NULL)
+			for (n = 0; l != NULL; ++n) {
+				if (l->next == NULL) {
+					++n;
 					break;
-				else
+				} else
 					l = l->next;
 			}
 			lua_pushinteger(L, n);

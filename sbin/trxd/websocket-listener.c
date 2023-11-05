@@ -179,8 +179,8 @@ websocket_listener(void *arg)
 	if (t->certificate != NULL) {
 		SSL_library_init();
 		SSL_load_error_strings();
-		if ((t->ctx = SSL_CTX_new(SSLv23_method())) == NULL)
-			err(1, "websocket-listener: can't SSL context");
+		if ((t->ctx = SSL_CTX_new(TLS_method())) == NULL)
+			err(1, "websocket-listener: can't create SSL context");
 
 		if (SSL_CTX_use_certificate_chain_file(t->ctx, t->certificate)
 		    != 1)
@@ -190,7 +190,7 @@ websocket_listener(void *arg)
 			err(1, "websocket-listener: error loading private key");
 	}
 
-	/* Wait for connections as long as trx_control runs */
+	/* Wait for connections as long as websocket_listener runs */
 	while (1) {
 		struct timeval	 tv;
 		fd_set		 readfds;
@@ -251,26 +251,31 @@ websocket_listener(void *arg)
 			w->ssl = NULL;
 			w->ctx = NULL;
 
-
 			if (t->ctx != NULL) {
 				w->ctx = t->ctx;
 				if ((w->ssl = SSL_new(w->ctx)) == NULL)
-					warn("websocket-listener: can't "
-					    "createSSL context");
+					warnx("websocket-listener: can't "
+					    "create SSL context");
 
 				if (!SSL_set_fd(w->ssl, w->socket))
-					warn("can't set SSL socket");
-				if ((ret = SSL_accept(w->ssl)) <= 0)
-					warn("can't accept SSL "
+					warnx("can't set SSL socket");
+				if ((ret = SSL_accept(w->ssl)) <= 0) {
+					warnx("can't accept SSL "
 					    "connection: SSL error code %d",
 					    SSL_get_error(w->ssl, ret));
+					close(w->socket);
+					free(w->ssl);
+					free(w);
+					continue;
+				}
 			}
 
 			if (!websocket_handshake(w, t->handshake)) {
 				pthread_create(&w->listen_thread, NULL,
 				    websocket_handler, w);
 			} else {
-				printf("websocket-listener: handshake\n");
+				close(w->socket);
+				free(w->ssl);
 				free(w);
 			}
 		}
