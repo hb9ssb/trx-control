@@ -24,9 +24,6 @@
  IN THE SOFTWARE.
 -->
 
-	<meta http-equiv="Content-Security-Policy"
-		content="connect-src ws://localhost:14290/trx-control;">
-
 	<title>trx-control frequency display</title>
 
 	<script>
@@ -38,8 +35,11 @@
 			}
 		}
 
-		console.log("connecting")
+		console.log("connecting to trx-control")
+
+		<!-- Use wss:// for production code! -->
 		websocket = new WebSocket("ws://localhost:14290/trx-control")
+
 		websocket.onopen = onOpen
 		websocket.onclose = onClose
 		websocket.onmessage = onMessage
@@ -48,7 +48,16 @@
 
 	function onOpen(evt)
 	{
-		console.log("onOpen")
+		console.log("connection to trx-control established")
+
+		document.getElementById('status').innerHTML = 'Connected'
+
+		var request = {
+			request: "select-trx",
+			name: "FT-897"
+		};
+
+		websocket.send(JSON.stringify(request))
 
 		var request = {
 			request: "start-status-updates"
@@ -59,21 +68,23 @@
 
 	function onClose(evt)
 	{
-		console.log("onClose")
+		console.log("connection to trx-control closed")
 
-		document.getElementById('frequency').innerHTML = '0'
-		document.getElementById('mode').innerHTML = ''
+		document.getElementById('status').innerHTML = 'Disconnected'
+		document.getElementById('frequency').innerHTML = 'n/a'
+		document.getElementById('mode').innerHTML = 'n/a'
 
 		setTimeout(connect, 1000)
 	}
 
 	function onMessage(evt)
 	{
-		console.log("onMessage: ", evt.data)
+		console.log("received message from trx-control: ", evt.data)
 		var msg = JSON.parse(evt.data)
 
 		if (msg.request == 'status-update') {
-			document.getElementById('frequency').innerHTML = msg.status.frequency
+			document.getElementById('frequency').innerHTML =
+			  msg.status.frequency
 			document.getElementById('mode').innerHTML =
 			  msg.status.mode.toUpperCase()
 		}
@@ -87,28 +98,22 @@
 
 	window.addEventListener("load", connect, false)
 	</script>
-
-	<style>
-		h1 {
-			font-size: 10vh;
-			margin: 0px;
-			padding: 0px;
-		}
-	</style>
 </head>
 
 <body>
-	<h1>trx status display</h1>
+	<h1>trx-control status display</h1>
 
 	<table>
 		<thead>
+			<th>Status</th>
 			<th>Frequency (Hz)</th>
 			<th>Mode</th>
 		</thead>
 		<tbody>
 			<tr>
-				<td id="frequency">0</td>
-				<td id="mode"></td>
+				<td id="status">Disconnected</td>
+				<td id="frequency">n/a</td>
+				<td id="mode">n/a</td>
 			</tr>
 		</tbody>
 	</table>
