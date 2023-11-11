@@ -38,10 +38,10 @@ trx:
     device: /dev/ttyUSB2
     driver: yaesu-ft-897
 
-  dummy:
-    name: Dummy
+  simulator:
+    name: Simulator
     device: /dev/null
-    driver: dummy-trx
+    driver: simulator
 
   ft-710:
     name: FT-710
