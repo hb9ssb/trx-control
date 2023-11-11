@@ -2,6 +2,7 @@ SUBDIR+=	bin/trxctl \
 		bin/xqrg \
 		lib/liblua \
 		lib/libtrx-control \
+		protocol \
 		trx \
 		sbin/trxd
 
