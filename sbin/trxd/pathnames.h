@@ -24,9 +24,9 @@
 #define __TRXD_PATHNAMES_H__
 
 #define _PATH_TRX		"/usr/share/trxd/trx"
-#define _PATH_TRX_PROTOCOLS	"/usr/share/trxd/protocols"
-#define _PATH_ROTATORS		"/usr/share/trxd/rotators"
-#define _PATH_RELAYS		"/usr/share/trxd/relays"
+#define _PATH_PROTOCOL		"/usr/share/trxd/protocol"
+#define _PATH_ROTATOR		"/usr/share/trxd/rotator"
+#define _PATH_RELAY		"/usr/share/trxd/relay"
 #define _PATH_TRX_CONTROLLER	"/usr/share/trxd/trx-controller.lua"
 #define _PATH_CFG		"/etc/trxd.yaml"
 
