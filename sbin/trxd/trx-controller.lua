@@ -22,6 +22,7 @@
 
 local driver = {}
 local device = ''
+
 local statusUpdates = false
 local lastFrequency = 0
 local lastMode = ''
@@ -31,38 +32,12 @@ local function registerDriver(name, dev, newDriver)
 	device = dev
 
 	if type(driver.initialize) == 'function' then
-		driver.initialize()
+		driver:initialize()
 	end
 end
 
 local function getTransceiverList()
 	return trxd.getTransceiverList()
-end
-
-local function setFrequency(freq)
-	if type(driver.setFrequency) == 'function' then
-		return driver.setFrequency(freq)
-	end
-end
-
-local function getFrequency()
-	return driver.getFrequency()
-end
-
-local function setMode(band, mode)
-	return driver.setMode(band, mode)
-end
-
-local function getMode()
-	return driver.getMode()
-end
-
-local function lockTransceiver()
-	return driver.setLock()
-end
-
-local function unlockTransceiver()
-	return driver.setUnlock()
 end
 
 -- Handle request from a network client
@@ -91,13 +66,13 @@ local function requestHandler(data, fd)
 	if request.request == 'list-trx' then
 		reply.data = getTransceiverList()
 	elseif request.request == 'set-frequency' then
-		reply.frequency = setFrequency(tonumber(request.frequency))
+		reply.frequency = driver:setFrequency(tonumber(request.frequency))
 	elseif request.request == 'get-frequency' then
-		reply.frequency, reply.mode = getFrequency()
+		reply.frequency, reply.mode = driver:getFrequency()
 	elseif request.request == 'set-mode' then
-		reply.band, reply.mode = setMode(request.band, request.mode)
+		reply.band, reply.mode = driver:setMode(request.band, request.mode)
 	elseif request.request == 'get-mode' then
-		reply.mode = getMode(request.band)
+		reply.mode = driver:getMode(request.band)
 	elseif request.request == 'select-trx' then
 		local t = trxd.selectTransceiver(request.name)
 		if t ~= nil then
@@ -112,9 +87,9 @@ local function requestHandler(data, fd)
 			}
 		end
 	elseif request.request == 'lock-trx' then
-		lockTransceiver()
+		driver:setLock()
 	elseif request.request == 'unlock-trx' then
-		unlockTransceiver()
+		driver:serUnlock()
 	elseif request.request == 'start-status-updates' then
 		trxd.addListener(device)
 
@@ -125,7 +100,7 @@ local function requestHandler(data, fd)
 			if driver.statusUpdatesRequirePolling == true then
 				trxd.startPolling(device)
 			elseif type(driver.startStatusUpdates) == 'function' then
-				local eol = driver.startStatusUpdates()
+				local eol = driver:startStatusUpdates()
 				trxd.startHandling(device, eol)
 			else
 				reply.status = 'Error'
@@ -146,7 +121,7 @@ local function requestHandler(data, fd)
 			if driver.statusUpdatesRequirePolling == true then
 				trxd.stopPolling(device)
 			elseif type(driver.stopStatusUpdates) == 'function' then
-				driver.stopStatusUpdates()
+				driver:stopStatusUpdates()
 				trxd.stopHandling(device)
 			else
 				reply.status = 'Error'
@@ -183,7 +158,7 @@ end
 -- Handle incoming data from the transceiver
 local function dataHandler(data)
 	if type(driver.handleStatusUpdates) == 'function' then
-		local reply = driver.handleStatusUpdates(data)
+		local reply = driver:handleStatusUpdates(data)
 		if reply ~= nil then
 			local status = {
 				request = 'status-update',

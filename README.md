@@ -28,7 +28,7 @@ Initially, trx-control will support the following transceivers:
 * Yaesu FT-897
 * Yaesu FT-817
 
-A special dummy transceiver driver exists for development and testing
+A special simulator transceiver driver exists for development and testing
 purposes.
 
 ## More information

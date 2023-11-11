@@ -122,7 +122,7 @@ trx_controller(void *arg)
 
 	lua_getglobal(L, "package");
 	lua_getfield(L, -1, "path");
-	lua_pushstring(L, ";" _PATH_TRX "/?.lua");
+	lua_pushstring(L, ";" _PATH_PROTOCOL "/?.lua");
 	lua_concat(L, 2);
 	lua_setfield(L, -2, "path");
 	lua_pop(L, 1);
