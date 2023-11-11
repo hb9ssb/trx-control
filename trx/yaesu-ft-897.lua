@@ -22,8 +22,32 @@
 
 -- Yaesu FT-897 CAT driver.  This driver is very similar to the FT-817 driver,
 -- so we reuse that.  CTCSS/DCS mode setting and CTCSS tone setting as well
--- as Rea TX state are different, though.
+-- as Read TX state are different, though.
 
-local ft897 = require 'yaesu-ft-817'
+local ft897 = require 'cat-5-byte'
+
+ft897.validModes = {
+	lsb = 0x00,
+	usb = 0x01,
+	cw = 0x02,
+	cwr = 0x03,
+	am = 0x04,
+	wfm = 0x06,
+	fm = 0x08,
+	dig = 0x0a,
+	pkt = 0x0c,
+	fmn = 0x88
+}
+
+ft897.ctcssModes = {
+	dcsOn = 0x0a,
+	dcsEncoderOn = 0x0b,
+	ctcssOn = 0x2a,
+	ctssEncoderOn = 0x3a,
+	encoderOn = 0x4a,
+	off = 0x8a
+}
+
+ft897.name = 'Yaesu FT-897'
 
 return ft897

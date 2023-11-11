@@ -22,7 +22,9 @@
 
 -- Yaesu FT-817 CAT driver
 
-local validModes = {
+local ft817 = require 'cat-5-byte'
+
+ft817.validModes = {
 	lsb = 0x00,
 	usb = 0x01,
 	cw = 0x02,
@@ -34,82 +36,14 @@ local validModes = {
 	pkt = 0x0c
 }
 
-local function initialize()
-	trx.setspeed(38400)
-end
-
-local function setLock()
-	trx.write('\x00\x00\x00\x00\x00')
-	return 'locked'
-end
-
-local function setUnlock()
-	trx.write('\x00\x00\x00\x00\x80')
-	return 'unlocked'
-end
-
-local function setFrequency(frequency)
-	local freq = string.sub(string.format('%09d', frequency), 1, -2)
-	local bcd = trx.stringToBcd(freq)
-	trx.write(bcd .. '\x01')
-	return frequency
-end
-
-local function getFrequency()
-	trx.write('\x00\x00\x00\x00\x03')
-	local f = trx.read(5)
-	if f ~= nil then
-		local frequency = trx.bcdToString(string.sub(f, 1, 4))
-		local modeCode = string.byte(string.sub(f, 5))
-		local mode = ''
-		for k, v in pairs(validModes) do
-			if v == modeCode then
-				mode = k
-			end
-		end
-		if #mode == 0 then
-			mode = nil
-		end
-		local fn = tonumber(frequency) * 10
-		return fn, mode
-	else
-		return nil
-	end
-end
-
-local function setMode(band, mode)
-	local newMode = validModes[mode]
-	if newMode ~= nil then
-		trx.write(string.format('%c\x00\x00\x00\x07', newMode))
-		return band, mode
-	else
-		return band, 'invalid mode ' .. mode
-	end
-end
-
-local function getMode()
-	trx.write('\x00\x00\x00\x00\x03')
-	local f = trx.read(5)
-	local m = string.byte(f, 5)
-	for k, v in pairs(validModes) do
-		if v == m then
-			return k
-		end
-	end
-	return 'unknown mode'
-end
-
-
-return {
-	statusUpdatesRequirePolling = true,
-	initialize = initialize,
-	startStatusUpdates = nil,
-	stopStatusUpdates = nil,
-	handleStatusUpdates = nil,
-	setLock = setLock,
-	setUnlock = setUnlock,
-	setFrequency = setFrequency,
-	getFrequency = getFrequency,
-	getMode = getMode,
-	setMode = setMode
+ft817.ctcssModes = {
+	dcsOn = 0x0a,
+	ctcssOn = 0x2a,
+	encoderOn = 0x4a,
+	off = 0x8a
 }
+
+ft817.name = 'Yaesu FT-817'
+
+return ft817
+

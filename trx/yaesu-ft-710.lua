@@ -22,6 +22,10 @@
 
 -- Yaesu FT-710 CAT driver
 
+local ft710 = require 'cat-delimited'
+
+ft710.ID = '0800'
+
 local validModes = {
 	['lsb'] = '1',
 	['usb'] = '2',

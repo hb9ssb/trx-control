@@ -18,14 +18,14 @@
 -- FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 -- IN THE SOFTWARE.
 
--- Lower half of the trx-control Lua part
+-- Simulated transceiver driver for development and testing purposes
 
--- Dummy driver for development and testing purposes
+local simulator = require 'simulated'
 
 local frequency = 14285000
 local mode = 'usb'
 
-local validModes = {
+simulator.validModes = {
 	usb = true,
 	lsb = true,
 	cw = true,
@@ -33,54 +33,6 @@ local validModes = {
 	am = true
 }
 
-local function initialize()
-	print 'dummy-trx: initialize'
-end
+simulator.name = 'Simulator'
 
-local function lock()
-	print 'dummy-trx: locked'
-end
-
-local function unlock()
-	print 'dummy-trx: unlocked'
-end
-
-local function setFrequency(freq)
-	print (string.format('dummy-trx: set fequency to %s', freq))
-	frequency = freq
-	return frequency
-end
-
-local function getFrequency()
-	print 'dummy-trx: get frequency'
-	return frequency, mode
-end
-
-local function setMode(mode)
-	print (string.format('dummy-trx: set mode to %s', mode))
-	if validModes[mode] ~= nil then
-		mode = mode
-		return mode
-	else
-		return 'invalid mode ' .. mode
-	end
-end
-
-local function getMode()
-	print 'dummy-trx: get mode'
-	return mode
-end
-
-return {
-	statusUpdatesRequirePolling = true,
-	initialize = initialize,
-	startStatusUpdates = nil,
-	stopStatusUpdates = nil,
-	handleStatusUpdates = nil,
-	lock = lock,
-	unlock = unlock,
-	setFrequency = setFrequency,
-	getFrequency = getFrequency,
-	getMode = getMode,
-	setMode = setMode
-}
+return simulator
