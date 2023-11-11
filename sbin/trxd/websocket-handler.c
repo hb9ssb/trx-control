@@ -167,10 +167,12 @@ websocket_handler(void *arg)
 		if (verbose > 1)
 			printf("websocket-handler: mutex locked\n");
 
-		if (!terminate)
+		if (!terminate) {
 			if (pthread_mutex_lock(&t->sender->mutex))
 				err(1, "websocket-handler: pthread_mutex_lock");
-
+			if (verbose > 1)
+				printf("socket-handler: sender mutex locked\n");
+		}
 		t->handler = "requestHandler";
 		t->reply = NULL;
 		t->data = buf;
@@ -209,10 +211,6 @@ websocket_handler(void *arg)
 		} else if (!terminate)
 			pthread_mutex_unlock(&t->sender->mutex);
 
-		/* Check if we changed the transceiver */
-		if (t->new_tag != t)
-			t = t->new_tag;
-
 		if (pthread_mutex_unlock(&t->mutex2))
 			err(1, "websocket-handler: pthread_mutex_unlock");
 		if (verbose > 1)
@@ -222,6 +220,13 @@ websocket_handler(void *arg)
 			err(1, "websocket-handler: pthread_mutex_unlock");
 		if (verbose > 1)
 			printf("websocket-handler: mutex unlocked\n");
+
+		/* Check if we changed the transceiver, keep the sender! */
+		if (t->new_tag != t) {
+			t->new_tag->sender = t->sender;
+			t = t->new_tag;
+		}
+
 	}
 terminate:
 	if (verbose)
