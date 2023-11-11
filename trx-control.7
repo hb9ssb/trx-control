@@ -18,7 +18,7 @@
 .\" FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 .\" IN THE SOFTWARE.
 .\"
-.TH TRX-CONTROL 7 "31 October 2023" "trx-control"
+.TH TRX-CONTROL 7 "11 November 2023" "trx-control"
 .SH NAME
 trx-control \- software to control amateur radio transceivers
 .SH DESCRIPTION
@@ -62,7 +62,7 @@ See https://lua.org and https://lua.msys.ch for more information on Lua.
 .
 .SH "SUPPORTED TRANSCEIVERS"
 .PP
-Initially, trx-control will support the following transceivers:
+trx-control supports the following transceivers, more will be added over time:
 .
 .PP
 .TS
@@ -75,7 +75,7 @@ Yaesu	FT-710	yaesu-ft-710	38400
 Yaesu	FT-897	yaesu-ft-897	38400
 Yaesu	FT-817	yaesu-ft-817	38400
 .TE
-.
+.PP
 Make sure to set the CAT bit rate to the value expected by
 .IR trxd (8) .
 .
@@ -90,6 +90,12 @@ trx-control client.
 .TP
 .I /usr/sbin/trxd
 trx-control daemon.
+.
+.
+.TP
+.I /usr/share/trxd/protocol
+Lua scripts that implement common transceiver control protocols.
+These can be used by the actual drivers.
 .
 .
 .TP
