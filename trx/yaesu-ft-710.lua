@@ -42,4 +42,6 @@ ft710.validModes = {
 	['data-fm-n'] = 'F'
 }
 
+ft710.name = 'Yaesu FT-710'
+
 return ft710
