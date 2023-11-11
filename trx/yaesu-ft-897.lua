@@ -18,11 +18,7 @@
 -- FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 -- IN THE SOFTWARE.
 
--- Lower half of the trx-control Lua part
-
--- Yaesu FT-897 CAT driver.  This driver is very similar to the FT-817 driver,
--- so we reuse that.  CTCSS/DCS mode setting and CTCSS tone setting as well
--- as Read TX state are different, though.
+-- Yaesu FT-897 CAT driver
 
 local ft897 = require 'cat-5-byte'
 

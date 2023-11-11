@@ -18,8 +18,6 @@
 -- FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 -- IN THE SOFTWARE.
 
--- Lower half of the trx-control Lua part
-
 -- Yaesu FT-817 CAT driver
 
 local ft817 = require 'cat-5-byte'
@@ -46,4 +44,3 @@ ft817.ctcssModes = {
 ft817.name = 'Yaesu FT-817'
 
 return ft817
-
