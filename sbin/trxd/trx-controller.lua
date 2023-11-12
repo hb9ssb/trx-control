@@ -137,7 +137,7 @@ local function requestHandler(data, fd)
 end
 
 local function pollHandler(data, fd)
-	local frequency, mode = getFrequency()
+	local frequency, mode = driver:getFrequency()
 	if lastFrequency ~= frequency or lastMode ~= mode then
 		local status = {
 			request = 'status-update',
