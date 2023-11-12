@@ -1,4 +1,5 @@
 SRCS=		trxd.c \
+		extension.c \
 		trx-controller.c \
 		gpio-controller.c \
 		relay-controller.c \
@@ -66,6 +67,8 @@ base64.o:		base64.c base64.h
 luatrx.o:	luatrx.c trxd.h
 
 luatrxd.o:	luatrxd.c trxd.h trx-control.h
+
+extension.o:		extension.c pathnames.h trxd.h
 
 trx-controller.o:	trx-controller.c pathnames.h trxd.h
 

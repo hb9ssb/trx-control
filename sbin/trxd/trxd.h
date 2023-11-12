@@ -130,6 +130,29 @@ typedef struct relay_controller_tag {
 	struct relay_controller_tag	*next;
 } relay_controller_tag_t;
 
+typedef struct extension_tag {
+	/* The first mutex locks extension */
+	pthread_mutex_t		 mutex;
+
+	pthread_mutex_t		 mutex2;
+	pthread_cond_t		 cond1;	/* A handler is set */
+	const char		*handler;
+
+	pthread_cond_t		 cond2;	/* A reply is set */
+	char			*reply;
+
+	const char		*name;
+	const char		*script;
+
+	char			*data;
+
+	pthread_t		 extension;
+
+	struct extension_tag	*next;
+
+	sender_list_t		*senders;
+} extension_tag_t;
+
 typedef struct websocket_listener {
 	char			*bind_addr;
 	char			*listen_port;

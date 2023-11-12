@@ -63,12 +63,14 @@ extern void *socket_handler(void *);
 extern void *trx_controller(void *);
 extern void *relay_controller(void *);
 extern void *websocket_listener(void *);
+extern void *extension(void *);
 
 extern int trx_control_running;
 
 trx_controller_tag_t *trx_controller_tag = NULL;
 gpio_controller_tag_t *gpio_controller_tag = NULL;
 relay_controller_tag_t *relay_controller_tag = NULL;
+extension_tag_t *extension_tag = NULL;
 
 static void
 usage(void)
@@ -439,6 +441,61 @@ main(int argc, char *argv[])
 		}
 	} else if (verbose)
 		printf("trxd: no relays defined\n");
+	lua_pop(L, 1);
+
+	/* Setup the extensions */
+	lua_getfield(L, -1, "extensions");
+	if (lua_istable(L, -1)) {
+		top = lua_gettop(L);
+		lua_pushnil(L);
+		while (lua_next(L, top)) {
+			extension_tag_t *t;
+
+			t = malloc(sizeof(extension_tag_t));
+			t->next = NULL;
+			t->handler = t->reply = NULL;
+			t->senders = NULL;
+
+			lua_getfield(L, -1, "name");
+			if (!lua_isstring(L, -1))
+				errx(1, "missing extension name");
+			t->name = strdup(lua_tostring(L, -1));
+			lua_pop(L, 1);
+
+			lua_getfield(L, -1, "script");
+			if (!lua_isstring(L, -1))
+				errx(1, "missing extension script name");
+			t->script = strdup(lua_tostring(L, -1));
+			lua_pop(L, 1);
+
+			if (extension_tag == NULL)
+				extension_tag = t;
+			else {
+				extension_tag_t *n;
+				n = extension_tag;
+				while (n->next != NULL)
+					n = n->next;
+				n->next = t;
+			}
+
+			if (pthread_mutex_init(&t->mutex, NULL))
+				goto terminate;
+
+			if (pthread_mutex_init(&t->mutex2, NULL))
+				goto terminate;
+
+			if (pthread_cond_init(&t->cond1, NULL))
+				goto terminate;
+
+			if (pthread_cond_init(&t->cond2, NULL))
+				goto terminate;
+
+			/* Create the extension thread */
+			pthread_create(&t->extension, NULL, extension, t);
+			lua_pop(L, 1);
+		}
+	} else if (verbose)
+		printf("trxd: no extensions defined\n");
 	lua_pop(L, 1);
 
 	/* Setup WebSocket listening */

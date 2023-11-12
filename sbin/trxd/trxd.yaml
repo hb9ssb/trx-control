@@ -57,3 +57,8 @@ relays:
     idVendor: 0x1234
     idProduct: 0x5678
     driver: dummy-relay
+
+extensions:
+  ping:
+    name: Ping
+    script: ping

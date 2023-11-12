@@ -20,16 +20,11 @@
  * IN THE SOFTWARE.
  */
 
-/* Control relays */
-
-#include <sys/ioctl.h>
-#include <sys/stat.h>
+/* trx-control extensions written in Lua */
 
 #include <err.h>
 #include <errno.h>
-#include <fcntl.h>
 #include <pthread.h>
-#include <sched.h>
 #include <syslog.h>
 #include <stdio.h>
 #include <string.h>
@@ -43,54 +38,65 @@
 #include "pathnames.h"
 #include "trxd.h"
 
-extern int luaopen_trxd(lua_State *);
-extern int luaopen_json(lua_State *);
-
-extern trx_controller_tag_t *trx_controller_tag;
 extern int verbose;
 
-void *
-relay_controller(void *arg)
+static void
+cleanup(void *arg)
 {
-	relay_controller_tag_t *tag = (relay_controller_tag_t *)arg;
-	lua_State *L;
-	int fd, n, driver_ref;
-	struct stat sb;
-	char trx_driver[PATH_MAX];
-	pthread_t relay_handler_thread;
+	if (verbose > 1)
+		printf("extension: cleanup\n");
+	lua_close(arg);
+}
 
+void *
+extension(void *arg)
+{
+	extension_tag_t *tag = (extension_tag_t *)arg;
+	lua_State *L;
+	int n, extension_ref;
+	char script[PATH_MAX];
+
+	L = NULL;
 	if (pthread_detach(pthread_self()))
-		err(1, "relay-controller: pthread_detach");
+		err(1, "extension: pthread_detach");
 	if (verbose)
-		printf("relay-controller: initialising relay %s\n", tag->name);
+		printf("extension: initialising the %s extension\n", tag->name);
 
 	/*
 	 * Lock this transceivers mutex, so that no other thread accesses
 	 * while we are initialising.
 	 */
 	if (pthread_mutex_lock(&tag->mutex))
-		err(1, "relay-controller: pthread_mutex_lock");
+		err(1, "extension: pthread_mutex_lock");
 	if (verbose > 1)
-		printf("relay-controller: mutex locked\n");
+		printf("extension: mutex locked\n");
 
 	if (pthread_mutex_lock(&tag->mutex2))
-		err(1, "relay-controller: pthread_mutex_lock");
+		err(1, "extension: pthread_mutex_lock");
 	if (verbose > 1)
-		printf("relay-controller: mutex2 locked\n");
+		printf("extension: mutex2 locked\n");
+
+	if (strchr(tag->script, '/'))
+		err(1, "extension: script name must not contain slashes");
 
 	/* Setup Lua */
 	L = luaL_newstate();
 	if (L == NULL)
-		err(1, "relay-controller: luaL_newstate");
+		err(1, "extension: luaL_newstate");
+
+	pthread_cleanup_push(cleanup, L);
 
 	luaL_openlibs(L);
 
-	luaopen_trxd(L);
-	lua_setglobal(L, "trxd");
-	luaopen_json(L);
-	lua_setglobal(L, "json");
+	snprintf(script, sizeof(script), "%s/%s.lua", _PATH_EXTENSION,
+	    tag->script);
 
-	tag->is_running = 1;
+	if (luaL_dofile(L, script))
+		err(1, "extension: %s", lua_tostring(L, -1));
+	if (lua_type(L, -1) != LUA_TTABLE)
+		err(1, "extension: table expected");
+	else
+		extension_ref = luaL_ref(L, LUA_REGISTRYINDEX);
 
 	/*
 	 * We are ready to go, unlock the mutex, so that client-handlers,
@@ -98,58 +104,60 @@ relay_controller(void *arg)
 	 */
 
 	if (verbose)
-		printf("relay-controller: ready to control relay\n");
+		printf("extension: ready to go\n");
 
 	if (pthread_mutex_unlock(&tag->mutex))
-		err(1, "relay-controller: pthread_mutex_unlock");
+		err(1, "extension: pthread_mutex_unlock");
 	if (verbose > 1)
-		printf("relay-controller: mutex unlocked\n");
+		printf("extension: mutex unlocked\n");
 
 	while (1) {
 		int nargs = 1;
 
 		/* Wait on cond, this releases the mutex */
 		if (verbose > 1)
-			printf("relay-controller: wait for cond1\n");
+			printf("extension: wait for cond1\n");
 		while (tag->handler == NULL) {
 			if (pthread_cond_wait(&tag->cond1, &tag->mutex2))
-				err(1, "relay-controller: pthread_cond_wait");
+				err(1, "extension: pthread_cond_wait");
 			if (verbose > 1)
-				printf("relay-controller: cond1 changed\n");
+				printf("extension: cond1 changed\n");
 		}
 
 		if (verbose > 1) {
-			printf("relay-controller: request for %s", tag->handler);
+			printf("extension: request for %s", tag->handler);
 			if (tag->data)
 				printf(" with data '%s'\n", tag->data);
 			printf("\n");
 		}
 
-		lua_pushstring(L, tag->data);
+		lua_geti(L, LUA_REGISTRYINDEX, extension_ref);
+		lua_getfield(L, -1, tag->handler);
+		if (lua_type(L, -1) != LUA_TFUNCTION) {
+			tag->reply = "command not supported, "
+			    "please submit a bug report";
+		} else {
+			lua_pushstring(L, tag->data);
 
-		switch (lua_pcall(L, 1, 1, 0)) {
-		case LUA_OK:
-			break;
-		case LUA_ERRRUN:
-		case LUA_ERRMEM:
-		case LUA_ERRERR:
-			syslog(LOG_ERR, "Lua error: %s",
-				lua_tostring(L, -1));
-			break;
+			switch (lua_pcall(L, 1, 1, 0)) {
+			case LUA_OK:
+				break;
+			case LUA_ERRRUN:
+			case LUA_ERRMEM:
+			case LUA_ERRERR:
+				syslog(LOG_ERR, "Lua error: %s",
+				    lua_tostring(L, -1));
+				break;
+			}
 		}
-		if (lua_type(L, -1) == LUA_TSTRING)
-			tag->reply = (char *)lua_tostring(L, -1);
-		else
-			tag->reply = "";
-
 		lua_pop(L, 2);
 		tag->handler = NULL;
 
 		if (pthread_cond_signal(&tag->cond2))
-			err(1, "relay-controller: pthread_cond_signal");
+			err(1, "extension: pthread_cond_signal");
 		if (verbose > 1)
-			printf("relay-controller: cond2 signaled\n");
+			printf("extension: cond2 signaled\n");
 	}
-	lua_close(L);
+	pthread_cleanup_pop(0);
 	return NULL;
 }
