@@ -39,6 +39,7 @@
 #include "websocket.h"
 
 extern void *websocket_sender(void *);
+extern void *dispatcher(void *);
 
 extern trx_controller_tag_t *trx_controller_tag;
 extern int verbose;
@@ -117,6 +118,7 @@ websocket_handler(void *arg)
 	websocket_t *w = (websocket_t *)arg;
 	trx_controller_tag_t *t;
 	sender_tag_t *s;
+	dispatcher_tag_t *d;
 	int status, nread, n, terminate;
 	char *buf, *p;
 	const char *command, *param;
@@ -133,6 +135,7 @@ websocket_handler(void *arg)
 	if (pthread_detach(pthread_self()))
 		err(1, "websocket-handler: pthread_detach");
 
+	/* Create a websocket-sender thread to send data to the client */
 	s = malloc(sizeof(sender_tag_t));
 	if (s == NULL)
 		err(1, "websocket-handler: malloc");
@@ -151,6 +154,21 @@ websocket_handler(void *arg)
 		err(1, "websocket-handler: pthread_cond_init");
 
 	if (pthread_create(&s->sender, NULL, websocket_sender, s))
+		err(1, "websocket-handler: pthread_create");
+
+	/* Create a dispatcher thread to dispatch incoming data */
+	d = malloc(sizeof(dispatcher_tag_t));
+	if (d == NULL)
+		err(1, "websocket-handler: malloc");
+	d->data = NULL;
+
+	if (pthread_mutex_init(&d->mutex, NULL))
+		err(1, "websocket-handler: pthread_mutex_init");
+
+	if (pthread_cond_init(&d->cond, NULL))
+		err(1, "websocket-handler: pthread_cond_init");
+
+	if (pthread_create(&d->dispatcher, NULL, dispatcher, d))
 		err(1, "websocket-handler: pthread_create");
 
 	for (terminate = 0; !terminate ;) {
@@ -226,7 +244,6 @@ websocket_handler(void *arg)
 			t->new_tag->sender = t->sender;
 			t = t->new_tag;
 		}
-
 	}
 terminate:
 	if (verbose)

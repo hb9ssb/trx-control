@@ -34,6 +34,7 @@
 #include "trx-control.h"
 
 extern void *socket_sender(void *);
+extern void *dispatcher(void *);
 
 extern trx_controller_tag_t *trx_controller_tag;
 extern int verbose;
@@ -43,6 +44,7 @@ socket_handler(void *arg)
 {
 	trx_controller_tag_t *t;
 	sender_tag_t *s;
+	dispatcher_tag_t *d;
 	int fd = *(int *)arg;
 	int status, nread, n, terminate;
 	char *buf, *p;
@@ -56,7 +58,6 @@ socket_handler(void *arg)
 	/* If there is no default transceiver, use the first one */
 	if (t == NULL)
 		t = trx_controller_tag;
-
 
 	if (pthread_detach(pthread_self()))
 		err(1, "socket-handler: pthread_detach");
@@ -75,6 +76,21 @@ socket_handler(void *arg)
 
 	if (pthread_create(&s->sender, NULL, socket_sender, s))
 		err(1, "socket-handler: pthread_create");
+
+	/* Create a dispatcher thread to dispatch incoming data */
+	d = malloc(sizeof(dispatcher_tag_t));
+	if (d == NULL)
+		err(1, "websocket-handler: malloc");
+	d->data = NULL;
+
+	if (pthread_mutex_init(&d->mutex, NULL))
+		err(1, "websocket-handler: pthread_mutex_init");
+
+	if (pthread_cond_init(&d->cond, NULL))
+		err(1, "websocket-handler: pthread_cond_init");
+
+	if (pthread_create(&d->dispatcher, NULL, dispatcher, d))
+		err(1, "websocket-handler: pthread_create");
 
 	for (terminate = 0; !terminate ;) {
 		buf = trxd_readln(fd);
