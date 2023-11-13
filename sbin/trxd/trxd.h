@@ -180,6 +180,22 @@ typedef struct websocket {
 } websocket_t;
 
 /*
+ * A dispatcher thread is needed per client.  It receives the request from
+ * a socket-handler or websocket-handler and dispatches it to the right
+ * controller (or extension).
+ */
+typedef struct dispatcher_tag {
+	/* The first mutex locks the sender */
+	pthread_mutex_t		 mutex;
+
+	pthread_cond_t		 cond;	/* data is ready to be dispatched */
+
+	char			*data;
+
+	pthread_t		 dispatcher;
+} dispatcher_tag_t;
+
+/*
  * A sender thread is needed per client, so that i/o problems do
  * do not lock a controller.  Also some protocols, notably websockets,
  * do not just regular i/o, but need some framing.  The specific

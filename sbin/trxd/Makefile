@@ -1,4 +1,5 @@
 SRCS=		trxd.c \
+		dispatcher.c \
 		extension.c \
 		trx-controller.c \
 		gpio-controller.c \
@@ -58,6 +59,7 @@ trxd.yaml:
 		cc -O3 -fPIC -c -o $@ ${CFLAGS} $<
 
 # Dependencies
+dispatcher.o:		dispatcher.c trxd.h trx-control.h
 socket-handler.o:	socket-handler.c trxd.h trx-control.h
 socket-sender.o:	socket-sender.c trxd.h trx-control.h
 websocket-sender.o:	websocket-sender.c trxd.h trx-control.h websocket.h
