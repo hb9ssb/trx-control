@@ -39,7 +39,6 @@
 #include "trx-control.h"
 #include "websocket.h"
 
-extern trx_controller_tag_t *trx_controller_tag;
 extern int verbose;
 
 #define BUFSIZE		65535

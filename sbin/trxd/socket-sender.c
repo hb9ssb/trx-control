@@ -33,7 +33,6 @@
 #include "trxd.h"
 #include "trx-control.h"
 
-extern trx_controller_tag_t *trx_controller_tag;
 extern int verbose;
 
 void *
