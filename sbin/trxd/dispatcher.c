@@ -44,32 +44,127 @@ cleanup(void *arg)
 	free(arg);
 }
 
+void
+call_trx_controller(dispatcher_tag_t *d)
+{
+	trx_controller_tag_t *t = d->trx_controller;
+
+	printf("call_trx_controller\n");
+
+	if (pthread_mutex_lock(&t->mutex))
+		err(1, "dispatcher: pthread_mutex_lock");
+	if (verbose > 1)
+		printf("dispatcher: mutex locked\n");
+
+	if (pthread_mutex_lock(&t->sender->mutex))
+		err(1, "dispatcher: pthread_mutex_lock");
+	if (verbose > 1)
+		printf("dispatcher: sender mutex locked\n");
+
+	t->handler = "requestHandler";
+	t->reply = NULL;
+	t->data = d->data;
+	t->new_tag = t;
+
+	if (pthread_mutex_lock(&t->mutex2))
+		err(1, "dispatcher: pthread_mutex_lock");
+	if (verbose > 1)
+		printf("dispatcher: mutex2 locked\n");
+
+	/* We signal cond, and mutex gets owned by trx-controller */
+	if (pthread_cond_signal(&t->cond1))
+		err(1, "dispatcher: pthread_cond_signal");
+	if (verbose > 1)
+		printf("dispatcher: cond1 signaled\n");
+
+	if (pthread_mutex_unlock(&t->mutex2))
+		err(1, "dispatcher: pthread_mutex_unlock");
+	if (verbose > 1)
+		printf("dispatcher: mutex unlocked\n");
+
+	while (t->reply == NULL) {
+		if (pthread_cond_wait(&t->cond2, &t->mutex2))
+			err(1, "dispatcher: pthread_cond_wait");
+		if (verbose > 1)
+			printf("dispatcher: cond2 changed\n");
+	}
+
+	free(d->data);
+	if (strlen(t->reply) > 0 && !d->terminate) {
+		printf("calling the sender thread\n");
+		t->sender->data = t->reply;
+		if (pthread_cond_signal(&t->sender->cond))
+			err(1, "socket-handler: pthread_cond_signal");
+		pthread_mutex_unlock(&t->sender->mutex);
+	} else {
+		printf("not calling the sender thread\n");
+		pthread_mutex_unlock(&t->sender->mutex);
+	}
+
+	if (pthread_mutex_unlock(&t->mutex2))
+		err(1, "dispatcher: pthread_mutex_unlock");
+	if (verbose > 1)
+		printf("dispatcher: mutex2 unlocked\n");
+
+	if (pthread_mutex_unlock(&t->mutex))
+		err(1, "dispatcher: pthread_mutex_unlock");
+	if (verbose > 1)
+		printf("dispatcher: mutex unlocked\n");
+
+	/* Check if we changed the transceiver, keep the sender! */
+	if (t->new_tag != t) {
+		t->new_tag->sender = t->sender;
+		d->trx_controller = t->new_tag;
+	}
+}
+
+void
+dispatch(dispatcher_tag_t *d)
+{
+	call_trx_controller(d);
+}
+
 void *
 dispatcher(void *arg)
 {
-	sender_tag_t *s = (sender_tag_t *)arg;
+	dispatcher_tag_t *d = (dispatcher_tag_t *)arg;
+	trx_controller_tag_t *t;
 	int status, nread, n, terminate;
 	char *buf, *p;
 	const char *command, *param;
+
+	/* Check if have a default transceiver */
+	for (t = trx_controller_tag; t != NULL; t = t->next)
+		if (t->is_default)
+			break;
+
+	/* If there is no default transceiver, use the first one */
+	if (t == NULL)
+		t = trx_controller_tag;
+
+	t->sender = d->sender;
+	d->trx_controller = t;
 
 	pthread_cleanup_push(cleanup, arg);
 
 	if (pthread_detach(pthread_self()))
 		err(1, "dispatcher: pthread_detach");
 
-	if (pthread_mutex_lock(&s->mutex))
+	if (pthread_mutex_lock(&d->mutex))
 		err(1, "dispatcher: pthread_mutex_lock");
 	if (verbose > 1)
 		printf("dispatcher: mutex locked\n");
 
 	for (terminate = 0; !terminate ;) {
 		printf("dispatcher: wait for condition to change\n");
-		while (s->data == NULL) {
-			if (pthread_cond_wait(&s->cond, &s->mutex))
+		while (d->data == NULL) {
+			if (pthread_cond_wait(&d->cond, &d->mutex))
 				err(1, "dispatcher: pthread_cond_wait");
 			if (verbose > 1)
 				printf("dispatcher: cond changed\n");
 		}
+		dispatch(d);
+		d->data = NULL;
 	}
 	pthread_cleanup_pop(0);
 	return NULL;

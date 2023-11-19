@@ -42,7 +42,6 @@ extern int verbose;
 void *
 socket_handler(void *arg)
 {
-	trx_controller_tag_t *t;
 	sender_tag_t *s;
 	dispatcher_tag_t *d;
 	int fd = *(int *)arg;
@@ -50,22 +49,12 @@ socket_handler(void *arg)
 	char *buf, *p;
 	const char *command, *param;
 
-	/* Check if have a default transceiver */
-	for (t = trx_controller_tag; t != NULL; t = t->next)
-		if (t->is_default)
-			break;
-
-	/* If there is no default transceiver, use the first one */
-	if (t == NULL)
-		t = trx_controller_tag;
-
 	if (pthread_detach(pthread_self()))
 		err(1, "socket-handler: pthread_detach");
 
 	s = malloc(sizeof(sender_tag_t));
 	if (s == NULL)
 		err(1, "socket-handler: malloc");
-	t->sender = s;
 	s->data = NULL;
 	s->socket = fd;
 	if (pthread_mutex_init(&s->mutex, NULL))
@@ -80,19 +69,21 @@ socket_handler(void *arg)
 	/* Create a dispatcher thread to dispatch incoming data */
 	d = malloc(sizeof(dispatcher_tag_t));
 	if (d == NULL)
-		err(1, "websocket-handler: malloc");
+		err(1, "socket-handler: malloc");
 	d->data = NULL;
+	d->sender = s;
 
 	if (pthread_mutex_init(&d->mutex, NULL))
-		err(1, "websocket-handler: pthread_mutex_init");
+		err(1, "socket-handler: pthread_mutex_init");
 
 	if (pthread_cond_init(&d->cond, NULL))
-		err(1, "websocket-handler: pthread_cond_init");
+		err(1, "socket-handler: pthread_cond_init");
 
 	if (pthread_create(&d->dispatcher, NULL, dispatcher, d))
-		err(1, "websocket-handler: pthread_create");
+		err(1, "socket-handler: pthread_create");
 
 	for (terminate = 0; !terminate ;) {
+		/* buf will later be freed by the dispatcher */
 		buf = trxd_readln(fd);
 
 		if (buf == NULL) {
@@ -100,72 +91,25 @@ socket_handler(void *arg)
 			buf = strdup("{\"request\": \"stop-status-updates\"}");
 		}
 
-		if (pthread_mutex_lock(&t->mutex))
+		if (pthread_mutex_lock(&d->mutex))
 			err(1, "socket-handler: pthread_mutex_lock");
 		if (verbose > 1)
-			printf("socket-handler: mutex locked\n");
+			printf("socket-handler: dispatcher mutex locked\n");
 
-		if (pthread_mutex_lock(&t->sender->mutex))
-			err(1, "socket-handler: pthread_mutex_lock");
-		if (verbose > 1)
-			printf("socket-handler: sender mutex locked\n");
+		d->data = buf;
+		d->terminate = terminate;
 
-		t->handler = "requestHandler";
-		t->reply = NULL;
-		t->data = buf;
-		t->client_fd = fd;
-		t->new_tag = t;
+		pthread_cond_signal(&d->cond);
 
-		if (pthread_mutex_lock(&t->mutex2))
-			err(1, "socket-handler: pthread_mutex_lock");
-		if (verbose > 1)
-			printf("socket-handler: mutex2 locked\n");
-
-		/* We signal cond, and mutex gets owned by trx-controller */
-		if (pthread_cond_signal(&t->cond1))
+		if (pthread_cond_signal(&d->cond))
 			err(1, "socket-handler: pthread_cond_signal");
 		if (verbose > 1)
-			printf("socket-handler: cond1 signaled\n");
+			printf("socket-handler: dispatcher cond signaled\n");
 
-		if (pthread_mutex_unlock(&t->mutex2))
+		if (pthread_mutex_unlock(&d->mutex))
 			err(1, "socket-handler: pthread_mutex_unlock");
 		if (verbose > 1)
-			printf("socket-handler: mutex unlocked\n");
-
-		while (t->reply == NULL) {
-			if (pthread_cond_wait(&t->cond2, &t->mutex2))
-				err(1, "socket-handler: pthread_cond_wait");
-			if (verbose > 1)
-				printf("socket-handler: cond2 changed\n");
-		}
-
-		free(buf);
-		if (strlen(t->reply) > 0 && !terminate) {
-			printf("calling the sender thread\n");
-			t->sender->data = t->reply;
-			if (pthread_cond_signal(&t->sender->cond))
-				err(1, "socket-handler: pthread_cond_signal");
-			pthread_mutex_unlock(&t->sender->mutex);
-		} else {
-			printf("not calling the sender thread\n");
-			pthread_mutex_unlock(&t->sender->mutex);
-		}
-
-		if (pthread_mutex_unlock(&t->mutex2))
-			err(1, "socket-handler: pthread_mutex_unlock");
-		if (verbose > 1)
-			printf("socket-handler: mutex2 unlocked\n");
-
-		if (pthread_mutex_unlock(&t->mutex))
-			err(1, "socket-handler: pthread_mutex_unlock");
-		if (verbose > 1)
-			printf("socket-handler: mutex unlocked\n");
-
-		/* Check if we changed the transceiver, keep the sender! */
-		if (t->new_tag != t) {
-			t->new_tag->sender = t->sender;
-			t = t->new_tag;
-		}
+			printf("socket-handler: dispatcher mutex unlocked\n");
 	}
 terminate:
 	close(fd);

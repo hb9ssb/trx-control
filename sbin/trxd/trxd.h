@@ -191,7 +191,10 @@ typedef struct dispatcher_tag {
 	pthread_cond_t		 cond;	/* data is ready to be dispatched */
 
 	char			*data;
+	int			 terminate;
 
+	trx_controller_tag_t	*trx_controller;
+	sender_tag_t		*sender;
 	pthread_t		 dispatcher;
 } dispatcher_tag_t;
 

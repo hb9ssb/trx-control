@@ -41,7 +41,6 @@
 extern void *websocket_sender(void *);
 extern void *dispatcher(void *);
 
-extern trx_controller_tag_t *trx_controller_tag;
 extern int verbose;
 
 #define BUFSIZE		65535
@@ -116,21 +115,11 @@ void *
 websocket_handler(void *arg)
 {
 	websocket_t *w = (websocket_t *)arg;
-	trx_controller_tag_t *t;
 	sender_tag_t *s;
 	dispatcher_tag_t *d;
 	int status, nread, n, terminate;
 	char *buf, *p;
 	const char *command, *param;
-
-	/* Check if have a default transceiver */
-	for (t = trx_controller_tag; t != NULL; t = t->next)
-		if (t->is_default)
-			break;
-
-	/* If there is no default transceiver, use the first one */
-	if (t == NULL)
-		t = trx_controller_tag;
 
 	if (pthread_detach(pthread_self()))
 		err(1, "websocket-handler: pthread_detach");
@@ -139,7 +128,6 @@ websocket_handler(void *arg)
 	s = malloc(sizeof(sender_tag_t));
 	if (s == NULL)
 		err(1, "websocket-handler: malloc");
-	t->sender = s;
 	s->data = NULL;
 	s->socket = w->socket;
 	s->ssl = w->ssl;
@@ -161,6 +149,7 @@ websocket_handler(void *arg)
 	if (d == NULL)
 		err(1, "websocket-handler: malloc");
 	d->data = NULL;
+	d->sender = s;
 
 	if (pthread_mutex_init(&d->mutex, NULL))
 		err(1, "websocket-handler: pthread_mutex_init");
@@ -180,70 +169,25 @@ websocket_handler(void *arg)
 		} else if (verbose)
 			printf("websocket-handler: <- %s\n", buf);
 
-		if (pthread_mutex_lock(&t->mutex))
-			err(1, "websocket-handler: pthread_mutex_lock");
+		if (pthread_mutex_lock(&d->mutex))
+			err(1, "socket-handler: pthread_mutex_lock");
 		if (verbose > 1)
-			printf("websocket-handler: mutex locked\n");
+			printf("socket-handler: dispatcher mutex locked\n");
 
-		if (!terminate) {
-			if (pthread_mutex_lock(&t->sender->mutex))
-				err(1, "websocket-handler: pthread_mutex_lock");
-			if (verbose > 1)
-				printf("socket-handler: sender mutex locked\n");
-		}
-		t->handler = "requestHandler";
-		t->reply = NULL;
-		t->data = buf;
-		t->client_fd = w->socket;
-		t->new_tag = t;
+		d->data = buf;
+		d->terminate = terminate;
 
-		if (pthread_mutex_lock(&t->mutex2))
-			err(1, "websocket-handler: pthread_mutex_lock");
-		if (verbose > 1)
-			printf("websocket-handler: mutex2 locked\n");
+		pthread_cond_signal(&d->cond);
 
-		/* We signal cond, and mutex gets owned by trx-controller */
-		if (pthread_cond_signal(&t->cond1))
+		if (pthread_cond_signal(&d->cond))
 			err(1, "websocket-handler: pthread_cond_signal");
 		if (verbose > 1)
-			printf("websocket-handler: cond1 signaled\n");
+			printf("websocket-handler: dispatcher cond signaled\n");
 
-		if (pthread_mutex_unlock(&t->mutex2))
+		if (pthread_mutex_unlock(&d->mutex))
 			err(1, "websocket-handler: pthread_mutex_unlock");
 		if (verbose > 1)
-			printf("websocket-handler: mutex unlocked\n");
-
-		while (t->reply == NULL) {
-			if (pthread_cond_wait(&t->cond2, &t->mutex2))
-				err(1, "websocket-handler: pthread_cond_wait");
-			if (verbose > 1)
-				printf("websocket-handler: cond2 changed\n");
-		}
-
-		free(buf);
-		if (strlen(t->reply) > 0 && !terminate) {
-			t->sender->data = t->reply;
-			if (pthread_cond_signal(&t->sender->cond))
-				err(1, "websocket-handler: pthread_cond_signal");
-			pthread_mutex_unlock(&t->sender->mutex);
-		} else if (!terminate)
-			pthread_mutex_unlock(&t->sender->mutex);
-
-		if (pthread_mutex_unlock(&t->mutex2))
-			err(1, "websocket-handler: pthread_mutex_unlock");
-		if (verbose > 1)
-			printf("websocket-handler: mutex2 unlocked\n");
-
-		if (pthread_mutex_unlock(&t->mutex))
-			err(1, "websocket-handler: pthread_mutex_unlock");
-		if (verbose > 1)
-			printf("websocket-handler: mutex unlocked\n");
-
-		/* Check if we changed the transceiver, keep the sender! */
-		if (t->new_tag != t) {
-			t->new_tag->sender = t->sender;
-			t = t->new_tag;
-		}
+			printf("websocket-handler: dispatcher mutex unlocked\n");
 	}
 terminate:
 	if (verbose)
