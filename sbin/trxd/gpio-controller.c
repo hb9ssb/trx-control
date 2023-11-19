@@ -65,6 +65,9 @@ gpio_controller(void *arg)
 	if (verbose)
 		printf("gpio-controller: initialising gpio\n");
 
+	if (pthread_setname_np(pthread_self(), "gpio-ctrl"))
+		err(1, "gpio-controller: pthread_setname_np");
+
 	/*
 	 * Lock this transceivers mutex, so that no other thread accesses
 	 * while we are initialising.

@@ -64,6 +64,9 @@ relay_controller(void *arg)
 	if (verbose)
 		printf("relay-controller: initialising relay %s\n", tag->name);
 
+	if (pthread_setname_np(pthread_self(), "relay-ctrl"))
+		err(1, "relay-controller: pthread_setname_np");
+
 	/*
 	 * Lock this transceivers mutex, so that no other thread accesses
 	 * while we are initialising.

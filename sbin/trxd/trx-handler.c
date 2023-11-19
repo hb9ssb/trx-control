@@ -48,6 +48,9 @@ trx_handler(void *arg)
 	if (pthread_detach(pthread_self()))
 		err(1, "trx-handler: pthread_detach");
 
+	if (pthread_setname_np(pthread_self(), "trx-handler"))
+		err(1, "trx-handler: pthread_setname_np");
+
 	fd = t->cat_device;
 
 	pfds[0].fd = fd;

@@ -52,6 +52,9 @@ socket_handler(void *arg)
 	if (pthread_detach(pthread_self()))
 		err(1, "socket-handler: pthread_detach");
 
+	if (pthread_setname_np(pthread_self(), "sock-handler"))
+		err(1, "socket-handler: pthread_setname_np");
+
 	s = malloc(sizeof(sender_tag_t));
 	if (s == NULL)
 		err(1, "socket-handler: malloc");

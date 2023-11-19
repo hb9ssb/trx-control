@@ -127,6 +127,12 @@ websocket_listener(void *arg)
 	struct addrinfo hints, *res, *res0;
 	int fd, listen_fd[MAXLISTEN], i, ch, error, val, ret;
 
+	if (pthread_detach(pthread_self()))
+		err(1, "websocket-listener: pthread_detach");
+
+	if (pthread_setname_np(pthread_self(), "wsock-listener"))
+		err(1, "websocket-listener: pthread_setname_np");
+
 	/* Setup network listening */
 	for (i = 0; i < MAXLISTEN; i++)
 		listen_fd[i] = -1;
