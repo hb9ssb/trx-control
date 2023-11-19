@@ -151,7 +151,6 @@ websocket_handler(void *arg)
 	d = malloc(sizeof(dispatcher_tag_t));
 	if (d == NULL)
 		err(1, "websocket-handler: malloc");
-	d->data = NULL;
 	d->sender = s;
 
 	if (pthread_mutex_init(&d->mutex, NULL))

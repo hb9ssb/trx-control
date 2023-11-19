@@ -160,14 +160,13 @@ dispatcher(void *arg)
 
 	for (terminate = 0; !terminate ;) {
 		printf("dispatcher: wait for condition to change\n");
-		while (d->data == NULL) {
+		for (d->data = NULL; d->data == NULL; ) {
 			if (pthread_cond_wait(&d->cond, &d->mutex))
 				err(1, "dispatcher: pthread_cond_wait");
 			if (verbose > 1)
 				printf("dispatcher: cond changed\n");
 		}
 		dispatch(d);
-		d->data = NULL;
 	}
 	pthread_cleanup_pop(0);
 	return NULL;
