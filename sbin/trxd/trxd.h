@@ -153,6 +153,29 @@ typedef struct extension_tag {
 	sender_list_t		*senders;
 } extension_tag_t;
 
+enum DestinationType {
+	DEST_TRX,
+	DEST_ROTOR,
+	DEST_RELAY,
+	DEST_GPIO,
+	DEST_EXTENSION
+};
+
+typedef struct destination {
+	const char		*name;
+	enum DestinationType	 type;
+
+	union {
+		trx_controller_tag_t	*trx;
+		gpio_controller_tag_t	*gpio;
+		relay_controller_tag_t	*relay;
+		extension_tag_t		*extension;
+
+	} tag;
+
+	struct destination	*next;
+} destination_t;
+
 typedef struct websocket_listener {
 	char			*bind_addr;
 	char			*listen_port;

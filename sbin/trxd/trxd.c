@@ -72,6 +72,8 @@ gpio_controller_tag_t *gpio_controller_tag = NULL;
 relay_controller_tag_t *relay_controller_tag = NULL;
 extension_tag_t *extension_tag = NULL;
 
+destination_t *destination = NULL;
+
 static void
 usage(void)
 {
@@ -324,6 +326,7 @@ main(int argc, char *argv[])
 		lua_pushnil(L);
 		while (lua_next(L, top)) {
 			trx_controller_tag_t *t;
+			destination_t *d;
 
 			t = malloc(sizeof(trx_controller_tag_t));
 			t->next = NULL;
@@ -364,6 +367,22 @@ main(int argc, char *argv[])
 				n->next = t;
 			}
 
+			d = malloc(sizeof(destination_t));
+			d->next = NULL;
+			d->name = t->name;
+			d->type = DEST_TRX;
+			d->tag.trx = t;
+
+			if (destination == NULL)
+				destination = d;
+			else {
+				destination_t *n;
+				n = destination;
+				while (n->next != NULL)
+					n = n->next;
+				n->next = d;
+			}
+
 			if (pthread_mutex_init(&t->mutex, NULL))
 				goto terminate;
 
@@ -392,6 +411,7 @@ main(int argc, char *argv[])
 		lua_pushnil(L);
 		while (lua_next(L, top)) {
 			relay_controller_tag_t *t;
+			destination_t *d;
 
 			t = malloc(sizeof(relay_controller_tag_t));
 			t->next = NULL;
@@ -423,6 +443,22 @@ main(int argc, char *argv[])
 				n->next = t;
 			}
 
+			d = malloc(sizeof(destination_t));
+			d->next = NULL;
+			d->name = t->name;
+			d->type = DEST_RELAY;
+			d->tag.relay = t;
+
+			if (destination == NULL)
+				destination = d;
+			else {
+				destination_t *n;
+				n = destination;
+				while (n->next != NULL)
+					n = n->next;
+				n->next = d;
+			}
+
 			if (pthread_mutex_init(&t->mutex, NULL))
 				goto terminate;
 
@@ -450,6 +486,7 @@ main(int argc, char *argv[])
 		lua_pushnil(L);
 		while (lua_next(L, top)) {
 			extension_tag_t *t;
+			destination_t *d;
 
 			t = malloc(sizeof(extension_tag_t));
 			t->next = NULL;
@@ -476,6 +513,22 @@ main(int argc, char *argv[])
 				while (n->next != NULL)
 					n = n->next;
 				n->next = t;
+			}
+
+			d = malloc(sizeof(destination_t));
+			d->next = NULL;
+			d->name = t->name;
+			d->type = DEST_EXTENSION;
+			d->tag.extension = t;
+
+			if (destination == NULL)
+				destination = d;
+			else {
+				destination_t *n;
+				n = destination;
+				while (n->next != NULL)
+					n = n->next;
+				n->next = d;
 			}
 
 			if (pthread_mutex_init(&t->mutex, NULL))
