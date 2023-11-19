@@ -69,7 +69,7 @@ trx_controller(void *arg)
 	if (verbose)
 		printf("trx-controller: initialising trx %s\n", tag->name);
 
-	if (pthread_setname_np(pthread_self(), "trx-ctrl"))
+	if (pthread_setname_np(pthread_self(), "trxd-trx-ctrl"))
 		err(1, "trx-controller: pthread_setname_np");
 
 	/*

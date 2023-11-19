@@ -150,7 +150,7 @@ dispatcher(void *arg)
 	if (pthread_detach(pthread_self()))
 		err(1, "dispatcher: pthread_detach");
 
-	if (pthread_setname_np(pthread_self(), "dispatcher"))
+	if (pthread_setname_np(pthread_self(), "trxd-dispatcher"))
 		err(1, "dispatcher: pthread_setname_np");
 
 	if (pthread_mutex_lock(&d->mutex))

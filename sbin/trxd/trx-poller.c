@@ -44,7 +44,7 @@ trx_poller(void *arg)
 	if (pthread_detach(pthread_self()))
 		err(1, "trx-poller: pthread_detach");
 
-	if (pthread_setname_np(pthread_self(), "trx-poller"))
+	if (pthread_setname_np(pthread_self(), "trxd-trx-poll"))
 		err(1, "trx-poller: pthread_setname_np");
 
 	while (t->poller_running) {

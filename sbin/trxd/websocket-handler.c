@@ -124,7 +124,7 @@ websocket_handler(void *arg)
 	if (pthread_detach(pthread_self()))
 		err(1, "websocket-handler: pthread_detach");
 
-	if (pthread_setname_np(pthread_self(), "wsock-handler"))
+	if (pthread_setname_np(pthread_self(), "trxd-wsock"))
 		err(1, "websocket-handler: pthread_setname_np");
 
 	/* Create a websocket-sender thread to send data to the client */

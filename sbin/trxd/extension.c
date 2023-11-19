@@ -62,7 +62,7 @@ extension(void *arg)
 	if (verbose)
 		printf("extension: initialising the %s extension\n", tag->name);
 
-	if (pthread_setname_np(pthread_self(), "extension"))
+	if (pthread_setname_np(pthread_self(), "trxd-extension"))
 		err(1, "extension: pthread_setname_np");
 	/*
 	 * Lock this transceivers mutex, so that no other thread accesses

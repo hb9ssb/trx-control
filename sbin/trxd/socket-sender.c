@@ -46,7 +46,7 @@ socket_sender(void *arg)
 	if (pthread_detach(pthread_self()))
 		err(1, "socket-sender: pthread_detach");
 
-	if (pthread_setname_np(pthread_self(), "sock-sender"))
+	if (pthread_setname_np(pthread_self(), "trxd-sender"))
 		err(1, "socket-sender: pthread_setname_np");
 
 	if (pthread_mutex_lock(&s->mutex))

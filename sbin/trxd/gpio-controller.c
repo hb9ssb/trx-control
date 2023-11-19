@@ -65,7 +65,7 @@ gpio_controller(void *arg)
 	if (verbose)
 		printf("gpio-controller: initialising gpio\n");
 
-	if (pthread_setname_np(pthread_self(), "gpio-ctrl"))
+	if (pthread_setname_np(pthread_self(), "trxd-gpio"))
 		err(1, "gpio-controller: pthread_setname_np");
 
 	/*

@@ -130,7 +130,7 @@ websocket_listener(void *arg)
 	if (pthread_detach(pthread_self()))
 		err(1, "websocket-listener: pthread_detach");
 
-	if (pthread_setname_np(pthread_self(), "wsock-listener"))
+	if (pthread_setname_np(pthread_self(), "trxd-ws-listen"))
 		err(1, "websocket-listener: pthread_setname_np");
 
 	/* Setup network listening */
