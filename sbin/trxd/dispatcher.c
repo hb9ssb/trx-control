@@ -166,7 +166,7 @@ list_trx(dispatcher_tag_t *d)
 	if (pthread_cond_signal(&d->sender->cond))
 		err(1, "dispatcher: pthread_cond_signal");
 	pthread_mutex_unlock(&d->sender->mutex);
-	/* XXX only free after data has been send out */
+	/* XXX only free after data has been sent out */
 	buf_free(&buf);
 }
 
