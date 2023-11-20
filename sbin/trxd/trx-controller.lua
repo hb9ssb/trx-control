@@ -36,10 +36,6 @@ local function registerDriver(name, dev, newDriver)
 	end
 end
 
-local function getTransceiverList()
-	return trxd.getTransceiverList()
-end
-
 -- Handle request from a network client
 local function requestHandler(data, fd)
 	local request = json.decode(data)
@@ -63,9 +59,7 @@ local function requestHandler(data, fd)
 		reply = request.request
 	}
 
-	if request.request == 'list-trx' then
-		reply.data = getTransceiverList()
-	elseif request.request == 'set-frequency' then
+	if request.request == 'set-frequency' then
 		reply.frequency = driver:setFrequency(tonumber(request.frequency))
 	elseif request.request == 'get-frequency' then
 		reply.frequency, reply.mode = driver:getFrequency()

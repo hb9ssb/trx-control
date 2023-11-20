@@ -18,4 +18,4 @@ If:
   PathMatch: sbin/trxd/.*\.c
 
 CompileFlags:
-  Add: [-I, ../../external/mit/lua/src,  -I, ../../lib/libtrx-control, -D, _GNU_SOURCE]
+  Add: [-I, ../../external/mit/lua/src,  -I, ../../lib/libtrx-control, -I, ../../external/mit/luajson, -D, _GNU_SOURCE]

@@ -41,26 +41,6 @@ extern void *trx_poller(void *);
 extern void *trx_handler(void *);
 
 static int
-luatrxd_get_transceiver_list(lua_State *L)
-{
-	trx_controller_tag_t *t;
-	int n = 1;
-	lua_newtable(L);
-	for (t = trx_controller_tag; t != NULL; t = t->next) {
-		lua_pushinteger(L, n++);
-		lua_newtable(L);
-		lua_pushstring(L, t->name);
-		lua_setfield(L, -2, "name");
-		lua_pushstring(L, t->device);
-		lua_setfield(L, -2, "device");
-		lua_pushstring(L, t->driver);
-		lua_setfield(L, -2, "driver");
-		lua_settable(L, -3);
-	}
-	return 1;
-}
-
-static int
 luatrxd_select_transceiver(lua_State *L)
 {
 	trx_controller_tag_t *t;
@@ -310,7 +290,6 @@ int
 luaopen_trxd(lua_State *L)
 {
 	struct luaL_Reg luatrxd[] = {
-		{ "getTransceiverList",		luatrxd_get_transceiver_list },
 		{ "selectTransceiver",		luatrxd_select_transceiver },
 		{ "startPolling",		luatrxd_start_polling },
 		{ "stopPolling",		luatrxd_stop_polling },
