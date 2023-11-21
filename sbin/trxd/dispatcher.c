@@ -99,13 +99,11 @@ call_trx_controller(dispatcher_tag_t *d)
 
 	free(d->data);
 	if (strlen(t->reply) > 0 && !d->terminate) {
-		printf("calling the sender thread\n");
 		t->sender->data = t->reply;
 		if (pthread_cond_signal(&t->sender->cond))
 			err(1, "dispatcher: pthread_cond_signal");
 		pthread_mutex_unlock(&t->sender->mutex);
 	} else {
-		printf("not calling the sender thread\n");
 		pthread_mutex_unlock(&t->sender->mutex);
 	}
 
@@ -130,6 +128,60 @@ void
 dispatch(lua_State *L, dispatcher_tag_t *d)
 {
 	call_trx_controller(d);
+}
+
+void
+list_destination(dispatcher_tag_t *d)
+{
+	struct buffer buf;
+	destination_t *dest;
+
+	if (pthread_mutex_lock(&d->sender->mutex))
+		err(1, "dispatcher: pthread_mutex_lock");
+
+	buf_init(&buf);
+	buf_addstring(&buf, "{\"status\":\"Ok\",\"reply\":\"list-destination\","
+	    "\"data\":[");
+	for (dest = destination; dest != NULL; dest = dest->next) {
+		if (dest != destination)
+			buf_addchar(&buf, ',');
+		buf_addstring(&buf, "{\"name\":\"");
+		buf_addstring(&buf, dest->name);
+		buf_addstring(&buf, "\",");
+
+		buf_addstring(&buf, "\"type\":\"");
+		switch (dest->type) {
+		case DEST_TRX:
+			buf_addstring(&buf, "transceiver");
+			break;
+		case DEST_ROTOR:
+			buf_addstring(&buf, "rotor");
+			break;
+		case DEST_RELAY:
+			buf_addstring(&buf, "relay");
+			break;
+		case DEST_GPIO:
+			buf_addstring(&buf, "gpio");
+			break;
+		case DEST_EXTENSION:
+			buf_addstring(&buf, "extension");
+			break;
+		}
+		buf_addstring(&buf, "\"}");
+	}
+	buf_addstring(&buf, "]}");
+
+	d->sender->data = buf.data;
+
+	if (pthread_cond_signal(&d->sender->cond))
+		err(1, "dispatcher: pthread_cond_signal");
+
+	while (d->sender->data != NULL) {
+		if (pthread_cond_wait(&d->sender->cond2, &d->sender->mutex))
+			err(1, "dispatcher: pthread_cond_wait");
+	}
+	pthread_mutex_unlock(&d->sender->mutex);
+	buf_free(&buf);
 }
 
 void
@@ -219,7 +271,8 @@ dispatcher(void *arg)
 		printf("dispatcher: mutex locked\n");
 
 	for (terminate = 0; !terminate ;) {
-		printf("dispatcher: wait for condition to change\n");
+		if (verbose > 1)
+			printf("dispatcher: wait for cond\n");
 		for (d->data = NULL; d->data == NULL; ) {
 			if (pthread_cond_wait(&d->cond, &d->mutex))
 				err(1, "dispatcher: pthread_cond_wait");
@@ -233,7 +286,6 @@ dispatcher(void *arg)
 		if (lua_type(L, -1) != LUA_TFUNCTION)
 			errx(1, "dispatcher: function expected");
 		lua_pushstring(L, d->data);
-		printf("call json decode\n");
 		switch (lua_pcall(L, 1, 1, 0)) {
 		case LUA_OK:
 			break;
@@ -253,13 +305,13 @@ dispatcher(void *arg)
 		if (lua_type(L, -1) == LUA_TSTRING)
 			dest = lua_tostring(L, 1);
 		lua_getfield(L, request, "request");
-		if (lua_type(L, -1) == LUA_TSTRING)
-			printf("and the request is: %s\n", lua_tostring(L, -1));
 		req = lua_tostring(L, -1);
 		lua_pop(L, 2);
 
 		if (!strcmp(req, "list-trx"))
 			list_trx(d);
+		else if (!strcmp(req, "list-destination"))
+			list_destination(d);
 		else
 			dispatch(L, d);
 		lua_pop(L, 2);

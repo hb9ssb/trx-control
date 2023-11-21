@@ -23,6 +23,23 @@
 local function params(data)
 end
 
+local function listDestination()
+	local request = {
+		request = 'list-destination'
+	}
+
+	trxctl.writeln(json.encode(request))
+	local reply = json.decode(trxctl.readln())
+
+	if reply.status == 'Ok' then
+		for k, v in pairs(reply.data) do
+			print(string.format('%-20s %s', v.name, v.type))
+		end
+	else
+		print(string.format('%s: %s', reply.status, reply.reason))
+	end
+end
+
 local function useTrx(trx)
 	local d = {
 		request = 'select-trx',
@@ -163,6 +180,7 @@ local function handleStatusUpdate(jsonData)
 end
 
 return {
+	listDestination = listDestination,
 	useTrx = useTrx,
 	listTrx = listTrx,
 	lockTrx = lockTrx,

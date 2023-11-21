@@ -65,6 +65,7 @@ static struct {
 	const char *func;
 } command_map[] = {
 	"use",			"useTrx",
+	"list-destination",	"listDestination",
 	"list-trx",		"listTrx",
 	"set-frequency",	"setFrequency",
 	"get-frequency",	"getFrequency",
