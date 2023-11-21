@@ -55,7 +55,8 @@ socket_sender(void *arg)
 		printf("socket-sender: mutex locked\n");
 
 	for (terminate = 0; !terminate ;) {
-		printf("socket-sender: wait for condition to change\n");
+		if (verbose > 1)
+			printf("socket-sender: wait for cond\n");
 		while (s->data == NULL) {
 			if (pthread_cond_wait(&s->cond, &s->mutex))
 				err(1, "socket-sender: pthread_cond_wait");

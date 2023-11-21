@@ -99,10 +99,6 @@ relay_controller(void *arg)
 	 * We are ready to go, unlock the mutex, so that client-handlers,
 	 * trx-handlers, and, try-pollers can access it.
 	 */
-
-	if (verbose)
-		printf("relay-controller: ready to control relay\n");
-
 	if (pthread_mutex_unlock(&tag->mutex))
 		err(1, "relay-controller: pthread_mutex_unlock");
 	if (verbose > 1)

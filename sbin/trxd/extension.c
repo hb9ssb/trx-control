@@ -104,10 +104,6 @@ extension(void *arg)
 	 * We are ready to go, unlock the mutex, so that client-handlers,
 	 * trx-handlers, and, try-pollers can access it.
 	 */
-
-	if (verbose)
-		printf("extension: ready to go\n");
-
 	if (pthread_mutex_unlock(&tag->mutex))
 		err(1, "extension: pthread_mutex_unlock");
 	if (verbose > 1)

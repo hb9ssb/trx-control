@@ -94,7 +94,8 @@ socket_handler(void *arg)
 		if (buf == NULL) {
 			terminate = 1;
 			buf = strdup("{\"request\": \"stop-status-updates\"}");
-		}
+		} else if (verbose)
+			printf("socket-handler: <- %s\n", buf);
 
 		if (pthread_mutex_lock(&d->mutex))
 			err(1, "socket-handler: pthread_mutex_lock");
