@@ -165,8 +165,12 @@ list_trx(dispatcher_tag_t *d)
 
 	if (pthread_cond_signal(&d->sender->cond))
 		err(1, "dispatcher: pthread_cond_signal");
+
+	while (d->sender->data != NULL) {
+		if (pthread_cond_wait(&d->sender->cond2, &d->sender->mutex))
+			err(1, "dispatcher: pthread_cond_wait");
+	}
 	pthread_mutex_unlock(&d->sender->mutex);
-	/* XXX only free after data has been sent out */
 	buf_free(&buf);
 }
 

@@ -232,7 +232,7 @@ typedef struct sender_tag {
 	pthread_mutex_t		 mutex;
 
 	pthread_cond_t		 cond;	/* data is ready to be send set */
-
+	pthread_cond_t		 cond2;	/* data has been sent */
 	char			*data;
 
 	int			 socket;

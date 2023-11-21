@@ -68,6 +68,8 @@ socket_sender(void *arg)
 				printf("socket-sender: -> %s\n", s->data);
 			trxd_writeln(s->socket, s->data);
 			s->data = NULL;
+			if (pthread_cond_signal(&s->cond2))
+				err(1, "socket-sender: pthread_cond_signal");
 		}
 	}
 	free(arg);

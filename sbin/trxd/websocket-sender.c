@@ -101,6 +101,8 @@ websocket_sender(void *arg)
 				send(s->socket, buf, framesize, 0);
 			free(buf);
 			s->data = NULL;
+			if (pthread_cond_signal(&s->cond2))
+				err(1, "websocket-sender: pthread_cond_signal");
 		}
 	}
 	pthread_cleanup_pop(0);

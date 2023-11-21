@@ -66,6 +66,9 @@ socket_handler(void *arg)
 	if (pthread_cond_init(&s->cond, NULL))
 		err(1, "socket-handler: pthread_cond_init");
 
+	if (pthread_cond_init(&s->cond2, NULL))
+		err(1, "socket-handler: pthread_cond_init");
+
 	if (pthread_create(&s->sender, NULL, socket_sender, s))
 		err(1, "socket-handler: pthread_create");
 
