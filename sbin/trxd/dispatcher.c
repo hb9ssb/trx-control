@@ -64,7 +64,7 @@ call_trx_controller(dispatcher_tag_t *d)
 	if (verbose > 1)
 		printf("dispatcher: mutex locked\n");
 
-	if (pthread_mutex_lock(&t->sender->mutex))
+	if (pthread_mutex_lock(&d->sender->mutex))
 		err(1, "dispatcher: pthread_mutex_lock");
 	if (verbose > 1)
 		printf("dispatcher: sender mutex locked\n");
@@ -99,12 +99,12 @@ call_trx_controller(dispatcher_tag_t *d)
 
 	free(d->data);
 	if (strlen(t->reply) > 0 && !d->terminate) {
-		t->sender->data = t->reply;
-		if (pthread_cond_signal(&t->sender->cond))
+		d->sender->data = t->reply;
+		if (pthread_cond_signal(&d->sender->cond))
 			err(1, "dispatcher: pthread_cond_signal");
-		pthread_mutex_unlock(&t->sender->mutex);
+		pthread_mutex_unlock(&d->sender->mutex);
 	} else {
-		pthread_mutex_unlock(&t->sender->mutex);
+		pthread_mutex_unlock(&d->sender->mutex);
 	}
 
 	if (pthread_mutex_unlock(&t->mutex2))
