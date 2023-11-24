@@ -78,7 +78,6 @@ local function getMode(driver)
 	local f = trx.read(5)
 	local m = string.byte(f, 5)
 
-	local m = getMode()
 	for k, v in pairs(driver.validModes) do
 		if v == m then
 			return k
