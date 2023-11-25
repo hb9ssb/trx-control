@@ -27,6 +27,9 @@
 
 #include <openssl/ssl.h>
 
+#include <lua.h>
+#include <lualib.h>
+
 #define TRXD_VERSION	"1.0.0"
 #define TRXD_USER	"trxd"
 #define TRXD_GROUP	"trxd"
@@ -56,6 +59,9 @@ typedef struct trx_controller_tag {
 	const char		*driver;
 	int			 is_default;
 
+	lua_State		*L;
+	int			 ref;
+
 	char			*data;
 
 	int			 client_fd;
@@ -64,14 +70,12 @@ typedef struct trx_controller_tag {
 	pthread_t		 trx_poller;
 	pthread_t		 trx_handler;
 	int			 is_running;
+	int			 poller_required;
 	int			 poller_running;
 	int			 poller_suspended;
 	int			 handler_running;
 	int			 handler_eol;
-	int			 handler_pipefd[2];
 
-	sender_tag_t			*sender;
-	struct trx_controller_tag	*new_tag;
 	struct trx_controller_tag	*next;
 
 	sender_list_t		*senders;
@@ -131,26 +135,21 @@ typedef struct relay_controller_tag {
 } relay_controller_tag_t;
 
 typedef struct extension_tag {
-	/* The first mutex locks extension */
+	/* The first mutex locks the extension */
 	pthread_mutex_t		 mutex;
-
 	pthread_mutex_t		 mutex2;
-	pthread_cond_t		 cond1;	/* A handler is set */
-	const char		*handler;
 
-	pthread_cond_t		 cond2;	/* A reply is set */
-	char			*reply;
+	pthread_cond_t		 cond1;	/* Call the extension */
+	int			 call;
 
-	const char		*name;
-	const char		*script;
+	pthread_cond_t		 cond2;	/* The extension returned */
+	int			 done;
 
-	char			*data;
+	lua_State		*L;
 
 	pthread_t		 extension;
 
 	struct extension_tag	*next;
-
-	sender_list_t		*senders;
 } extension_tag_t;
 
 enum DestinationType {
@@ -214,9 +213,7 @@ typedef struct dispatcher_tag {
 	pthread_cond_t		 cond;	/* data is ready to be dispatched */
 
 	char			*data;
-	int			 terminate;
 
-	trx_controller_tag_t	*trx_controller;
 	sender_tag_t		*sender;
 	pthread_t		 dispatcher;
 } dispatcher_tag_t;
