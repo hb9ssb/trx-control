@@ -46,8 +46,6 @@ extern int verbose;
 static void
 cleanup(void *arg)
 {
-	if (verbose > 1)
-		printf("websocket-sender: cleanup\n");
 	free(arg);
 }
 
@@ -55,9 +53,7 @@ void *
 websocket_sender(void *arg)
 {
 	sender_tag_t *s = (sender_tag_t *)arg;
-	int status, nread, n, terminate;
-	char *buf, *p;
-	const char *command, *param;
+	char *buf;
 	size_t datasize, framesize;
 
 	pthread_cleanup_push(cleanup, arg);
@@ -70,40 +66,32 @@ websocket_sender(void *arg)
 
 	if (pthread_mutex_lock(&s->mutex))
 		err(1, "websocket-sender: pthread_mutex_lock");
-	if (verbose > 1)
-		printf("websocket-sender: mutex locked\n");
 
-	for (terminate = 0; !terminate ;) {
-		if (verbose > 1)
-			printf("websocket-sender: wait for cond\n");
+	for (;;) {
 		while (s->data == NULL) {
 			if (pthread_cond_wait(&s->cond, &s->mutex))
 				err(1, "websocket-sender: pthread_cond_wait");
-			if (verbose > 1)
-				printf("websocket-sender: cond changed\n");
 		}
 
-		if (!terminate) {
-			if (verbose)
-				printf("websocket-sender: -> %s\n", s->data);
-			datasize = strlen(s->data);
-			buf = malloc(BUFSIZE);
-			framesize = datasize;
-			if (buf == NULL)
-				err(1, "websocket-sender: malloc\n");
+		if (verbose)
+			printf("websocket-sender: -> %s\n", s->data);
+		datasize = strlen(s->data);
+		buf = malloc(BUFSIZE);
+		framesize = datasize;
+		if (buf == NULL)
+			err(1, "websocket-sender: malloc\n");
 
-			wsMakeFrame((const uint8_t *)s->data, datasize,
-			    (unsigned char *)buf, &framesize, WS_TEXT_FRAME);
+		wsMakeFrame((const uint8_t *)s->data, datasize,
+		    (unsigned char *)buf, &framesize, WS_TEXT_FRAME);
 
-			if (s->ssl)
-				SSL_write(s->ssl, buf, framesize);
-			else
-				send(s->socket, buf, framesize, 0);
-			free(buf);
-			s->data = NULL;
-			if (pthread_cond_signal(&s->cond2))
-				err(1, "websocket-sender: pthread_cond_signal");
-		}
+		if (s->ssl)
+			SSL_write(s->ssl, buf, framesize);
+		else
+			send(s->socket, buf, framesize, 0);
+		free(buf);
+		s->data = NULL;
+		if (pthread_cond_signal(&s->cond2))
+			err(1, "websocket-sender: pthread_cond_signal");
 	}
 	pthread_cleanup_pop(0);
 	return NULL;
