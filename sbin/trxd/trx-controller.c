@@ -49,25 +49,34 @@ extern int luaopen_trxd(lua_State *);
 extern int luaopen_json(lua_State *);
 extern void *trx_handler(void *);
 
-extern trx_controller_tag_t *trx_controller_tag;
 extern int verbose;
+
+static void
+cleanup(void *arg)
+{
+	trx_controller_tag_t *t = (trx_controller_tag_t *)arg;
+	if (t->L)
+		lua_close(t->L);
+	free(arg);
+}
 
 void *
 trx_controller(void *arg)
 {
-	trx_controller_tag_t *tag = (trx_controller_tag_t *)arg;
+	trx_controller_tag_t *t = (trx_controller_tag_t *)arg;
 	struct termios tty;
-	lua_State *L;
-	int fd, n, driver_ref;
+	int fd, n;
 	struct stat sb;
 	char trx_driver[PATH_MAX];
 	pthread_t trx_handler_thread;
 
-	L = NULL;
+	t->L = NULL;
 	if (pthread_detach(pthread_self()))
 		err(1, "trx-controller: pthread_detach");
 	if (verbose)
-		printf("trx-controller: initialising trx %s\n", tag->name);
+		printf("trx-controller: initialising trx %s\n", t->name);
+
+	pthread_cleanup_push(cleanup, arg);
 
 	if (pthread_setname_np(pthread_self(), "trxd-trx-ctrl"))
 		err(1, "trx-controller: pthread_setname_np");
@@ -76,20 +85,16 @@ trx_controller(void *arg)
 	 * Lock this transceivers mutex, so that no other thread accesses
 	 * while we are initialising.
 	 */
-	if (pthread_mutex_lock(&tag->mutex))
+	if (pthread_mutex_lock(&t->mutex))
 		err(1, "trx-controller: pthread_mutex_lock");
-	if (verbose > 1)
-		printf("trx-controller: mutex locked\n");
 
-	if (pthread_mutex_lock(&tag->mutex2))
+	if (pthread_mutex_lock(&t->mutex2))
 		err(1, "trx-controller: pthread_mutex_lock");
-	if (verbose > 1)
-		printf("trx-controller: mutex2 locked\n");
 
-	if (strchr(tag->driver, '/'))
+	if (strchr(t->driver, '/'))
 		err(1, "trx-controller: driver name must not contain slashes");
 
-	fd = open(tag->device, O_RDWR);
+	fd = open(t->device, O_RDWR);
 	if (fd == -1)
 		err(1, "trx-controller: open");
 
@@ -104,67 +109,70 @@ trx_controller(void *arg)
 		}
 	}
 
-	tag->cat_device = fd;
+	t->cat_device = fd;
 
 	/* Setup Lua */
-	L = luaL_newstate();
-	if (L == NULL)
+	t->L = luaL_newstate();
+	if (t->L == NULL)
 		err(1, "trx-controller: luaL_newstate");
 
-	luaL_openlibs(L);
+	luaL_openlibs(t->L);
 
-	lua_pushinteger(L, fd);
-	lua_setglobal(L, "_CAT_DEVICE");
+	lua_pushinteger(t->L, fd);
+	lua_setglobal(t->L, "_CAT_DEVICE");
 
-	luaopen_trx(L);
-	lua_setglobal(L, "trx");
-	luaopen_trxd(L);
-	lua_setglobal(L, "trxd");
-	luaopen_json(L);
-	lua_setglobal(L, "json");
+	luaopen_trx(t->L);
+	lua_setglobal(t->L, "trx");
+	luaopen_trxd(t->L);
+	lua_setglobal(t->L, "trxd");
+	luaopen_json(t->L);
+	lua_setglobal(t->L, "json");
 
-	lua_getglobal(L, "package");
-	lua_getfield(L, -1, "path");
-	lua_pushstring(L, ";" _PATH_PROTOCOL "/?.lua");
-	lua_concat(L, 2);
-	lua_setfield(L, -2, "path");
-	lua_pop(L, 1);
+	lua_getglobal(t->L, "package");
+	lua_getfield(t->L, -1, "path");
+	lua_pushstring(t->L, ";" _PATH_PROTOCOL "/?.lua");
+	lua_concat(t->L, 2);
+	lua_setfield(t->L, -2, "path");
+	lua_pop(t->L, 1);
 
-	if (luaL_dofile(L, _PATH_TRX_CONTROLLER))
-		err(1, "trx-controller: %s", lua_tostring(L, -1));
-	if (lua_type(L, -1) != LUA_TTABLE)
+	if (luaL_dofile(t->L, _PATH_TRX_CONTROLLER))
+		err(1, "trx-controller: %s", lua_tostring(t->L, -1));
+	if (lua_type(t->L, -1) != LUA_TTABLE)
 		err(1, "trx-controller: table expected");
 	else
-		driver_ref = luaL_ref(L, LUA_REGISTRYINDEX);
+		t->ref = luaL_ref(t->L, LUA_REGISTRYINDEX);
 
 	snprintf(trx_driver, sizeof(trx_driver), "%s/%s.lua", _PATH_TRX,
-	    tag->driver);
+	    t->driver);
 
 	if (stat(trx_driver, &sb))
-		err(1, "trx-controller: %s", tag->driver);
+		err(1, "trx-controller: %s", t->driver);
 
-	lua_geti(L, LUA_REGISTRYINDEX, driver_ref);
-	lua_getfield(L, -1, "registerDriver");
-	lua_pushstring(L, tag->name);
-	lua_pushstring(L, tag->device);
-	if (luaL_dofile(L, trx_driver))
-		err(1, "trx-controller: %s", lua_tostring(L, -1));
-	if (lua_type(L, -1) != LUA_TTABLE)
-		err(1, "trx-controller: %s: table expected", tag->driver);
+	lua_geti(t->L, LUA_REGISTRYINDEX, t->ref);
+	lua_getfield(t->L, -1, "registerDriver");
+	lua_pushstring(t->L, t->name);
+	lua_pushstring(t->L, t->device);
+	if (luaL_dofile(t->L, trx_driver))
+		err(1, "trx-controller: %s", lua_tostring(t->L, -1));
+	if (lua_type(t->L, -1) != LUA_TTABLE)
+		err(1, "trx-controller: %s: table expected", t->driver);
 	else {
-		switch (lua_pcall(L, 3, 0, 0)) {
+		lua_getfield(t->L, -1, "statusUpdatesRequirePolling");
+		t->poller_required = lua_toboolean(t->L, -1);
+		lua_pop(t->L, 1);
+		switch (lua_pcall(t->L, 3, 0, 0)) {
 		case LUA_OK:
 			break;
 		case LUA_ERRRUN:
 		case LUA_ERRMEM:
 		case LUA_ERRERR:
-			err(1, "trx-controller: %s", lua_tostring(L, -1));
+			err(1, "trx-controller: %s", lua_tostring(t->L, -1));
 			break;
 		}
 	}
-	lua_pop(L, 1);
+	lua_pop(t->L, 1);
 
-	tag->is_running = 1;
+	t->is_running = 1;
 
 	/*
 	 * We are ready to go, unlock the mutex, so that client-handlers,
@@ -172,89 +180,55 @@ trx_controller(void *arg)
 	 */
 
 	if (verbose)
-		printf("trx-controller: ready to control trx %s\n", tag->name);
+		printf("trx-controller: ready to control trx %s\n", t->name);
 
-	if (pthread_mutex_unlock(&tag->mutex))
+	if (pthread_mutex_unlock(&t->mutex))
 		err(1, "trx-controller: pthread_mutex_unlock");
-	if (verbose > 1)
-		printf("trx-controller: mutex unlocked\n");
 
 	while (1) {
 		int nargs = 1;
 
 		/* Wait on cond, this releases the mutex */
-		if (verbose > 1)
-			printf("trx-controller: wait for cond1\n");
-		while (tag->handler == NULL) {
-			if (pthread_cond_wait(&tag->cond1, &tag->mutex2))
+		while (t->handler == NULL) {
+			if (pthread_cond_wait(&t->cond1, &t->mutex2))
 				err(1, "trx-controller: pthread_cond_wait");
-			if (verbose > 1)
-				printf("trx-controller: cond1 changed\n");
 		}
 
-		if (verbose > 1) {
-			printf("trx-controller: request for %s", tag->handler);
-			if (tag->data)
-				printf(" with data '%s'\n", tag->data);
-			printf("\n");
-		}
-
-		lua_geti(L, LUA_REGISTRYINDEX, driver_ref);
-		lua_getfield(L, -1, tag->handler);
-		if (lua_type(L, -1) != LUA_TFUNCTION) {
-			tag->reply = "command not supported, "
+		lua_geti(t->L, LUA_REGISTRYINDEX, t->ref);
+		lua_getfield(t->L, -1, t->handler);
+		if (lua_type(t->L, -1) != LUA_TFUNCTION) {
+			t->reply = "command not supported, "
 			    "please submit a bug report";
 		} else {
-			lua_pushstring(L, tag->data);
-			lua_pushinteger(L, tag->client_fd);
+			lua_pushstring(t->L, t->data);
+			lua_pushinteger(t->L, t->client_fd);
+			t->reply = NULL;
 
-			switch (lua_pcall(L, 2, 1, 0)) {
+			switch (lua_pcall(t->L, 2, 1, 0)) {
 			case LUA_OK:
+				if (lua_type(t->L, -1) == LUA_TSTRING)
+					t->reply =
+					    (char *)lua_tostring(t->L, -1);
+				else
+					t->reply = "";
 				break;
 			case LUA_ERRRUN:
 			case LUA_ERRMEM:
 			case LUA_ERRERR:
+				t->reply = "{\"status\":\"Error\","
+				    "\"reason\":\"Lua error\"}";
+
 				syslog(LOG_ERR, "Lua error: %s",
-				    lua_tostring(L, -1));
+				    lua_tostring(t->L, -1));
 				break;
 			}
-			if (lua_type(L, -1) == LUA_TSTRING) {
-				char *reply = (char *)lua_tostring(L, -1);
-				if (!strncmp(reply, SWITCH_TRX,
-				    strlen(SWITCH_TRX))) {
-					printf("trx-controller: switch trx\n");
-					char *name;
-					trx_controller_tag_t *t;
-					char buf[256];
-
-					name = strchr(reply, ':');
-					name++;
-					for (t = trx_controller_tag; t != NULL;
-					   t = t->next) {
-						if (!strcmp(t->name, name)) {
-							tag->new_tag = t;
-							break;
-						}
-					}
-
-					snprintf(buf, sizeof(buf),
-					    "{ \"status\": \"Ok\", \"reply\": "
-					    "\"use-trx\", \"name\": \"%s\"}",
-					    name);
-					tag->reply = buf;
-				} else
-					tag->reply = reply;
-			} else
-				tag->reply = "";
 		}
-		lua_pop(L, 2);
-		tag->handler = NULL;
+		lua_pop(t->L, 2);
+		t->handler = NULL;
 
-		if (pthread_cond_signal(&tag->cond2))
+		if (pthread_cond_signal(&t->cond2))
 			err(1, "trx-controller: pthread_cond_signal");
-		if (verbose > 1)
-			printf("trx-controller: cond2 signaled\n");
 	}
-	lua_close(L);
+	pthread_cleanup_pop(0);
 	return NULL;
 }

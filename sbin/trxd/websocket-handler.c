@@ -111,18 +111,50 @@ websocket_recv(websocket_t *websock, char **dest)
 	return 0;
 }
 
+static void
+cleanup(void *arg)
+{
+	websocket_t *w = (websocket_t *)arg;
+
+	printf("websocket-handler: cleanup\n");
+	close(w->socket);
+	free(w->ssl);
+	free(arg);
+}
+
+static void
+cleanup_sender(void *arg)
+{
+	sender_tag_t *s = (sender_tag_t *)arg;
+
+	printf("websocket-handler: cleanup sender\n");
+
+	pthread_cancel(s->sender);
+}
+
+static void
+cleanup_dispatcher(void *arg)
+{
+	dispatcher_tag_t *d = (dispatcher_tag_t *)arg;
+
+	printf("websocket-handler: cleanup dispatcher\n");
+
+	pthread_cancel(d->dispatcher);
+}
+
 void *
 websocket_handler(void *arg)
 {
 	websocket_t *w = (websocket_t *)arg;
 	sender_tag_t *s;
 	dispatcher_tag_t *d;
-	int status, nread, n, terminate;
+	int status, nread, n;
 	char *buf, *p;
-	const char *command, *param;
 
 	if (pthread_detach(pthread_self()))
 		err(1, "websocket-handler: pthread_detach");
+
+	pthread_cleanup_push(cleanup, arg);
 
 	if (pthread_setname_np(pthread_self(), "trxd-wsock"))
 		err(1, "websocket-handler: pthread_setname_np");
@@ -150,6 +182,8 @@ websocket_handler(void *arg)
 	if (pthread_create(&s->sender, NULL, websocket_sender, s))
 		err(1, "websocket-handler: pthread_create");
 
+	pthread_cleanup_push(cleanup_sender, s);
+
 	/* Create a dispatcher thread to dispatch incoming data */
 	d = malloc(sizeof(dispatcher_tag_t));
 	if (d == NULL)
@@ -165,13 +199,13 @@ websocket_handler(void *arg)
 	if (pthread_create(&d->dispatcher, NULL, dispatcher, d))
 		err(1, "websocket-handler: pthread_create");
 
-	for (terminate = 0; !terminate ;) {
-		if (websocket_recv(w, &buf) == -1) {
-			pthread_cancel(s->sender);
-			pthread_join(s->sender, NULL);
-			terminate = 1;
-			buf = strdup("{\"request\": \"stop-status-updates\"}");
-		} else if (verbose)
+	pthread_cleanup_push(cleanup_dispatcher, d);
+
+	for (;;) {
+		/* buf will later be freed by the dispatcher */
+		if (websocket_recv(w, &buf) == -1)
+			pthread_exit(NULL);
+		else if (verbose)
 			printf("websocket-handler: <- %s\n", buf);
 
 		if (pthread_mutex_lock(&d->mutex))
@@ -180,7 +214,6 @@ websocket_handler(void *arg)
 			printf("socket-handler: dispatcher mutex locked\n");
 
 		d->data = buf;
-		d->terminate = terminate;
 
 		pthread_cond_signal(&d->cond);
 
@@ -194,10 +227,9 @@ websocket_handler(void *arg)
 		if (verbose > 1)
 			printf("websocket-handler: dispatcher mutex unlocked\n");
 	}
-terminate:
-	if (verbose)
-		printf("websocket-handler: terminating\n");
-	close(w->socket);
-	free(arg);
+	pthread_cleanup_pop(0);
+	pthread_cleanup_pop(0);
+	pthread_cleanup_pop(0);
+
 	return NULL;
 }

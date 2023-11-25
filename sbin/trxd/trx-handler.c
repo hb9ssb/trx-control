@@ -28,6 +28,7 @@
 #include <pthread.h>
 #include <sched.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <syslog.h>
 #include <unistd.h>
@@ -36,37 +37,43 @@
 
 extern int verbose;
 
+static void
+cleanup(void *arg)
+{
+	printf("trx-handler: cleanup\n");
+	free(arg);
+}
+
 void *
 trx_handler(void *arg)
 {
 	trx_controller_tag_t *t = (trx_controller_tag_t *)arg;
-	struct pollfd pfds[2];
-	int status, nread, n, r, fd, epfd, nfds, terminate;
-	char buf[128], *p;
-	struct timeval tv;
+	struct pollfd pfd;
+	int n, fd;
+	char buf[128];
 
 	if (pthread_detach(pthread_self()))
 		err(1, "trx-handler: pthread_detach");
+
+	pthread_cleanup_push(cleanup, arg);
 
 	if (pthread_setname_np(pthread_self(), "trxd-trx"))
 		err(1, "trx-handler: pthread_setname_np");
 
 	fd = t->cat_device;
 
-	pfds[0].fd = fd;
-	pfds[0].events = POLLIN;
-	pfds[1].fd = t->handler_pipefd[0];
-	pfds[1].events = POLLIN;
+	pfd.fd = fd;
+	pfd.events = POLLIN;
 
-	for (terminate = 0; terminate == 0; ) {
+	for (;;) {
 		if (pthread_mutex_lock(&t->mutex))
 			err(1, "trx-handler: pthread_mutex_lock");
 		if (verbose > 1)
 			printf("trx-handler: mutex locked\n");
 
-		if (poll(pfds, 2, 0) == -1)
+		if (poll(&pfd, 1, 0) == -1)
 			err(1, "trx-handler: poll");
-		if (pfds[0].revents) {
+		if (pfd.revents) {
 			for (n = 0; n < sizeof(buf) - 1; n++) {
 				read(fd, &buf[n], 1);
 				if (buf[n] == t->handler_eol)
@@ -105,10 +112,7 @@ trx_handler(void *arg)
 				printf("trx-handler: mutex unlocked\n");
 
 		}
-		if (pfds[1].revents)
-			terminate = 1;
-
-		sched_yield();
 	};
+	pthread_cleanup_pop(0);
 	return NULL;
 }

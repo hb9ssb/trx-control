@@ -67,61 +67,10 @@ local function requestHandler(data, fd)
 		reply.band, reply.mode = driver:setMode(request.band, request.mode)
 	elseif request.request == 'get-mode' then
 		reply.mode = driver:getMode(request.band)
-	elseif request.request == 'select-trx' then
-		local t = trxd.selectTransceiver(request.name)
-		if t ~= nil then
-			return string.format('switch-trx:%s',
-			    request.name)
-		else
-			reply = {
-				status = 'Error',
-				reply = 'select-trx',
-				reason = 'No such transceiver',
-				name = request.name
-			}
-		end
 	elseif request.request == 'lock-trx' then
 		driver:setLock()
 	elseif request.request == 'unlock-trx' then
 		driver:serUnlock()
-	elseif request.request == 'start-status-updates' then
-		trxd.addListener(device)
-
-		-- if this is the first listener, start the poller or
-		-- input handler
-
-		if trxd.numListeners(device) == 1 then
-			if driver.statusUpdatesRequirePolling == true then
-				trxd.startPolling(device)
-			elseif type(driver.startStatusUpdates) == 'function' then
-				local eol = driver:startStatusUpdates()
-				trxd.startHandling(device, eol)
-			else
-				reply.status = 'Error'
-				reply.reason = 'Can not start status updates'
-				trxd.removeListener(device)
-			end
-		end
-
-	elseif request.request == 'stop-status-updates' then
-		trxd.removeListener(device)
-
-		-- if this was the last listener, stop the poller or
-		-- input handler
-
-		if trxd.numListeners(device) == 0 then
-			lastFrequency = 0
-			lastMode = ''
-			if driver.statusUpdatesRequirePolling == true then
-				trxd.stopPolling(device)
-			elseif type(driver.stopStatusUpdates) == 'function' then
-				driver:stopStatusUpdates()
-				trxd.stopHandling(device)
-			else
-				reply.status = 'Error'
-				reply.reason = 'Can not stop status updates'
-			end
-		end
 	else
 		reply.status = 'Error'
 		reply.reason = 'Unknown request'
@@ -140,6 +89,7 @@ local function pollHandler(data, fd)
 				mode = mode
 			}
 		}
+
 		local jsonData = json.encode(status)
 		trxd.notifyListeners(device, jsonData)
 		lastFrequency = frequency

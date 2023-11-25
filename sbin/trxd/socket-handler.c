@@ -39,18 +39,46 @@ extern void *dispatcher(void *);
 extern trx_controller_tag_t *trx_controller_tag;
 extern int verbose;
 
+static void
+cleanup(void *arg)
+{
+	int fd = *(int *)arg;
+	printf("socket-handler: cleanup\n");
+	close(fd);
+}
+
+static void
+cleanup_sender(void *arg)
+{
+	sender_tag_t *s = (sender_tag_t *)arg;
+
+	printf("socket-handler: cleanup sender\n");
+
+	pthread_cancel(s->sender);
+}
+
+static void
+cleanup_dispatcher(void *arg)
+{
+	dispatcher_tag_t *d = (dispatcher_tag_t *)arg;
+
+	printf("socket-handler: cleanup dispatcher\n");
+
+	pthread_cancel(d->dispatcher);
+}
+
 void *
 socket_handler(void *arg)
 {
 	sender_tag_t *s;
 	dispatcher_tag_t *d;
 	int fd = *(int *)arg;
-	int status, nread, n, terminate;
-	char *buf, *p;
-	const char *command, *param;
+	char *buf;
 
 	if (pthread_detach(pthread_self()))
 		err(1, "socket-handler: pthread_detach");
+
+	pthread_cleanup_push(cleanup, arg);
 
 	if (pthread_setname_np(pthread_self(), "trxd-sock"))
 		err(1, "socket-handler: pthread_setname_np");
@@ -72,6 +100,7 @@ socket_handler(void *arg)
 	if (pthread_create(&s->sender, NULL, socket_sender, s))
 		err(1, "socket-handler: pthread_create");
 
+	pthread_cleanup_push(cleanup_sender, s);
 	/* Create a dispatcher thread to dispatch incoming data */
 	d = malloc(sizeof(dispatcher_tag_t));
 	if (d == NULL)
@@ -87,14 +116,15 @@ socket_handler(void *arg)
 	if (pthread_create(&d->dispatcher, NULL, dispatcher, d))
 		err(1, "socket-handler: pthread_create");
 
-	for (terminate = 0; !terminate ;) {
+	pthread_cleanup_push(cleanup_dispatcher, d);
+
+	for (;;) {
 		/* buf will later be freed by the dispatcher */
 		buf = trxd_readln(fd);
 
-		if (buf == NULL) {
-			terminate = 1;
-			buf = strdup("{\"request\": \"stop-status-updates\"}");
-		} else if (verbose)
+		if (buf == NULL)
+			pthread_exit(NULL);
+		else if (verbose)
 			printf("socket-handler: <- %s\n", buf);
 
 		if (pthread_mutex_lock(&d->mutex))
@@ -103,7 +133,6 @@ socket_handler(void *arg)
 			printf("socket-handler: dispatcher mutex locked\n");
 
 		d->data = buf;
-		d->terminate = terminate;
 
 		pthread_cond_signal(&d->cond);
 
@@ -117,8 +146,9 @@ socket_handler(void *arg)
 		if (verbose > 1)
 			printf("socket-handler: dispatcher mutex unlocked\n");
 	}
-terminate:
-	close(fd);
-	free(arg);
+	pthread_cleanup_pop(0);
+	pthread_cleanup_pop(0);
+	pthread_cleanup_pop(0);
+
 	return NULL;
 }

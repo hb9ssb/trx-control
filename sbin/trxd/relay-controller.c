@@ -61,8 +61,6 @@ relay_controller(void *arg)
 
 	if (pthread_detach(pthread_self()))
 		err(1, "relay-controller: pthread_detach");
-	if (verbose)
-		printf("relay-controller: initialising relay %s\n", tag->name);
 
 	if (pthread_setname_np(pthread_self(), "trxd-relay"))
 		err(1, "relay-controller: pthread_setname_np");
@@ -73,13 +71,9 @@ relay_controller(void *arg)
 	 */
 	if (pthread_mutex_lock(&tag->mutex))
 		err(1, "relay-controller: pthread_mutex_lock");
-	if (verbose > 1)
-		printf("relay-controller: mutex locked\n");
 
 	if (pthread_mutex_lock(&tag->mutex2))
 		err(1, "relay-controller: pthread_mutex_lock");
-	if (verbose > 1)
-		printf("relay-controller: mutex2 locked\n");
 
 	/* Setup Lua */
 	L = luaL_newstate();
@@ -101,27 +95,14 @@ relay_controller(void *arg)
 	 */
 	if (pthread_mutex_unlock(&tag->mutex))
 		err(1, "relay-controller: pthread_mutex_unlock");
-	if (verbose > 1)
-		printf("relay-controller: mutex unlocked\n");
 
 	while (1) {
 		int nargs = 1;
 
 		/* Wait on cond, this releases the mutex */
-		if (verbose > 1)
-			printf("relay-controller: wait for cond1\n");
 		while (tag->handler == NULL) {
 			if (pthread_cond_wait(&tag->cond1, &tag->mutex2))
 				err(1, "relay-controller: pthread_cond_wait");
-			if (verbose > 1)
-				printf("relay-controller: cond1 changed\n");
-		}
-
-		if (verbose > 1) {
-			printf("relay-controller: request for %s", tag->handler);
-			if (tag->data)
-				printf(" with data '%s'\n", tag->data);
-			printf("\n");
 		}
 
 		lua_pushstring(L, tag->data);
@@ -146,8 +127,6 @@ relay_controller(void *arg)
 
 		if (pthread_cond_signal(&tag->cond2))
 			err(1, "relay-controller: pthread_cond_signal");
-		if (verbose > 1)
-			printf("relay-controller: cond2 signaled\n");
 	}
 	lua_close(L);
 	return NULL;
