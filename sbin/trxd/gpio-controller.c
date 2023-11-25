@@ -46,7 +46,6 @@
 extern int luaopen_trxd(lua_State *);
 extern int luaopen_json(lua_State *);
 
-extern trx_controller_tag_t *trx_controller_tag;
 extern int verbose;
 
 void *
@@ -62,8 +61,6 @@ gpio_controller(void *arg)
 	L = NULL;
 	if (pthread_detach(pthread_self()))
 		err(1, "gpio-controller: pthread_detach");
-	if (verbose)
-		printf("gpio-controller: initialising gpio\n");
 
 	if (pthread_setname_np(pthread_self(), "trxd-gpio"))
 		err(1, "gpio-controller: pthread_setname_np");
@@ -74,13 +71,9 @@ gpio_controller(void *arg)
 	 */
 	if (pthread_mutex_lock(&tag->mutex))
 		err(1, "gpio-controller: pthread_mutex_lock");
-	if (verbose > 1)
-		printf("gpio-controller: mutex locked\n");
 
 	if (pthread_mutex_lock(&tag->mutex2))
 		err(1, "gpio-controller: pthread_mutex_lock");
-	if (verbose > 1)
-		printf("gpio-controller: mutex2 locked\n");
 
 	/* Setup Lua */
 	L = luaL_newstate();
@@ -100,34 +93,18 @@ gpio_controller(void *arg)
 	 * We are ready to go, unlock the mutex, so that client-handlers,
 	 * trx-handlers, and, try-pollers can access it.
 	 */
-
-	if (verbose)
-		printf("gpio-controller: ready to control gpio\n");
-
 	if (pthread_mutex_unlock(&tag->mutex))
 		err(1, "gpio-controller: pthread_mutex_unlock");
-	if (verbose > 1)
-		printf("gpio-controller: mutex unlocked\n");
 
 	while (1) {
 		int nargs = 1;
 
 		/* Wait on cond, this releases the mutex */
-		if (verbose > 1)
-			printf("gpio-controller: wait for cond1\n");
 		while (tag->handler == NULL) {
 			if (pthread_cond_wait(&tag->cond1, &tag->mutex2))
 				err(1, "gpio-controller: pthread_cond_wait");
-			if (verbose > 1)
-				printf("gpio-controller: cond1 changed\n");
 		}
 
-		if (verbose > 1) {
-			printf("gpio-controller: request for %s", tag->handler);
-			if (tag->data)
-				printf(" with data '%s'\n", tag->data);
-			printf("\n");
-		}
 
 		lua_pushstring(L, tag->data);
 
@@ -151,8 +128,6 @@ gpio_controller(void *arg)
 
 		if (pthread_cond_signal(&tag->cond2))
 			err(1, "gpio-controller: pthread_cond_signal");
-		if (verbose > 1)
-			printf("gpio-controller: cond2 signaled\n");
 	}
 	lua_close(L);
 	return NULL;
