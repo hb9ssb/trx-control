@@ -116,7 +116,6 @@ cleanup(void *arg)
 {
 	websocket_t *w = (websocket_t *)arg;
 
-	printf("websocket-handler: cleanup\n");
 	close(w->socket);
 	free(w->ssl);
 	free(arg);
@@ -127,8 +126,6 @@ cleanup_sender(void *arg)
 {
 	sender_tag_t *s = (sender_tag_t *)arg;
 
-	printf("websocket-handler: cleanup sender\n");
-
 	pthread_cancel(s->sender);
 }
 
@@ -136,8 +133,6 @@ static void
 cleanup_dispatcher(void *arg)
 {
 	dispatcher_tag_t *d = (dispatcher_tag_t *)arg;
-
-	printf("websocket-handler: cleanup dispatcher\n");
 
 	pthread_cancel(d->dispatcher);
 }
@@ -210,8 +205,6 @@ websocket_handler(void *arg)
 
 		if (pthread_mutex_lock(&d->mutex))
 			err(1, "socket-handler: pthread_mutex_lock");
-		if (verbose > 1)
-			printf("socket-handler: dispatcher mutex locked\n");
 
 		d->data = buf;
 
@@ -219,17 +212,12 @@ websocket_handler(void *arg)
 
 		if (pthread_cond_signal(&d->cond))
 			err(1, "websocket-handler: pthread_cond_signal");
-		if (verbose > 1)
-			printf("websocket-handler: dispatcher cond signaled\n");
 
 		if (pthread_mutex_unlock(&d->mutex))
 			err(1, "websocket-handler: pthread_mutex_unlock");
-		if (verbose > 1)
-			printf("websocket-handler: dispatcher mutex unlocked\n");
 	}
 	pthread_cleanup_pop(0);
 	pthread_cleanup_pop(0);
 	pthread_cleanup_pop(0);
-
 	return NULL;
 }
