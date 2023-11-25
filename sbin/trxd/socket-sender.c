@@ -35,44 +35,42 @@
 
 extern int verbose;
 
+static void
+cleanup(void *arg)
+{
+	free(arg);
+}
+
 void *
 socket_sender(void *arg)
 {
 	sender_tag_t *s = (sender_tag_t *)arg;
-	int status, nread, n, terminate;
-	char *buf, *p;
-	const char *command, *param;
 
 	if (pthread_detach(pthread_self()))
 		err(1, "socket-sender: pthread_detach");
+
+	pthread_cleanup_push(cleanup, arg);
 
 	if (pthread_setname_np(pthread_self(), "trxd-sender"))
 		err(1, "socket-sender: pthread_setname_np");
 
 	if (pthread_mutex_lock(&s->mutex))
 		err(1, "socket-sender: pthread_mutex_lock");
-	if (verbose > 1)
-		printf("socket-sender: mutex locked\n");
 
-	for (terminate = 0; !terminate ;) {
-		if (verbose > 1)
-			printf("socket-sender: wait for cond\n");
+	for (;;) {
 		while (s->data == NULL) {
 			if (pthread_cond_wait(&s->cond, &s->mutex))
 				err(1, "socket-sender: pthread_cond_wait");
-			if (verbose > 1)
-				printf("socket-sender: cond changed\n");
 		}
 
-		if (!terminate) {
-			if (verbose)
-				printf("socket-sender: -> %s\n", s->data);
-			trxd_writeln(s->socket, s->data);
-			s->data = NULL;
-			if (pthread_cond_signal(&s->cond2))
-				err(1, "socket-sender: pthread_cond_signal");
-		}
+		if (verbose)
+			printf("socket-sender: -> %s\n", s->data);
+
+		trxd_writeln(s->socket, s->data);
+		s->data = NULL;
+		if (pthread_cond_signal(&s->cond2))
+			err(1, "socket-sender: pthread_cond_signal");
 	}
-	free(arg);
+	pthread_cleanup_pop(0);
 	return NULL;
 }
