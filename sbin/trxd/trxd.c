@@ -59,6 +59,7 @@ int log_connections = 0;
 extern int luaopen_yaml(lua_State *);
 extern int luaopen_trxd(lua_State *);
 
+extern void proxy_map(lua_State *, lua_State *, int);
 extern void *socket_handler(void *);
 extern void *trx_controller(void *);
 extern void *relay_controller(void *);
@@ -66,11 +67,6 @@ extern void *websocket_listener(void *);
 extern void *extension(void *);
 
 extern int trx_control_running;
-
-trx_controller_tag_t *trx_controller_tag = NULL;
-gpio_controller_tag_t *gpio_controller_tag = NULL;
-relay_controller_tag_t *relay_controller_tag = NULL;
-extension_tag_t *extension_tag = NULL;
 
 destination_t *destination = NULL;
 
@@ -80,6 +76,51 @@ usage(void)
 	(void)fprintf(stderr, "usage: trxd [-dlv] [-b address] [-c path] "
 	    "[-g group] [-p port] [-u user] [-P path]\n");
 	exit(1);
+}
+
+int
+add_destination(const char *name, enum DestinationType type, void *arg)
+{
+	destination_t *d;
+
+	/* Destination names must be unique */
+	for (d = destination; d != NULL; d = d->next)
+		if (d->name == name)
+			return -1;
+
+	d = malloc(sizeof(destination_t));
+	if (d == NULL)
+		err(1, "malloc");
+
+	d->next = NULL;
+	d->name = name;
+	d->type = type;
+	switch (type) {
+	case DEST_TRX:
+		d->tag.trx = arg;
+		break;
+	case DEST_RELAY:
+		d->tag.relay = arg;
+		break;
+	case DEST_GPIO:
+		d->tag.gpio = arg;
+		break;
+	case DEST_EXTENSION:
+		d->tag.extension = arg;
+		break;
+	}
+
+
+	if (destination == NULL)
+		destination = d;
+	else {
+		destination_t *n;
+		n = destination;
+		while (n->next != NULL)
+			n = n->next;
+		n->next = d;
+	}
+	return 0;
 }
 
 int
@@ -332,6 +373,7 @@ main(int argc, char *argv[])
 			t->next = NULL;
 			t->handler = t->reply = NULL;
 			t->is_running = 0;
+			t->poller_required = 0;
 			t->poller_running = 0;
 			t->senders = NULL;
 
@@ -357,31 +399,8 @@ main(int argc, char *argv[])
 			t->is_default = lua_toboolean(L, -1);
 			lua_pop(L, 1);
 
-			if (trx_controller_tag == NULL)
-				trx_controller_tag = t;
-			else {
-				trx_controller_tag_t *n;
-				n = trx_controller_tag;
-				while (n->next != NULL)
-					n = n->next;
-				n->next = t;
-			}
-
-			d = malloc(sizeof(destination_t));
-			d->next = NULL;
-			d->name = t->name;
-			d->type = DEST_TRX;
-			d->tag.trx = t;
-
-			if (destination == NULL)
-				destination = d;
-			else {
-				destination_t *n;
-				n = destination;
-				while (n->next != NULL)
-					n = n->next;
-				n->next = d;
-			}
+			if (add_destination(t->name, DEST_TRX, t))
+				errx(1, "names must be unique");
 
 			if (pthread_mutex_init(&t->mutex, NULL))
 				goto terminate;
@@ -433,31 +452,8 @@ main(int argc, char *argv[])
 			t->driver = strdup(lua_tostring(L, -1));
 			lua_pop(L, 1);
 
-			if (relay_controller_tag == NULL)
-				relay_controller_tag = t;
-			else {
-				relay_controller_tag_t *n;
-				n = relay_controller_tag;
-				while (n->next != NULL)
-					n = n->next;
-				n->next = t;
-			}
-
-			d = malloc(sizeof(destination_t));
-			d->next = NULL;
-			d->name = t->name;
-			d->type = DEST_RELAY;
-			d->tag.relay = t;
-
-			if (destination == NULL)
-				destination = d;
-			else {
-				destination_t *n;
-				n = destination;
-				while (n->next != NULL)
-					n = n->next;
-				n->next = d;
-			}
+			if (add_destination(t->name, DEST_RELAY, t))
+				errx(1, "names must be unique");
 
 			if (pthread_mutex_init(&t->mutex, NULL))
 				goto terminate;
@@ -487,49 +483,85 @@ main(int argc, char *argv[])
 		while (lua_next(L, top)) {
 			extension_tag_t *t;
 			destination_t *d;
+			const char *p;
+			char script[PATH_MAX], *name;
+
+			int has_config = 0;
 
 			t = malloc(sizeof(extension_tag_t));
-			t->next = NULL;
-			t->handler = t->reply = NULL;
-			t->senders = NULL;
+			if (t == NULL)
+				err(1, "malloc");
+			t->L = luaL_newstate();
+			if (t->L == NULL)
+				err(1, "luaL_newstate");
 
+			luaL_openlibs(t->L);
+
+			t->next = NULL;
+			t->call = t->done = 0;
 			lua_getfield(L, -1, "name");
 			if (!lua_isstring(L, -1))
 				errx(1, "missing extension name");
-			t->name = strdup(lua_tostring(L, -1));
+			name = strdup(lua_tostring(L, -1));
+			lua_pop(L, 1);
+
+			lua_getfield(L, -1, "path");
+			if (lua_isstring(L, -1)) {
+				p = lua_tostring(L, -1);
+				lua_getglobal(t->L, "package");
+				lua_getfield(t->L, -1, "path");
+				lua_pushstring(t->L, ";");
+				lua_pushstring(t->L, p);
+				lua_concat(t->L, 3);
+				lua_setfield(t->L, -2, "path");
+				lua_pop(t->L, 1);
+			}
+			lua_pop(L, 1);
+
+			lua_getfield(L, -1, "cpath");
+			if (lua_isstring(L, -1)) {
+				p = lua_tostring(L, -1);
+				lua_getglobal(t->L, "package");
+				lua_getfield(t->L, -1, "cpath");
+				lua_pushstring(t->L, ";");
+				lua_pushstring(t->L, p);
+				lua_concat(t->L, 3);
+				lua_setfield(t->L, -2, "cpath");
+				lua_pop(t->L, 1);
+			}
 			lua_pop(L, 1);
 
 			lua_getfield(L, -1, "script");
 			if (!lua_isstring(L, -1))
 				errx(1, "missing extension script name");
-			t->script = strdup(lua_tostring(L, -1));
+
+			p = lua_tostring(L, -1);
+
+			if (strchr(p, '/'))
+				err(1, "script name must not contain slashes");
+
+			snprintf(script, sizeof(script), "%s/%s.lua",
+			    _PATH_EXTENSION, p);
+
 			lua_pop(L, 1);
 
-			if (extension_tag == NULL)
-				extension_tag = t;
-			else {
-				extension_tag_t *n;
-				n = extension_tag;
-				while (n->next != NULL)
-					n = n->next;
-				n->next = t;
-			}
+			if (luaL_loadfile(t->L, script))
+				err(1, "%s", lua_tostring(t->L, -1));
 
-			d = malloc(sizeof(destination_t));
-			d->next = NULL;
-			d->name = t->name;
-			d->type = DEST_EXTENSION;
-			d->tag.extension = t;
-
-			if (destination == NULL)
-				destination = d;
-			else {
-				destination_t *n;
-				n = destination;
-				while (n->next != NULL)
-					n = n->next;
-				n->next = d;
+			lua_getfield(L, -1, "configuration");
+			if (lua_istable(L, -1)) {
+				proxy_map(L, t->L, lua_gettop(t->L));
+				has_config = 1;
 			}
+			lua_pop(L, 1);
+
+			if (has_config)
+				lua_call(t->L, 1, 1);
+			else
+				lua_call(t->L, 0, 1);
+
+			if (add_destination(name, DEST_EXTENSION, t))
+				errx(1, "names must be unique");
 
 			if (pthread_mutex_init(&t->mutex, NULL))
 				goto terminate;
@@ -701,7 +733,6 @@ main(int argc, char *argv[])
 			    client_fd);
 		}
 	}
-
 terminate:
 	closelog();
 	return 0;
