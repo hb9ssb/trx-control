@@ -59,14 +59,27 @@ Connects to "14285" by default.
 .
 .SH COMMANDS
 .
+All commands can be prefixed by a destination.
+The request will then be dispatched/routed to the specified destination.
+Once a destination has been specified, it remains in place for subsequent
+commands until a new destination is specified.
+.
 .TP
-list-trx
-List all transceivers controlled by the
-.IR trxd (8)
-daemon we are connected to.
+!<Destination>
+Specify a destination for subsequent commands.
+.
+
 .TP
-use <trx>
-Use the transceiver <trx>.
+!<Destination> <command>
+Specify a destination for this and subsequent commands.
+This can be used as a prefix to the commands listed below.
+Use a single space character between the prefix and the command.
+.TP
+?
+List all destinations.
+.
+.SH COMMANDS TO CONTROL TRANSCEIVERS
+.
 .TP
 set-frequency <hz>
 Set the working frequency in hertz.

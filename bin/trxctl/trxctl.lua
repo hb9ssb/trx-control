@@ -23,144 +23,66 @@
 local function params(data)
 end
 
-local function listDestination()
-	local request = {
-		request = 'list-destination'
-	}
+local function vardump(value, depth, key)
+	local linePrefix = ""
+	local spaces = ""
 
-	trxctl.writeln(json.encode(request))
-	local reply = json.decode(trxctl.readln())
+	if key ~= nil then
+		linePrefix = "[" .. key .. "] = "
+	end
 
-	if reply.status == 'Ok' then
-		for k, v in pairs(reply.data) do
-			print(string.format('%-20s %s', v.name, v.type))
+	if depth == nil then
+		depth = 0
+	else
+		depth = depth + 1
+		for i = 1, depth do spaces = spaces .. " " end
+	end
+
+	if type(value) == 'table' then
+		mTable = getmetatable(value)
+		if mTable == nil then
+			print(spaces .. linePrefix .. "(table) ")
+		else
+			print(spaces .. "(metatable) ")
+			value = mTable
 		end
-	else
-		print(string.format('%s: %s', reply.status, reply.reason))
-	end
-end
-
-local function useTrx(trx)
-	local d = {
-		request = 'select-trx',
-		name = trx
-	}
-
-	trxctl.writeln(json.encode(d))
-	local reply = json.decode(trxctl.readln())
-	if reply.status == 'Ok' then
-		print(string.format('now using the %s transceiver', reply.name))
-	else
-		print(string.format('%s: %s', reply.status, reply.reason))
-	end
-end
-
-local function listTrx()
-	local request = {
-		request = 'list-trx'
-	}
-
-	trxctl.writeln(json.encode(request))
-	local reply = json.decode(trxctl.readln())
-
-	if reply.status == 'Ok' then
-		for k, v in pairs(reply.data) do
-			print(string.format('%-20s %s on %s', v.name, v.driver,
-			    v.device))
+		for tableKey, tableValue in pairs(value) do
+			vardump(tableValue, depth, tableKey)
 		end
+	elseif type(value) == 'function' or type(value) == 'thread'
+	    or type(value) == 'userdata' or type(value) == nil then
+		print(spaces .. tostring(value))
 	else
-		print(string.format('%s: %s', reply.status, reply.reason))
+		print(spaces .. linePrefix .. "(" .. type(value) .. ") " ..
+		    tostring(value))
 	end
 end
 
-local function lockTrx()
-	local d = {
-		request = 'lock-trx'
-	}
+function call(to, command, param)
+	local request = {}
 
-	trxctl.writeln(json.encode(d))
-	local reply = json.decode(trxctl.readln())
-	if reply.status == 'Ok' then
-		print('transceiver locked')
-	else
-		print(string.format('%s: %s', reply.status, reply.reason))
+	if command ~= nil then
+		request.request = command
 	end
-end
 
-local function unlockTrx()
-	local d = {
-		request = 'unlock-trx'
-	}
+	print('call', to, command, param)
 
-	trxctl.writeln(json.encode(d))
-	local reply = json.decode(trxctl.readln())
-	if reply.status == 'Ok' then
-		print('transceiver unlocked')
-	else
-		print(string.format('%s: %s', reply.status, reply.reason))
+	if to ~= nil then
+		request.to = to
 	end
-end
-local function setFrequency(freq)
-	local request = {
-		request = 'set-frequency',
-		frequency = freq
-	}
 
-	trxctl.writeln(json.encode(request))
-	local reply = json.decode(trxctl.readln())
-	print(reply.frequency)
-end
-
-local function getFrequency(freq)
-	local request = {
-		request = 'get-frequency'
-	}
-
-	trxctl.writeln(json.encode(request))
-	local reply = json.decode(trxctl.readln())
-	print(reply.frequency)
-end
-
-local function setMode(mode)
-	local request = {
-		request = 'set-mode'
-	}
-
-	for band, mode in string.gmatch(mode, "(%w+) +(%w+)") do
-		request.band = band
-		request.mode = mode
+	if param ~= nil then
+		request.data = {}
+		for k, v in string.gmatch(param, "(%w+)=(%w+)") do
+			print(k, v)
+			request.data[k] = v
+		end
 	end
 
 	trxctl.writeln(json.encode(request))
 	local reply = json.decode(trxctl.readln())
-	print(string.format('set mode of band %s to %s', reply.band,
-	    reply.mode))
-end
 
-local function getMode()
-	local request = {
-		request = 'get-mode'
-	}
-
-	trxctl.writeln(json.encode(request))
-	local reply = json.decode(trxctl.readln())
-	print(reply.mode)
-end
-
-local function startStatusUpdates()
-	local request = {
-		request = 'start-status-updates'
-	}
-	trxctl.writeln(json.encode(request))
-	local reply = json.decode(trxctl.readln())
-end
-
-local function stopStatusUpdates()
-	local request = {
-		request = 'stop-status-updates'
-	}
-	trxctl.writeln(json.encode(request))
-	local reply = json.decode(trxctl.readln(q))
+	vardump(reply)
 end
 
 local function ts(s)
@@ -168,28 +90,13 @@ local function ts(s)
 	return s:reverse():gsub('(%d%d%d)', '%1.'):reverse():gsub('^[.]', '')
 end
 
-local function handleStatusUpdate(jsonData)
+function handleStatusUpdate(jsonData)
 	local data = json.decode(jsonData)
 
 	if data == nil then
-		return string.format('received unparseable data %s', data)
+		print ('received unparseable data', data)
 	end
 
-	return string.format('%13s Hz %s',
-		    ts(data.status.frequency), string.upper(data.status.mode))
+	vardump(data)
 end
 
-return {
-	listDestination = listDestination,
-	useTrx = useTrx,
-	listTrx = listTrx,
-	lockTrx = lockTrx,
-	unlockTrx = unlockTrx,
-	setFrequency = setFrequency,
-	getFrequency = getFrequency,
-	setMode = setMode,
-	getMode = getMode,
-	startStatusUpdates = startStatusUpdates,
-	stopStatusUpdates = stopStatusUpdates,
-	handleStatusUpdate = handleStatusUpdate
-}

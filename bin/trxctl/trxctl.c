@@ -56,27 +56,8 @@ extern void luaopen_json(lua_State *);
 
 int fd = 0;
 int verbose = 0;
-int cmdhandler_ref = LUA_REFNIL;
 lua_State *L;
 wordexp_t p;
-
-static struct {
-	const char *command;
-	const char *func;
-} command_map[] = {
-	"use",			"useTrx",
-	"list-destination",	"listDestination",
-	"list-trx",		"listTrx",
-	"set-frequency",	"setFrequency",
-	"get-frequency",	"getFrequency",
-	"set-mode",		"setMode",
-	"get-mode",		"getMode",
-	"start-status-updates",	"startStatusUpdates",
-	"stop-status-updates",	"stopStatusUpdates",
-	"lock",			"lockTrx",
-	"unlock",		"unlockTrx",
-	NULL,			NULL
-};
 
 static void
 usage(void)
@@ -112,27 +93,20 @@ handle_status_updates()
 			lua_close(L);
 			errx(1, "trxd disconnected\n");
 		} else {
-			lua_geti(L, LUA_REGISTRYINDEX, cmdhandler_ref);
-			lua_getfield(L, -1, "handleStatusUpdate");
-			if (lua_type(L, -1) != LUA_TFUNCTION) {
-				fprintf(stderr, "status updates not supported,"
-				    " please submit a bug report\n");
-			} else {
-
-				lua_pushstring(L, line);
-				switch (lua_pcall(L, 1, 1, 0)) {
-				case LUA_OK:
-					break;
-				case LUA_ERRRUN:
-				case LUA_ERRMEM:
-				case LUA_ERRERR:
-					syslog(LOG_ERR, "Lua error: %s",
-					    lua_tostring(L, -1));
-					break;
-				}
-				if (lua_type(L, -1) == LUA_TSTRING)
-					printf("\n%s\n", lua_tostring(L, -1));
+			lua_getglobal(L, "handleStatusUpdate");
+			lua_pushstring(L, line);
+			switch (lua_pcall(L, 1, 1, 0)) {
+			case LUA_OK:
+				break;
+			case LUA_ERRRUN:
+			case LUA_ERRMEM:
+			case LUA_ERRERR:
+				syslog(LOG_ERR, "Lua error: %s",
+				    lua_tostring(L, -1));
+				break;
 			}
+			if (lua_type(L, -1) == LUA_TSTRING)
+				printf("\n%s\n", lua_tostring(L, -1));
 			lua_pop(L, 1);
 			free(line);
 			rl_forced_update_display();
@@ -161,7 +135,7 @@ int
 main(int argc, char *argv[])
 {
 	int c, n, terminate;
-	char *host, *port, buf[128], *line, *param;
+	char *host, *port, buf[128], *line, *param, *to;
 
 	verbose = 0;
 	host = DEFAULT_HOST;
@@ -218,11 +192,6 @@ main(int argc, char *argv[])
 		fprintf(stderr, "Lua error: %s", lua_tostring(L, -1));
 		exit(1);
 	}
-	if (lua_type(L, -1) != LUA_TTABLE) {
-		fprintf(stderr, "trxctl did not return a table\n");
-		exit(1);
-	} else
-		cmdhandler_ref = luaL_ref(L, LUA_REGISTRYINDEX);
 
 	fd = trxd_connect(host, port);
 	if (fd < 0) {
@@ -235,11 +204,26 @@ main(int argc, char *argv[])
 	rl_event_hook = handle_status_updates;
 
 	for (terminate = 0; !terminate; ) {
+		to = NULL;
+
 		line = rl_gets();
 
 		if (line == NULL) {
 			terminate = 1;
 			break;
+		}
+
+		if (*line == '!') {
+			char *p;
+
+			to = ++line;
+			p = strchr(to, ' ');
+			if (p) {
+				*p++ = '\0';
+				line = p;
+			} else
+				while (*line++)
+					;
 		}
 
 		param = strchr(line, ' ');
@@ -253,38 +237,35 @@ main(int argc, char *argv[])
 			terminate = 1;
 			break;
 		}
-		for (n = 0; command_map[n].command != NULL; n++)
-			if (!strcmp(command_map[n].command, line))
+
+		if (to || strlen(line)) {
+			lua_getglobal(L, "call");
+			if (lua_type(L, -1) != LUA_TFUNCTION)
+				errx(1, "call function not found");
+
+			if (to)
+				lua_pushstring(L, to);
+			else
+				lua_pushnil(L);
+			if (*line)
+				lua_pushstring(L, line);
+			else
+				lua_pushnil(L);
+			if (param)
+				lua_pushstring(L, param);
+			else
+				lua_pushnil(L);
+			switch (lua_pcall(L, 3, 1, 0)) {
+			case LUA_OK:
 				break;
-
-		if (command_map[n].command != NULL) {
-			lua_geti(L, LUA_REGISTRYINDEX, cmdhandler_ref);
-			lua_getfield(L, -1, command_map[n].func);
-			if (lua_type(L, -1) != LUA_TFUNCTION) {
-				fprintf(stderr, "command not supported,"
-				    " please submit a bug report\n");
-			} else {
-				if (param)
-					lua_pushstring(L, param);
-				switch (lua_pcall(L, param ? 1 : 0, 1,
-				    0)) {
-				case LUA_OK:
-					break;
-				case LUA_ERRRUN:
-				case LUA_ERRMEM:
-				case LUA_ERRERR:
-					syslog(LOG_ERR, "Lua error: %s",
-					    lua_tostring(L, -1));
-					break;
-				}
-				if (lua_type(L, -1) == LUA_TSTRING)
-					printf("trxctl > %s\n",
-					    lua_tostring(L, -1));
+			case LUA_ERRRUN:
+			case LUA_ERRMEM:
+			case LUA_ERRERR:
+				syslog(LOG_ERR, "Lua error: %s",
+				    lua_tostring(L, -1));
+				break;
 			}
-			lua_pop(L, 1);
-		} else if (*line)
-			printf("no such command\n");
-
+		}
 	}
 	write_history(p.we_wordv[0]);
 	wordfree(&p);
