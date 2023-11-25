@@ -40,7 +40,6 @@ extern int verbose;
 static void
 cleanup(void *arg)
 {
-	printf("trx-handler: cleanup\n");
 	free(arg);
 }
 
@@ -68,8 +67,6 @@ trx_handler(void *arg)
 	for (;;) {
 		if (pthread_mutex_lock(&t->mutex))
 			err(1, "trx-handler: pthread_mutex_lock");
-		if (verbose > 1)
-			printf("trx-handler: mutex locked\n");
 
 		if (poll(&pfd, 1, 0) == -1)
 			err(1, "trx-handler: poll");
@@ -88,18 +85,12 @@ trx_handler(void *arg)
 
 			if (pthread_mutex_lock(&t->mutex2))
 				err(1, "trx-handler: pthread_mutex_lock");
-			if (verbose > 1)
-				printf("trx-handler: mutex2 locked\n");
 
 			if (pthread_cond_signal(&t->cond1))
 				err(1, "trx-handler: pthread_cond_signal");
-			if (verbose > 1)
-				printf("trx-handler: cond1 signaled\n");
 
 			if (pthread_mutex_unlock(&t->mutex2))
 				err(1, "trx-handler: pthread_mutex_unlock");
-			if (verbose > 1)
-				printf("trx-handler: mutex2 unlocked\n");
 
 			while (t->reply == NULL) {
 				if (pthread_cond_wait(&t->cond2, &t->mutex2))
@@ -108,9 +99,6 @@ trx_handler(void *arg)
 			}
 			if (pthread_mutex_unlock(&t->mutex))
 				err(1, "trx-handler: pthread_mutex_unlock");
-			if (verbose > 1)
-				printf("trx-handler: mutex unlocked\n");
-
 		}
 	};
 	pthread_cleanup_pop(0);
