@@ -72,7 +72,6 @@ function call(to, command, param)
 	if param ~= nil then
 		request.data = {}
 		for k, v in string.gmatch(param, "(%w+)=(%w+)") do
-			print(k, v)
 			request.data[k] = v
 		end
 	end
