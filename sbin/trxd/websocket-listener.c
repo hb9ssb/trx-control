@@ -197,7 +197,7 @@ websocket_listener(void *arg)
 	}
 
 	/* Wait for connections as long as websocket_listener runs */
-	while (1) {
+	for (;;) {
 		struct timeval	 tv;
 		fd_set		 readfds;
 		int		 maxfd = -1;
