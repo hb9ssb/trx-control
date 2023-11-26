@@ -593,6 +593,8 @@ main(int argc, char *argv[])
 		t = malloc(sizeof(websocket_listener_t));
 		if (t == NULL)
 			err(1, "trxd: malloc");
+		t->ssl = NULL;
+		t->ctx = NULL;
 		lua_getfield(L, -1, "bind-address");
 		if (!lua_isstring(L, -1))
 			errx(1, "missing websocket bind-address");
