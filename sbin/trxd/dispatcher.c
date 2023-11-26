@@ -524,7 +524,6 @@ dispatcher(void *arg)
 		}
 		if (lua_type(L, -1) != LUA_TTABLE)
 			errx(1, "dispatcher: JSON does not decode to table");
-
 		/* decoded JSON data is now on top of the stack */
 		request = lua_gettop(L);
 		dest = NULL;
@@ -567,7 +566,8 @@ dispatcher(void *arg)
 				destination_set(d);
 		}
 		free(d->data);
-		lua_pop(L, 2);
+		lua_pop(L, 4);
+
 	}
 	pthread_cleanup_pop(0);
 	pthread_cleanup_pop(0);

@@ -8,8 +8,7 @@ proxy_map(lua_State *L, lua_State *R, int t)
 	int top, istable = 0;
 	char nam[64];
 
-	luaL_checkstack(R, 3, "out of stack space");
-
+	luaL_checkstack(R, 32, "out of stack space");
 	switch (lua_type(L, -2)) {
 	case LUA_TNUMBER:
 		lua_pushnumber(R, lua_tonumber(L, -2));
