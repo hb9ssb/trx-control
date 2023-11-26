@@ -61,5 +61,5 @@ end
 
 function ping(request)
 	vardump(request)
-	return { reply = 'pong' }
+	return { status = 'Ok', reply = 'pong' }
 end
