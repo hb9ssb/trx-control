@@ -53,8 +53,7 @@
 		document.getElementById('status').innerHTML = 'Connected'
 
 		var request = {
-			request: "to",
-			name: "FT-897"
+			to: "FT-897",
 		};
 
 		websocket.send(JSON.stringify(request))
