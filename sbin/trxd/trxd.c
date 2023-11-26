@@ -496,6 +496,8 @@ main(int argc, char *argv[])
 				err(1, "luaL_newstate");
 
 			luaL_openlibs(t->L);
+			luaopen_trxd(t->L);
+			lua_setglobal(t->L, "trxd");
 
 			t->next = NULL;
 			t->call = t->done = 0;

@@ -46,6 +46,7 @@
 
 extern int luaopen_trx(lua_State *);
 extern int luaopen_trxd(lua_State *);
+extern int luaopen_trx_controller(lua_State *);
 extern int luaopen_json(lua_State *);
 extern void *trx_handler(void *);
 
@@ -123,6 +124,8 @@ trx_controller(void *arg)
 
 	luaopen_trx(t->L);
 	lua_setglobal(t->L, "trx");
+	luaopen_trx_controller(t->L);
+	lua_setglobal(t->L, "trxController");
 	luaopen_trxd(t->L);
 	lua_setglobal(t->L, "trxd");
 	luaopen_json(t->L);

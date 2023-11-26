@@ -20,7 +20,7 @@
  * IN THE SOFTWARE.
  */
 
-/* Provide the 'trxd' Lua module to all Lua states */
+/* Provide the 'trxController' Lua module to the driver upper half */
 
 #include <err.h>
 #include <pthread.h>
@@ -35,24 +35,47 @@
 #include "trx-control.h"
 #include "trxd.h"
 
-extern int verbose;
+extern destination_t *destination;
 
 static int
-luatrxd_verbose(lua_State *L)
+notify_listeners(lua_State *L)
 {
-	lua_pushinteger(L, verbose);
-	return 1;
+	int n;
+	sender_list_t *l;
+	const char *device;
+	char *data;
+	destination_t *d;
+
+	device = luaL_checkstring(L, 1);
+	data = (char *)luaL_checkstring(L, 2);
+
+	for (d = destination; d != NULL; d = d->next) {
+		if (d->type == DEST_TRX
+		    && !strcmp(d->tag.trx->device, device)) {
+			for (l = d->tag.trx->senders; l != NULL; l = l->next) {
+				if (pthread_mutex_lock(&l->sender->mutex))
+					err(1, "luatrxd: pthread_mutex_lock");
+				l->sender->data = data;
+				if (pthread_cond_signal(&l->sender->cond))
+					err(1, "luatrxd: pthread_cond_signal");
+				if (pthread_mutex_unlock(&l->sender->mutex))
+					err(1, "luatrxd: pthread_mutex_unlock");
+			}
+			break;
+		}
+	}
+	return 0;
 }
 
 int
-luaopen_trxd(lua_State *L)
+luaopen_trx_controller(lua_State *L)
 {
-	struct luaL_Reg luatrxd[] = {
-		{ "verbose",		luatrxd_verbose },
+	struct luaL_Reg luatrxcontroller[] = {
+		{ "notifyListeners",		notify_listeners },
 		{ NULL, NULL }
 	};
 
-	luaL_newlib(L, luatrxd);
+	luaL_newlib(L, luatrxcontroller);
 	lua_pushliteral(L, "_COPYRIGHT");
 	lua_pushliteral(L, "Copyright (c) 2023 Marc Balmer HB9SSB");
 	lua_settable(L, -3);
@@ -60,7 +83,7 @@ luaopen_trxd(lua_State *L)
 	lua_pushliteral(L, "trx-control internal functions for Lua");
 	lua_settable(L, -3);
 	lua_pushliteral(L, "_VERSION");
-	lua_pushliteral(L, "trxd 1.0.0");
+	lua_pushliteral(L, "trxController 1.0.0");
 	lua_settable(L, -3);
 
 	return 1;

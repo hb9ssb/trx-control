@@ -91,7 +91,7 @@ local function pollHandler(data, fd)
 		}
 
 		local jsonData = json.encode(status)
-		trxd.notifyListeners(device, jsonData)
+		trxController.notifyListeners(device, jsonData)
 		lastFrequency = frequency
 		lastMode = mode
 	else
@@ -109,7 +109,7 @@ local function dataHandler(data)
 				status = reply
 			}
 			local jsonData = json.encode(status)
-			trxd.notifyListeners(device, jsonData)
+			trxController.notifyListeners(device, jsonData)
 		end
 	end
 end

@@ -9,6 +9,7 @@ SRCS=		trxd.c \
 		trx-handler.c \
 		trx-poller.c \
 		luatrxd.c \
+		luatrx-controller.c \
 		luatrx.c \
 		proxy.c \
 		luayaml.c \
@@ -72,6 +73,8 @@ base64.o:		Makefile base64.c base64.h
 luatrx.o:	Makefile luatrx.c trxd.h
 
 luatrxd.o:	Makefile luatrxd.c trxd.h trx-control.h
+
+luatrx-controller.o:	Makefile luatrx-controller.c trxd.h trx-control.h
 
 proxy.o:	Makefile proxy.c trx-control.h
 
