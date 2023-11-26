@@ -22,7 +22,9 @@
 
 local config = ... or {}
 
-print 'initializing the trx-control ping extension'
+if trxd.verbose() > 0 then
+	print 'initializing the trx-control ping extension'
+end
 
 local function vardump(value, depth, key)
 	local linePrefix = ""
@@ -60,6 +62,8 @@ local function vardump(value, depth, key)
 end
 
 function ping(request)
-	vardump(request)
+	if config.vardump == true then
+		vardump(request)
+	end
 	return { status = 'Ok', reply = 'pong' }
 end
