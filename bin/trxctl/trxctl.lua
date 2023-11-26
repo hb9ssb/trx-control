@@ -65,8 +65,6 @@ function call(to, command, param)
 		request.request = command
 	end
 
-	print('call', to, command, param)
-
 	if to ~= nil then
 		request.to = to
 	end
