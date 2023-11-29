@@ -22,7 +22,7 @@ on Lua.
 
 ## Supported transceivers
 
-trx-control supports the following transceivers, more will be added aver time:
+trx-control supports the following transceivers, more will be added over time:
 
 * Yaesu FT-710
 * Yaesu FT-897
