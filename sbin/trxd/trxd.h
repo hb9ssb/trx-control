@@ -34,8 +34,6 @@
 #define TRXD_USER	"trxd"
 #define TRXD_GROUP	"trxd"
 
-#define SWITCH_TRX	"switch-trx:"
-
 typedef struct sender_tag sender_tag_t;
 
 typedef struct sender_list {

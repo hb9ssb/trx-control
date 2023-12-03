@@ -202,7 +202,7 @@ start_updater_if_not_running(trx_controller_tag_t *t)
 			lua_pcall(t->L, 0, 1, 0);
 			t->handler_eol = lua_tointeger(t->L, -1);
 			if (verbose > 1)
-				printf("EOL characater is %c\n", t->handler_eol);
+				printf("EOL character is %c\n", t->handler_eol);
 			pthread_create(&t->trx_handler, NULL, trx_handler, t);
 		}
 	}
