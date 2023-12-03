@@ -200,8 +200,7 @@ websocket_listener(void *arg)
 	for (;;) {
 		struct timeval	 tv;
 		fd_set		 readfds;
-		int		 maxfd = -1;
-		int		 r;
+		int		 r, maxfd = -1;
 
 		FD_ZERO(&readfds);
 		for (i = 0; i < MAXLISTEN; ++i) {
