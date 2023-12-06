@@ -74,8 +74,6 @@ typedef struct trx_controller_tag {
 	int			 handler_running;
 	int			 handler_eol;
 
-	struct trx_controller_tag	*next;
-
 	sender_list_t		*senders;
 } trx_controller_tag_t;
 
@@ -99,8 +97,6 @@ typedef struct gpio_controller_tag {
 	int			 poller_running;
 	int			 poller_suspended;
 	int			 handler_running;
-
-	struct gpio_controller_tag	*next;
 } gpio_controller_tag_t;
 
 typedef struct relay_controller_tag {
@@ -128,8 +124,6 @@ typedef struct relay_controller_tag {
 	int			 poller_running;
 	int			 poller_suspended;
 	int			 handler_running;
-
-	struct relay_controller_tag	*next;
 } relay_controller_tag_t;
 
 typedef struct extension_tag {
@@ -146,8 +140,6 @@ typedef struct extension_tag {
 	lua_State		*L;
 
 	pthread_t		 extension;
-
-	struct extension_tag	*next;
 } extension_tag_t;
 
 enum DestinationType {

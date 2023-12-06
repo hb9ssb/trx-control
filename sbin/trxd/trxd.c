@@ -370,7 +370,6 @@ main(int argc, char *argv[])
 			destination_t *d;
 
 			t = malloc(sizeof(trx_controller_tag_t));
-			t->next = NULL;
 			t->handler = t->reply = NULL;
 			t->is_running = 0;
 			t->poller_required = 0;
@@ -433,7 +432,6 @@ main(int argc, char *argv[])
 			destination_t *d;
 
 			t = malloc(sizeof(relay_controller_tag_t));
-			t->next = NULL;
 			t->handler = t->reply = NULL;
 			t->is_running = 0;
 			t->poller_running = 0;
@@ -499,7 +497,6 @@ main(int argc, char *argv[])
 			luaopen_trxd(t->L);
 			lua_setglobal(t->L, "trxd");
 
-			t->next = NULL;
 			t->call = t->done = 0;
 			lua_getfield(L, -1, "name");
 			if (!lua_isstring(L, -1))
