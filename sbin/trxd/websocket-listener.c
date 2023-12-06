@@ -58,12 +58,7 @@
 #define LISTEN_PORT	"14290"
 
 extern void *websocket_handler(void *);
-extern void *trx_controller(void *);
-
-extern int trx_control_running;
 extern int log_connections;
-
-extern trx_controller_tag_t *trx_controller_tag;
 
 #define BUFSIZE		65535
 
