@@ -118,9 +118,8 @@ void *
 websocket_listener(void *arg)
 {
 	websocket_listener_t *t = (websocket_listener_t *)arg;
-	pthread_t thread;
 	struct addrinfo hints, *res, *res0;
-	int fd, listen_fd[MAXLISTEN], i, ch, error, val, ret;
+	int listen_fd[MAXLISTEN], i, error, val, ret;
 
 	if (pthread_detach(pthread_self()))
 		err(1, "websocket-listener: pthread_detach");
@@ -219,7 +218,7 @@ websocket_listener(void *arg)
 		for (i = 0; i < MAXLISTEN; ++i) {
 			struct sockaddr_storage	 sa;
 			socklen_t		 len;
-			int			*client_fd, err;
+			int			*client_fd;
 			char			 hbuf[NI_MAXHOST];
 			websocket_t		*w;
 
@@ -280,8 +279,6 @@ websocket_listener(void *arg)
 			}
 		}
 	}
-
-terminate:
 	closelog();
 	return 0;
 }

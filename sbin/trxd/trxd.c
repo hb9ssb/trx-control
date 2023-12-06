@@ -367,7 +367,6 @@ main(int argc, char *argv[])
 		lua_pushnil(L);
 		while (lua_next(L, top)) {
 			trx_controller_tag_t *t;
-			destination_t *d;
 
 			t = malloc(sizeof(trx_controller_tag_t));
 			t->handler = t->reply = NULL;
@@ -429,7 +428,6 @@ main(int argc, char *argv[])
 		lua_pushnil(L);
 		while (lua_next(L, top)) {
 			relay_controller_tag_t *t;
-			destination_t *d;
 
 			t = malloc(sizeof(relay_controller_tag_t));
 			t->handler = t->reply = NULL;
@@ -480,7 +478,6 @@ main(int argc, char *argv[])
 		lua_pushnil(L);
 		while (lua_next(L, top)) {
 			extension_tag_t *t;
-			destination_t *d;
 			const char *p;
 			char script[PATH_MAX], *name;
 

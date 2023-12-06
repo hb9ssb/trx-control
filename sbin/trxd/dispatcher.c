@@ -361,8 +361,6 @@ call_extension(lua_State *L, dispatcher_tag_t* d, extension_tag_t *e,
 static void
 dispatch(lua_State *L, dispatcher_tag_t *d, destination_t *to, const char *req)
 {
-	extension_tag_t *e;
-
 	switch (to->type) {
 	case DEST_TRX:
 		call_trx_controller(d, to->tag.trx);
@@ -462,9 +460,8 @@ dispatcher(void *arg)
 	trx_controller_tag_t *t;
 	destination_t *to, *dst;
 	lua_State *L;
-	int status, nread, n, terminate, request;
-	char *buf, *p;
-	const char *command, *param, *dest, *req;
+	int status, request;
+	const char *dest, *req;
 
 	if (pthread_detach(pthread_self()))
 		err(1, "dispatcher: pthread_detach");

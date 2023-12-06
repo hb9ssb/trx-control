@@ -143,8 +143,7 @@ websocket_handler(void *arg)
 	websocket_t *w = (websocket_t *)arg;
 	sender_tag_t *s;
 	dispatcher_tag_t *d;
-	int status, nread, n;
-	char *buf, *p;
+	char *buf;
 
 	if (pthread_detach(pthread_self()))
 		err(1, "websocket-handler: pthread_detach");
