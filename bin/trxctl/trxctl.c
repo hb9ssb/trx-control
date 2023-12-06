@@ -189,7 +189,7 @@ main(int argc, char *argv[])
 	luaopen_json(L);
 	lua_setglobal(L, "json");
 	if (luaL_dofile(L, _PATH_TRXCTL)) {
-		fprintf(stderr, "Lua error: %s", lua_tostring(L, -1));
+		fprintf(stderr, "Lua error: %s\n", lua_tostring(L, -1));
 		exit(1);
 	}
 
