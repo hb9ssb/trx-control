@@ -34,17 +34,14 @@ pid-file: trxd.pid
 # The list of transceivers we can control
 trx:
   ft-897:
-    name: FT-897
     device: /dev/ttyUSB2
     driver: yaesu-ft-897
 
   simulator:
-    name: Simulator
     device: /dev/null
     driver: simulator
 
   ft-710:
-    name: FT-710
     device: /dev/ttyUSB0
     driver: yaesu-ft-710
     default: true
@@ -52,7 +49,6 @@ trx:
 # The list of relays we can control
 relays:
   dummy:
-    name: Dummy
     type: HID
     idVendor: 0x1234
     idProduct: 0x5678
@@ -60,5 +56,4 @@ relays:
 
 extensions:
   ping:
-    name: Ping
     script: ping
