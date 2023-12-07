@@ -52,7 +52,7 @@ typedef struct trx_controller_tag {
 	pthread_cond_t		 cond2;	/* A reply is set */
 	char			*reply;
 
-	const char		*name;
+	char			*name;
 	const char		*device;
 	const char		*driver;
 	int			 is_default;
@@ -110,7 +110,7 @@ typedef struct relay_controller_tag {
 	pthread_cond_t		 cond2;	/* A reply is set */
 	char			*reply;
 
-	const char		*name;
+	char			*name;
 	const char		*device;
 	const char		*driver;
 	int			 is_default;

@@ -484,7 +484,7 @@ main(int argc, char *argv[])
 			lua_setglobal(t->L, "trxd");
 
 			t->call = t->done = 0;
-			name = strdup(lua_tostring(L, -2));
+			name = (char *)lua_tostring(L, -2);
 
 			lua_getfield(L, -1, "path");
 			if (lua_isstring(L, -1)) {

@@ -49,10 +49,25 @@ extern int luaopen_json(lua_State *);
 extern trx_controller_tag_t *trx_controller_tag;
 extern int verbose;
 
+static void
+cleanup(void *arg)
+{
+	relay_controller_tag_t *t = (relay_controller_tag_t *)arg;
+	free(t->name);
+	free(arg);
+}
+
+static void
+cleanup_lua(void *arg)
+{
+	lua_State *L = (lua_State *)arg;
+	lua_close(L);
+}
+
 void *
 relay_controller(void *arg)
 {
-	relay_controller_tag_t *tag = (relay_controller_tag_t *)arg;
+	relay_controller_tag_t *t = (relay_controller_tag_t *)arg;
 	lua_State *L;
 	int fd, n, driver_ref;
 	struct stat sb;
@@ -65,20 +80,24 @@ relay_controller(void *arg)
 	if (pthread_setname_np(pthread_self(), "trxd-relay"))
 		err(1, "relay-controller: pthread_setname_np");
 
+	pthread_cleanup_push(cleanup, arg);
+
 	/*
 	 * Lock this transceivers mutex, so that no other thread accesses
 	 * while we are initialising.
 	 */
-	if (pthread_mutex_lock(&tag->mutex))
+	if (pthread_mutex_lock(&t->mutex))
 		err(1, "relay-controller: pthread_mutex_lock");
 
-	if (pthread_mutex_lock(&tag->mutex2))
+	if (pthread_mutex_lock(&t->mutex2))
 		err(1, "relay-controller: pthread_mutex_lock");
 
 	/* Setup Lua */
 	L = luaL_newstate();
 	if (L == NULL)
 		err(1, "relay-controller: luaL_newstate");
+
+	pthread_cleanup_push(cleanup_lua, L);
 
 	luaL_openlibs(L);
 
@@ -87,25 +106,25 @@ relay_controller(void *arg)
 	luaopen_json(L);
 	lua_setglobal(L, "json");
 
-	tag->is_running = 1;
+	t->is_running = 1;
 
 	/*
 	 * We are ready to go, unlock the mutex, so that client-handlers,
 	 * trx-handlers, and, try-pollers can access it.
 	 */
-	if (pthread_mutex_unlock(&tag->mutex))
+	if (pthread_mutex_unlock(&t->mutex))
 		err(1, "relay-controller: pthread_mutex_unlock");
 
 	while (1) {
 		int nargs = 1;
 
 		/* Wait on cond, this releases the mutex */
-		while (tag->handler == NULL) {
-			if (pthread_cond_wait(&tag->cond1, &tag->mutex2))
+		while (t->handler == NULL) {
+			if (pthread_cond_wait(&t->cond1, &t->mutex2))
 				err(1, "relay-controller: pthread_cond_wait");
 		}
 
-		lua_pushstring(L, tag->data);
+		lua_pushstring(L, t->data);
 
 		switch (lua_pcall(L, 1, 1, 0)) {
 		case LUA_OK:
@@ -118,16 +137,17 @@ relay_controller(void *arg)
 			break;
 		}
 		if (lua_type(L, -1) == LUA_TSTRING)
-			tag->reply = (char *)lua_tostring(L, -1);
+			t->reply = (char *)lua_tostring(L, -1);
 		else
-			tag->reply = "";
+			t->reply = "";
 
 		lua_pop(L, 2);
-		tag->handler = NULL;
+		t->handler = NULL;
 
-		if (pthread_cond_signal(&tag->cond2))
+		if (pthread_cond_signal(&t->cond2))
 			err(1, "relay-controller: pthread_cond_signal");
 	}
-	lua_close(L);
+	pthread_cleanup_pop(0);
+	pthread_cleanup_pop(0);
 	return NULL;
 }

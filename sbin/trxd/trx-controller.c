@@ -58,6 +58,7 @@ cleanup(void *arg)
 	trx_controller_tag_t *t = (trx_controller_tag_t *)arg;
 	if (t->L)
 		lua_close(t->L);
+	free(t->name);
 	free(arg);
 }
 
