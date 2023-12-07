@@ -557,13 +557,13 @@ dispatcher(void *arg)
 					status_updates_not_supported(d);
 			} else if (req && !strcmp(req, "list-destination"))
 				list_destination(d);
-			else if (req)
+			else if (req) {
 				dispatch(L, d, dst, req);
-			else
+				lua_pop(L, 4);
+			} else
 				destination_set(d);
 		}
 		free(d->data);
-		lua_pop(L, 4);
 
 	}
 	pthread_cleanup_pop(0);
