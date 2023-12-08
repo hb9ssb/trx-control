@@ -559,7 +559,8 @@ dispatcher(void *arg)
 				list_destination(d);
 			else if (req) {
 				dispatch(L, d, dst, req);
-				lua_pop(L, 4);
+				/* XXX check stack depth */
+				/* lua_pop(L, 4); */
 			} else
 				destination_set(d);
 		}
