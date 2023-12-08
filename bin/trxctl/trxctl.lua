@@ -41,9 +41,9 @@ local function vardump(value, depth, key)
 	if type(value) == 'table' then
 		mTable = getmetatable(value)
 		if mTable == nil then
-			print(spaces .. linePrefix .. "(table) ")
+			print(spaces .. linePrefix)
 		else
-			print(spaces .. "(metatable) ")
+			print(spaces)
 			value = mTable
 		end
 		for tableKey, tableValue in pairs(value) do
@@ -53,8 +53,7 @@ local function vardump(value, depth, key)
 	    or type(value) == 'userdata' or type(value) == nil then
 		print(spaces .. tostring(value))
 	else
-		print(spaces .. linePrefix .. "(" .. type(value) .. ") " ..
-		    tostring(value))
+		print(spaces .. linePrefix .. tostring(value))
 	end
 end
 
