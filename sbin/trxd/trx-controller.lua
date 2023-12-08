@@ -67,6 +67,19 @@ local function requestHandler(data, fd)
 		reply.band, reply.mode = driver:setMode(request.band, request.mode)
 	elseif request.request == 'get-mode' then
 		reply.mode = driver:getMode(request.band)
+	elseif request.request == 'get-info' then
+		reply.name = driver.name or 'unspecified'
+		reply.frequencyRange = driver.frequencyRange or {
+			min = 0,
+			max = 0
+		}
+		if driver.validModes ~= nil then
+			reply.operatingModes = {}
+			for k, v in pairs(driver.validModes) do
+				reply.operatingModes[#reply.operatingModes + 1]
+				    = k
+			end
+		end
 	elseif request.request == 'lock-trx' then
 		driver:setLock()
 	elseif request.request == 'unlock-trx' then
