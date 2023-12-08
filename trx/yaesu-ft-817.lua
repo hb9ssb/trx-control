@@ -43,4 +43,9 @@ ft817.ctcssModes = {
 
 ft817.name = 'Yaesu FT-817'
 
+ft817.frequencyRange = {
+	min = 100000,
+	max = 450000000
+}
+
 return ft817

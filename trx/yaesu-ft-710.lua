@@ -35,7 +35,7 @@ ft710.validModes = {
 	['data-l'] = '8',
 	['rtty-u'] = '9',
 	['data-fm'] = 'A',
-	['rm-n'] = 'B',
+	['fm-n'] = 'B',
 	['data-u'] = 'C',
 	['am-n'] = 'D',
 	['psk'] = 'E',
@@ -43,5 +43,10 @@ ft710.validModes = {
 }
 
 ft710.name = 'Yaesu FT-710'
+
+ft710.frequencyRange = {
+	min = 30000,
+	max = 75000000
+}
 
 return ft710

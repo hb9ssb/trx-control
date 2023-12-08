@@ -35,4 +35,9 @@ simulator.validModes = {
 
 simulator.name = 'Simulator'
 
+simulator.frequencyRange = {
+	min = 1000,
+	max = 10000000000
+}
+
 return simulator
