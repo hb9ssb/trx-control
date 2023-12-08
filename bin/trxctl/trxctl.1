@@ -18,7 +18,7 @@
 .\" FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 .\" IN THE SOFTWARE.
 .\"
-.TH TRXCTL 1 "7 October 2023" "trx-control"
+.TH TRXCTL 1 "8 December 2023" "trx-control"
 .
 .SH NAME
 trxctl
@@ -80,6 +80,10 @@ List all destinations.
 .
 .SH COMMANDS TO CONTROL TRANSCEIVERS
 .
+.TP
+get-info
+Show information about the transceiver, i.e. the name, frequency range, and,
+a list of valid operating modes.
 .TP
 set-frequency <hz>
 Set the working frequency in hertz.
