@@ -77,7 +77,7 @@ end
 connectDatabase()
 
 -- Public functions
-function logQSO(data)
+function logQSO(request)
 	if checkDatabase() == false then
 		return {
 			status = 'Failure',
@@ -85,13 +85,45 @@ function logQSO(data)
 		}
 	end
 
-	return {
-		status = 'Failure',
-		reason = 'Not implemented'
-	}
+	local data = request.data
+	if data == nil then
+		return {
+			status = 'Failure',
+			reason = 'Missing request data'
+		}
+	end
+
+	if data.call == nil or data.operatorCall == nil then
+		return {
+			status = 'Failure',
+			reason = 'Missing mandatory QSO data'
+		}
+	end
+
+	local res <close> = db:execParams([[
+	insert
+	  into logbook.logbook (call, name, qso_start, qso_end, qth, locator,
+				frequency, mode, operator_call, remarks)
+	values ($1, $2, $3::timestamptz, $4::timestamptz, $5, $6, $7::bigint,
+		$8, $9, $10)
+	]], data.call, data.name, data.qsoStart, data.qsoEnd, data.qth,
+	    data.locator, data.frequency, data.mode, data.operatorCall,
+	    data.remarks)
+
+	if res:status() == pgsql.PGRES_COMMAND_OK then
+		return {
+			status = 'Ok',
+			message = 'QSO logged'
+		}
+	else
+		return {
+			status = 'Failure',
+			reason = res:errorMessage()
+		}
+	end
 end
 
-function lookupCallsign(data)
+function lookupCallsign(request)
 	if checkDatabase() == false then
 		return {
 			status = 'Failure',
@@ -99,8 +131,32 @@ function lookupCallsign(data)
 		}
 	end
 
+	local data = request.data
+	if data == nil then
+		return {
+			status = 'Failure',
+			reason = 'Missing request data'
+		}
+	end
+
+	if data.callsign == nil then
+		return {
+			status = 'Failure',
+			reason = 'Missing callsign'
+		}
+	end
+
+	local res <close> = db:execParams([[
+	  select call, name, qso_start as qsoStart, qso_end as qsoEnd, qth,
+		 locator, frequency, mode, operator_call as operatorCall,
+		 remarks
+	    from logbook.logbook
+	   where call ilike $1
+	order by qso_start
+	]], '%' .. data.callsign .. '%')
+
 	return {
-		status = 'Failure',
-		reason = 'Not implemented'
+		status = 'Ok',
+		data = res:copy()
 	}
 end
