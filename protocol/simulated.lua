@@ -63,6 +63,11 @@ end
 
 return {
 	name = 'simulated',
+	capabilities = {	-- driver specific
+		frequency = true,
+		mode = true,
+		lock = true
+	},
 	validModes = {},
 	ctcssModes = {},
 	statusUpdatesRequirePolling = true,

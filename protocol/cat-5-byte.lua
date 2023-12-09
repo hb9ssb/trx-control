@@ -88,8 +88,13 @@ end
 
 return {
 	name = 'Yaesu 5-byte CAT protocol',
-	validModes = {},
-	ctcssModes = {},
+	capabilities = {	-- driver specific
+		frequency = true,
+		mode = true,
+		lock = true
+	},
+	validModes = {},	-- trx specific
+	ctcssModes = {},	-- trx specific
 	statusUpdatesRequirePolling = true,
 	initialize = initialize,
 	startStatusUpdates = nil,

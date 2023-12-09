@@ -189,6 +189,11 @@ end
 return {
 	name = 'Yaesu character delimited CAT protocol',
 	ID = '0000',
+	capabilities = {	-- driver specific
+		frequency = true,
+		mode = true,
+		lock = true
+	},
 	validModes = {},
 	ctcssModes = {},
 	initialize = initialize,
