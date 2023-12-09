@@ -57,3 +57,10 @@ relays:
 extensions:
   ping:
     script: ping
+
+  logbook:
+    script: logbook
+    cpath: /usr/local/lua/5.4/?.so
+      configuration:
+        connStr: dbname=trx_control
+        datestyle: German

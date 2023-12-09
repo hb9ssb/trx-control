@@ -1,0 +1,106 @@
+-- Copyright (c) 2023 Marc Balmer HB9SSB
+--
+-- Permission is hereby granted, free of charge, to any person obtaining a copy
+-- of this software and associated documentation files (the "Software"), to
+-- deal in the Software without restriction, including without limitation the
+-- rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+-- sell copies of the Software, and to permit persons to whom the Software is
+-- furnished to do so, subject to the following conditions:
+--
+-- The above copyright notice and this permission notice shall be included in
+-- all copies or substantial portions of the Software.
+--
+-- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+-- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+-- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+-- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+-- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+-- FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+-- IN THE SOFTWARE.
+
+-- The logbook extension for trx-control provides a hamradio logbook that
+-- store all data in a PostgreSQL database.
+
+-- To use the pgsql Lua module you must build and install it from
+-- https://github.com/arcapos/luapgsql. Indicate the path where you stored
+-- the pgsql.so file in the configuration variable cpath of the extension.
+
+local pgsql = require 'pgsql'
+
+-- The configuration is stored in trxd.yaml under the extension.  The following
+-- configuration parameters are used:
+
+-- connStr: The PostgreSQL connection string, i.e. database, user, password,
+-- etc.
+
+-- datestyle: The PostgreSQL datestyle to be used
+
+local config = ...
+
+if config.connStr == nil then
+	print 'logbook: missing connection string'
+	return
+end
+
+if trxd.verbose() > 0 then
+	print 'initializing the trx-control logbook extension'
+end
+
+local function setupDatabase()
+	if config.datestyle ~= nil then
+		local res <close> = db:exec(string.format(
+		    "set datestyle to '%s'", config.datestyle))
+	end
+end
+
+-- Functions used internally by the logbook extension
+local function connectDatabase()
+	connStr = config.connStr or
+	    'dbname=trx_control fallback_application_name=logbook'
+
+	db = pgsql.connectdb(connStr)
+
+	if db:status() ~= pgsql.CONNECTION_OK then
+		print('can not connect to database: ' .. db:errorMessage())
+	else
+		setupDatabase()
+	end
+end
+
+local function checkDatabase()
+	if db:status() ~= pgsql.CONNECTION_OK then
+		connectDatabase()
+	end
+	return db:status() == pgsql.CONNECTION_OK
+end
+
+connectDatabase()
+
+-- Public functions
+function logQSO(data)
+	if checkDatabase() == false then
+		return {
+			status = 'Failure',
+			reason = 'Database not connected'
+		}
+	end
+
+	return {
+		status = 'Failure',
+		reason = 'Not implemented'
+	}
+end
+
+function lookupCallsign(data)
+	if checkDatabase() == false then
+		return {
+			status = 'Failure',
+			reason = 'Database not connected'
+		}
+	end
+
+	return {
+		status = 'Failure',
+		reason = 'Not implemented'
+	}
+end
