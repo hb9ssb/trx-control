@@ -24,6 +24,7 @@ on Lua.
 
 trx-control supports the following transceivers, more will be added over time:
 
+* ICOM IC-705
 * Yaesu FT-710
 * Yaesu FT-897
 * Yaesu FT-817
