@@ -20,6 +20,42 @@
 
 -- ICOM CI-V protocol
 
+-- Internal functions
+local function sendMessage(cn, sc, data)
+	local message = '\xfe\xfe\xa4\xe0' .. cn
+
+	if sc ~= nil then
+		message = message .. sc
+	end
+
+	message = message .. data .. '\xfd'
+
+	print('write message of ' .. #message .. ' bytes to trx')
+
+	for n = 1, #message do
+		io.write(string.format('%02x ', string.byte(message, n)))
+	end
+	print('')
+
+	trx.write(message)
+end
+
+local function recvReply()
+	local reply = trx.read(6)
+
+	print('got reply: ')
+	for n = 1, #reply do
+		io.write(string.format('%02x ', string.byte(reply, n)))
+	end
+	print('')
+	if string.byte(reply, 5) == 0xfb then
+		return true
+	else
+		return false
+	end
+end
+
+-- Exported functions
 local function initialize(driver)
 	print (driver.name .. ': initialize')
 end
@@ -32,8 +68,25 @@ local function unlock(driver)
 	print (driver.name .. ': unlocked')
 end
 
-local function setFrequency(driver, freq)
-	print (string.format('%s: set fequency to %s', driver.name, freq))
+local function setFrequency(driver, frequency)
+	print (string.format('%s: set frequency to %s', driver.name, frequency))
+
+	local freq = string.sub(string.format('%010d', frequency), 1, -1)
+	print('freq', freq)
+	local bcd = string.reverse(trx.stringToBcd(freq))
+
+	for n = 1, #bcd do
+		io.write(string.format('%02x ', string.byte(bcd, n)))
+	end
+	print('')
+	print('bcd len:', #bcd)
+	print('setting frequency')
+	sendMessage('\x05', nil, bcd)
+	if recvReply() == true then
+		print 'frequency set'
+	else
+		print 'frequency not set'
+	end
 	return frequency
 end
 
