@@ -1,0 +1,2 @@
+SUBSYSTEMS=="usb", KERNEL=="ttyACM*", ATTRS{idVendor}=="0c26", ATTRS{idProduct}=="0036", ENV{ID_USB_INTERFACE_NUM}=="00", MODE:="0666", SYMLINK+="ic-705-ci-v"
+SUBSYSTEMS=="usb", KERNEL=="ttyACM*", ATTRS{idVendor}=="0c26", ATTRS{idProduct}=="0036", ENV{ID_USB_INTERFACE_NUM}=="02", MODE:="0666", SYMLINK+="ic-705-nmea"
