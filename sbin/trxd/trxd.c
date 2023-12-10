@@ -372,6 +372,7 @@ main(int argc, char *argv[])
 			t->name = strdup(lua_tostring(L, -2));
 			t->handler = t->reply = NULL;
 			t->is_running = 0;
+			t->speed = 9600;
 			t->poller_required = 0;
 			t->poller_running = 0;
 			t->senders = NULL;
@@ -380,6 +381,11 @@ main(int argc, char *argv[])
 			if (!lua_isstring(L, -1))
 				errx(1, "missing trx device path");
 			t->device = strdup(lua_tostring(L, -1));
+			lua_pop(L, 1);
+
+			lua_getfield(L, -1, "speed");
+			if (lua_isinteger(L, -1))
+				t->speed =lua_tointeger(L, -1);
 			lua_pop(L, 1);
 
 			lua_getfield(L, -1, "driver");

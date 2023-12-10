@@ -21,7 +21,6 @@
 -- Yaesu character delimited CAT protocol
 
 local function initialize(driver)
-	trx.setspeed(38400)
 	trx.write('ID;')
 	local reply = trx.read(7)
 	if reply ~= 'ID' .. driver.ID .. ';' then

@@ -54,6 +54,7 @@ typedef struct trx_controller_tag {
 
 	char			*name;
 	const char		*device;
+	int			 speed;
 	const char		*driver;
 	int			 is_default;
 

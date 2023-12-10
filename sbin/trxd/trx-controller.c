@@ -106,6 +106,8 @@ trx_controller(void *arg)
 		else {
 			cfmakeraw(&tty);
 			tty.c_cflag |= CLOCAL;
+			cfsetspeed(&tty, t->speed);
+
 			if (tcsetattr(fd, TCSADRAIN, &tty) < 0)
 				err(1, "trx-controller: tcsetattr");
 		}

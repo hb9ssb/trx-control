@@ -35,6 +35,7 @@ pid-file: trxd.pid
 trx:
   ft-897:
     device: /dev/ttyUSB2
+    speed: 38400
     driver: yaesu-ft-897
 
   simulator:
@@ -43,6 +44,7 @@ trx:
 
   ft-710:
     device: /dev/ttyUSB0
+    speed: 38400
     driver: yaesu-ft-710
     default: true
 

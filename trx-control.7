@@ -18,7 +18,7 @@
 .\" FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 .\" IN THE SOFTWARE.
 .\"
-.TH TRX-CONTROL 7 "25 November 2023" "trx-control"
+.TH TRX-CONTROL 7 "10 December 2023" "trx-control"
 .SH NAME
 trx-control \- software to control amateur radio transceivers
 .SH DESCRIPTION
@@ -67,17 +67,18 @@ trx-control supports the following transceivers, more will be added over time:
 .PP
 .TS
 l l l.
-Manufacturor	Model	Driver	CAT Bit Rate
+Manufacturor	Model	Driver
 .T&
 l l l.
 _
-Yaesu	FT-710	yaesu-ft-710	38400
-Yaesu	FT-897	yaesu-ft-897	38400
-Yaesu	FT-817	yaesu-ft-817	38400
+Yaesu	FT-710	yaesu-ft-710
+Yaesu	FT-897	yaesu-ft-897
+Yaesu	FT-817	yaesu-ft-817
 .TE
 .PP
-Make sure to set the CAT bit rate to the value expected by
-.IR trxd (8) .
+Make sure to set the CAT bit rate used by the transceiver in the
+.IR trxd (8)
+configuration file.
 .
 .
 .SH FILES

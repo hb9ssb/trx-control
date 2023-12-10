@@ -21,7 +21,6 @@
 -- Yaesu 5-byte CAT protocol
 
 local function initialize(driver)
-	trx.setspeed(38400)
 end
 
 local function setLock(driver)

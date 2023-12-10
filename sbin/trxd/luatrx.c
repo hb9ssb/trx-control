@@ -52,28 +52,6 @@ get_fd(lua_State *L)
 }
 
 static int
-luatrx_setspeed(lua_State *L)
-{
-	struct termios tty;
-	int fd;
-
-	fd = get_fd(L);
-	if (isatty(fd)) {
-		if (tcgetattr(fd, &tty) < 0) {
-			lua_pushboolean(L, 0);
-		} else {
-			cfsetspeed(&tty, luaL_checkinteger(L, 1));
-			if (tcsetattr(fd, TCSADRAIN, &tty) < 0) {
-				lua_pushboolean(L, 0);
-			} else
-				lua_pushboolean(L, 1);
-		}
-	} else
-		lua_pushboolean(L, 0);
-	return 1;
-}
-
-static int
 luatrx_read(lua_State *L)
 {
 	struct pollfd pfd;
@@ -168,7 +146,6 @@ luaopen_trx(lua_State *L)
 {
 	struct luaL_Reg luatrx[] = {
 		{ "version",		luatrx_version },
-		{ "setspeed",		luatrx_setspeed },
 		{ "read",		luatrx_read },
 		{ "write",		luatrx_write },
 		{ "bcdToString",	bcd_to_string },
@@ -184,7 +161,7 @@ luaopen_trx(lua_State *L)
 	lua_pushliteral(L, "trx-control for Lua");
 	lua_settable(L, -3);
 	lua_pushliteral(L, "_VERSION");
-	lua_pushliteral(L, "trx 1.0.0");
+	lua_pushliteral(L, "trx 1.1.0");
 	lua_settable(L, -3);
 
 	return 1;
