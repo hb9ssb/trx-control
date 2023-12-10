@@ -1,5 +1,6 @@
 PROTO=		cat-delimited.lua \
 		cat-5-byte.lua \
+		ci-v.lua \
 		simulated.lua
 
 PROTODIR?=	/usr/share/trxd/protocol
