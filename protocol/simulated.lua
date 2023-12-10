@@ -46,13 +46,13 @@ local function getFrequency(driver)
 	return frequency, mode
 end
 
-local function setMode(driver, mode)
-	print (string.format('%s: set mode to %s', driver.name, mode))
-	if driver.validModes[mode] ~= nil then
-		mode = mode
+local function setMode(driver, newMode)
+	print (string.format('%s: set mode to %s', driver.name, newMode))
+	if driver.validModes[newMode] ~= nil then
+		mode = newMode
 		return mode
 	else
-		return 'invalid mode ' .. mode
+		return 'invalid mode ' .. newMode
 	end
 end
 
