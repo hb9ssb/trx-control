@@ -78,6 +78,23 @@ typedef struct trx_controller_tag {
 	sender_list_t		*senders;
 } trx_controller_tag_t;
 
+typedef struct nmea_tag {
+	/* The first mutex locks the trx-controller */
+	pthread_mutex_t		 mutex;
+
+	pthread_mutex_t		 mutex2;
+	pthread_cond_t		 cond1;	/* A handler is set */
+	const char		*handler;
+
+	pthread_cond_t		 cond2;	/* A reply is set */
+	char			*reply;
+
+	int			 fd;
+	pthread_t		 nmea_handler;
+
+	sender_list_t		*senders;
+} nmea_tag_t;
+
 typedef struct gpio_controller_tag {
 	/* The first mutex locks the gpio-controller */
 	pthread_mutex_t		 mutex;

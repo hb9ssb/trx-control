@@ -39,6 +39,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <syslog.h>
+#include <termios.h>
 #include <unistd.h>
 
 #include <lua.h>
@@ -60,6 +61,7 @@ extern int luaopen_yaml(lua_State *);
 extern int luaopen_trxd(lua_State *);
 
 extern void proxy_map(lua_State *, lua_State *, int);
+extern void *nmea_handler(void *);
 extern void *socket_handler(void *);
 extern void *trx_controller(void *);
 extern void *relay_controller(void *);
@@ -607,6 +609,53 @@ main(int argc, char *argv[])
 
 		/* Create the websocket-listener thread */
 		pthread_create(&t->listener, NULL, websocket_listener, t);
+		lua_pop(L, 1);
+	}
+	lua_pop(L, 1);
+
+	/* Setup NMEA listening */
+	lua_getfield(L, -1, "nmea");
+	if (lua_istable(L, -1)) {
+		nmea_tag_t *t;
+		struct termios tty;
+		const char *device;
+		int speed = 9600;
+
+		t = malloc(sizeof(nmea_tag_t));
+		if (t == NULL)
+			err(1, "trxd: malloc");
+
+		lua_getfield(L, -1, "device");
+		if (!lua_isstring(L, -1))
+			errx(1, "missing nmea device");
+		device = lua_tostring(L, -1);
+		lua_pop(L, 1);
+
+		lua_getfield(L, -1, "speed");
+		if (lua_isinteger(L, -1))
+			speed = lua_tointeger(L, -1);
+		lua_pop(L, 1);
+
+
+		t->fd = open(device, O_RDWR);
+		if (t->fd == -1)
+			err(1, "trxd: open");
+
+		if (isatty(t->fd)) {
+			if (tcgetattr(t->fd, &tty) < 0)
+				err(1, "nmea-handler: tcgetattr");
+			else {
+				cfmakeraw(&tty);
+				tty.c_cflag |= CLOCAL;
+				cfsetspeed(&tty, speed);
+
+				if (tcsetattr(t->fd, TCSADRAIN, &tty) < 0)
+					err(1, "nmea-handler: tcsetattr");
+			}
+		}
+
+		/* Create the nmea-handler thread */
+		pthread_create(&t->nmea_handler, NULL, nmea_handler, t);
 		lua_pop(L, 1);
 	}
 	lua_pop(L, 1);

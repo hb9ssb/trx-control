@@ -11,6 +11,7 @@ SRCS=		trxd.c \
 		luatrxd.c \
 		luatrx-controller.c \
 		luatrx.c \
+		nmea-handler.c \
 		proxy.c \
 		luayaml.c \
 		buffer.c \
@@ -87,6 +88,8 @@ gpio-controller.o:	Makefile gpio-controller.c pathnames.h trxd.h
 relay-controller.o:	Makefile relay-controller.c pathnames.h trxd.h
 
 trx-handler.o:	Makefile trx-handler.c trxd.h
+
+nmea-handler.o:	Makefile nmea-handler.c trxd.h
 
 trx-poller.o:	Makefile trx-poller.c trxd.h
 

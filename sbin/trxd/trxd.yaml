@@ -21,6 +21,10 @@ websocket:
   certificate: server.pem
   handshake: trx-control
 
+nmea:
+  device: /dev/ic-705-nmea
+  speed: 9600
+
 # We log incoming connection using syslog
 log-connections: true
 
