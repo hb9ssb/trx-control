@@ -28,7 +28,11 @@ local function sendMessage(cn, sc, data)
 		message = message .. sc
 	end
 
-	message = message .. data .. '\xfd'
+	if data ~= nil then
+		message = message .. data
+	end
+
+	message = message .. '\xfd'
 
 	print('write message of ' .. #message .. ' bytes to trx')
 
@@ -92,7 +96,20 @@ end
 
 local function getFrequency(driver)
 	print (driver.name .. ': get frequency')
-	return 0, 'usb'
+
+	sendMessage('\x03')
+	local reply = trx.read(11)
+
+	print('got reply: ')
+	for n = 1, #reply do
+		io.write(string.format('%02x ', string.byte(reply, n)))
+	end
+	print('')
+
+	local freq = trx.bcdToString(string.reverse(string.sub(reply, 6, -2)))
+	print('freq as string', freq)
+
+	return tonumber(freq), 'usb'
 end
 
 local function setMode(driver, mode)
