@@ -26,8 +26,10 @@ trx-control supports the following transceivers, more will be added over time:
 
 * ICOM IC-705
 * Yaesu FT-710
+* Yaesu FT-891
 * Yaesu FT-897
 * Yaesu FT-817
+* Yaesu FT-991a
 
 A special simulator transceiver driver exists for development and testing
 purposes.
