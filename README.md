@@ -36,14 +36,3 @@ purposes.
 
 More information can be found the wiki at
 https://github.com/hb9ssb/trx-control/wiki
-
-## WhatsApp Channel
-
-Stay up to date with the development of trx-control and subscribe to
-the trx-control WhatsApp channel:
-https://whatsapp.com/channel/0029Va7xZIv42DcgOcGE853s
-
-## Signal group
-
-You can join a group on signal to discuss trx-control:
-https://signal.group/#CjQKIDkha6NGciRN-eA-qWjMTvtDfLkCeUBR_CDFtkMPJH9wEhAAVKw8SHl3dGIvVU2AT2sR
