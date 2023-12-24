@@ -1,7 +1,8 @@
 # trx-control
 
-Software to control amateur radio transceivers and related hardware like
-relays, GPIO-pins and rotators.
+Extensible software to control amateur radio transceivers and related hardware
+like relays, GPIO-pins and rotators and to integration clients with third-party
+software using application specific extensions.
 
 trx-control consists of trxd(8), a daemon to control the transceivers and
 other hardware, trxctl(1), a command line utility to access trxd(8), and,
@@ -14,11 +15,10 @@ trxd(8) listens on port 14285 by default for incoming connections over
 plain sockets and can optionally listen for WebSocket connections. It supports
 both IPv4 and IPv6.
 
-The effective transceiver control is done using Lua modules,
-this way new transceivers can easily be supported by supplying
-a corresponding Lua driver module for a specific transceiver model.
-See https://lua.org and https://lua.msys.ch for more information
-on Lua.
+The actual transceiver control is done using Lua modules, this way new
+transceivers can easily be supported by supplying a corresponding Lua driver
+module for a specific transceiver model. See https://lua.org and
+https://lua.msys.ch for more information on Lua.
 
 ## Supported transceivers
 
