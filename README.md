@@ -34,6 +34,10 @@ trx-control supports the following transceivers, more will be added over time:
 A special simulator transceiver driver exists for development and testing
 purposes.
 
+## trx-control on Matrix
+
+There is a Matrix room #trx-control:matrix.org to discuss trx-control.
+
 ## More information
 
 More information can be found the wiki at
