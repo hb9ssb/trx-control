@@ -36,7 +36,8 @@ purposes.
 
 ## trx-control on Matrix
 
-There is a Matrix room #trx-control:matrix.org to discuss trx-control.
+There is a Matrix room ``#trx-control:matrix.org`` to discuss trx-control:
+https://matrix.to/#/#trx-control:matrix.org.
 
 ## More information
 
