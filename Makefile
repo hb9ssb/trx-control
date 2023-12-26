@@ -1,11 +1,13 @@
 SUBDIR+=	bin/trxctl \
 		bin/xqrg \
+		gpio \
 		lib/liblua \
 		lib/libtrx-control \
 		extension \
 		protocol \
 		trx \
-		sbin/trxd
+		sbin/trxd \
+		udev
 
 MANDIR?=	/usr/share/man
 

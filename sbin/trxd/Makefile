@@ -3,6 +3,7 @@ SRCS=		trxd.c \
 		extension.c \
 		trx-controller.c \
 		gpio-controller.c \
+		gpio-poller.c \
 		relay-controller.c \
 		socket-handler.c \
 		socket-sender.c \
@@ -42,8 +43,8 @@ build:		trxd
 clean:
 		rm -f trxd *.o
 
-.PHONY: install trxd.8 trx-controller.lua trxd.yaml
-install:	trxd trxd.8 trx-controller.lua trxd.yaml
+.PHONY: install trxd.8 trx-controller.lua gpio-controller.lua trxd.yaml
+install:	trxd trxd.8 trx-controller.lua gpio-controller.lua trxd.yaml
 		install -m 755 trxd $(DESTDIR)$(SBINDIR)
 
 trxd:		${OBJS}
@@ -54,6 +55,9 @@ trxd.8:
 		@gzip -f $(DESTDIR)$(MANDIR)/man8/$@
 
 trx-controller.lua:
+		@install -D -m 644 $@ $(DESTDIR)$(TRXDDIR)/$@
+
+gpio-controller.lua:
 		@install -D -m 644 $@ $(DESTDIR)$(TRXDDIR)/$@
 
 trxd.yaml:

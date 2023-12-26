@@ -1,0 +1,3 @@
+SUBSYSTEMS=="usb", KERNEL=="ttyACM*", \
+	ATTRS{idVendor}=="09ca", ATTRS{idProduct}=="5544", \
+	MODE:="0666", SYMLINK+="bmcm-usb-pio"

@@ -52,6 +52,12 @@ trx:
     driver: yaesu-ft-710
     default: true
 
+# The list of GPIO devices
+gpio:
+  usb-pio:
+    device: /dev/bmcm-usb-pio
+    driver: bmcm-usb-pio
+
 # The list of relays we can control
 relays:
   dummy:

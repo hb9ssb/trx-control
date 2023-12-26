@@ -64,6 +64,7 @@ extern void proxy_map(lua_State *, lua_State *, int);
 extern void *nmea_handler(void *);
 extern void *socket_handler(void *);
 extern void *trx_controller(void *);
+extern void *gpio_controller(void *);
 extern void *relay_controller(void *);
 extern void *websocket_listener(void *);
 extern void *extension(void *);
@@ -422,6 +423,64 @@ main(int argc, char *argv[])
 		}
 	} else if (verbose)
 		printf("trxd: no trx defined\n");
+	lua_pop(L, 1);
+
+	/* Setup the gpio-controllers */
+	lua_getfield(L, -1, "gpio");
+	if (lua_istable(L, -1)) {
+		top = lua_gettop(L);
+		lua_pushnil(L);
+		while (lua_next(L, top)) {
+			gpio_controller_tag_t *t;
+
+			t = malloc(sizeof(gpio_controller_tag_t));
+			t->name = strdup(lua_tostring(L, -2));
+			t->handler = t->reply = NULL;
+			t->is_running = 0;
+			t->speed = 9600;
+			t->poller_required = 0;
+			t->poller_running = 0;
+			t->senders = NULL;
+
+			lua_getfield(L, -1, "device");
+			if (!lua_isstring(L, -1))
+				errx(1, "missing gpio device path");
+			t->device = strdup(lua_tostring(L, -1));
+			lua_pop(L, 1);
+
+			lua_getfield(L, -1, "speed");
+			if (lua_isinteger(L, -1))
+				t->speed =lua_tointeger(L, -1);
+			lua_pop(L, 1);
+
+			lua_getfield(L, -1, "driver");
+			if (!lua_isstring(L, -1))
+				errx(1, "missing gpio driver name");
+			t->driver = strdup(lua_tostring(L, -1));
+			lua_pop(L, 1);
+
+			if (add_destination(t->name, DEST_GPIO, t))
+				errx(1, "names must be unique");
+
+			if (pthread_mutex_init(&t->mutex, NULL))
+				goto terminate;
+
+			if (pthread_mutex_init(&t->mutex2, NULL))
+				goto terminate;
+
+			if (pthread_cond_init(&t->cond1, NULL))
+				goto terminate;
+
+			if (pthread_cond_init(&t->cond2, NULL))
+				goto terminate;
+
+			/* Create the gpio-controller thread */
+			pthread_create(&t->gpio_controller, NULL,
+			    gpio_controller, t);
+			lua_pop(L, 1);
+		}
+	} else if (verbose)
+		printf("trxd: no gpio defined\n");
 	lua_pop(L, 1);
 
 	/* Setup the relay-controllers */

@@ -18,7 +18,7 @@
 .\" FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 .\" IN THE SOFTWARE.
 .\"
-.TH TRXD 8 "25 November 2023" "trx-control"
+.TH TRXD 8 "27 December 2023" "trx-control"
 .
 .SH NAME
 trxd
@@ -88,9 +88,12 @@ Manufacturor	Model	Driver
 .T&
 l l l.
 _
+ICOM	IC-705	icom-ic-705
 Yaesu	FT-710	yaesu-ft-710
+Yaesu	FT-891	yaesu-ft-891
 Yaesu	FT-897	yaesu-ft-897
 Yaesu	FT-817	yaesu-ft-817
+Yaesu	FT-991a	yaesu-ft-991a
 .TE
 .
 .
@@ -115,6 +118,12 @@ These can be used by the actual drivers.
 .I /usr/share/trxd/trx
 Directory containing the actual transceiver drivers.
 New drivers must be added in this directory.
+.
+.TP
+.I /usr/share/trxd/gpio
+Directory containing the actual GPIO drivers.
+New GPIO drivers must be added in this directory.
+
 .
 .TP
 .I /usr/share/trxd/extension

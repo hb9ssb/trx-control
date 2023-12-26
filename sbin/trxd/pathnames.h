@@ -24,11 +24,13 @@
 #define __TRXD_PATHNAMES_H__
 
 #define _PATH_TRX		"/usr/share/trxd/trx"
+#define _PATH_GPIO		"/usr/share/trxd/gpio"
 #define _PATH_EXTENSION		"/usr/share/trxd/extension"
 #define _PATH_PROTOCOL		"/usr/share/trxd/protocol"
 #define _PATH_ROTATOR		"/usr/share/trxd/rotator"
 #define _PATH_RELAY		"/usr/share/trxd/relay"
 #define _PATH_TRX_CONTROLLER	"/usr/share/trxd/trx-controller.lua"
+#define _PATH_GPIO_CONTROLLER	"/usr/share/trxd/gpio-controller.lua"
 #define _PATH_CFG		"/etc/trxd.yaml"
 
 #endif /* __TRXD_PATHNAMES_H__ */

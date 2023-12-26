@@ -106,15 +106,26 @@ typedef struct gpio_controller_tag {
 	pthread_cond_t		 cond2;	/* A reply is set */
 	char			*reply;
 
+	char			*name;
+	const char		*device;
+	int			 speed;
+	const char		*driver;
+
+	lua_State		*L;
+	int			 ref;
+
 	char			*data;
 
 	pthread_t		 gpio_controller;
 	pthread_t		 gpio_poller;
 	pthread_t		 gpio_handler;
 	int			 is_running;
+	int			 poller_required;
 	int			 poller_running;
 	int			 poller_suspended;
 	int			 handler_running;
+
+	sender_list_t		*senders;
 } gpio_controller_tag_t;
 
 typedef struct relay_controller_tag {
