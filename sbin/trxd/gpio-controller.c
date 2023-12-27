@@ -45,6 +45,8 @@
 #include "trxd.h"
 
 extern int luaopen_trxd(lua_State *);
+extern int luaopen_gpio_controller(lua_State *);
+extern int luaopen_gpio(lua_State *);
 extern int luaopen_json(lua_State *);
 
 extern int verbose;
@@ -110,6 +112,8 @@ gpio_controller(void *arg)
 		}
 	}
 
+	t->gpio_device = fd;
+
 	/* Setup Lua */
 	t->L = luaL_newstate();
 	if (t->L == NULL)
@@ -117,8 +121,15 @@ gpio_controller(void *arg)
 
 	luaL_openlibs(t->L);
 
+	lua_pushinteger(t->L, fd);
+	lua_setglobal(t->L, "_GPIO_DEVICE");
+
+	luaopen_gpio(t->L);
+	lua_setglobal(t->L, "gpio");
 	luaopen_trxd(t->L);
 	lua_setglobal(t->L, "trxd");
+	luaopen_gpio_controller(t->L);
+	lua_setglobal(t->L, "gpioController");
 	luaopen_json(t->L);
 	lua_setglobal(t->L, "json");
 
@@ -176,25 +187,34 @@ gpio_controller(void *arg)
 			if (pthread_cond_wait(&t->cond1, &t->mutex2))
 				err(1, "gpio-controller: pthread_cond_wait");
 		}
+		lua_geti(t->L, LUA_REGISTRYINDEX, t->ref);
+		lua_getfield(t->L, -1, t->handler);
+		if (lua_type(t->L, -1) != LUA_TFUNCTION) {
+			t->reply = "command not supported, "
+			    "please submit a bug report";
+		} else {
+			lua_pushstring(t->L, t->data);
+			t->reply = NULL;
 
+			switch (lua_pcall(t->L, 1, 1, 0)) {
+			case LUA_OK:
+				if (lua_type(t->L, -1) == LUA_TSTRING)
+					t->reply =
+					    (char *)lua_tostring(t->L, -1);
+				else
+					t->reply = "";
+				break;
+			case LUA_ERRRUN:
+			case LUA_ERRMEM:
+			case LUA_ERRERR:
+				t->reply = "{\"status\":\"Error\","
+				    "\"reason\":\"Lua error\"}";
 
-		lua_pushstring(t->L, t->data);
-
-		switch (lua_pcall(t->L, 1, 1, 0)) {
-		case LUA_OK:
-			break;
-		case LUA_ERRRUN:
-		case LUA_ERRMEM:
-		case LUA_ERRERR:
-			syslog(LOG_ERR, "Lua error: %s",
-				lua_tostring(t->L, -1));
-			break;
+				syslog(LOG_ERR, "Lua error: %s",
+				    lua_tostring(t->L, -1));
+				break;
+			}
 		}
-		if (lua_type(t->L, -1) == LUA_TSTRING)
-			t->reply = (char *)lua_tostring(t->L, -1);
-		else
-			t->reply = "";
-
 		lua_pop(t->L, 2);
 		t->handler = NULL;
 

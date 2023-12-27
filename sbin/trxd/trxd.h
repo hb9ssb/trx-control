@@ -116,6 +116,7 @@ typedef struct gpio_controller_tag {
 
 	char			*data;
 
+	int			 gpio_device;
 	pthread_t		 gpio_controller;
 	pthread_t		 gpio_poller;
 	pthread_t		 gpio_handler;

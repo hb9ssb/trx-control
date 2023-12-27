@@ -20,3 +20,9 @@
 
 -- bmcm USB-PIO driver
 
+-- direct driver commands
+
+return {
+	name = 'BMCM USB-PIO driver',
+	statusUpdatesRequirePolling = true
+}

@@ -4,6 +4,8 @@ SRCS=		trxd.c \
 		trx-controller.c \
 		gpio-controller.c \
 		gpio-poller.c \
+		luagpio-controller.c \
+		luagpio.c \
 		relay-controller.c \
 		socket-handler.c \
 		socket-sender.c \

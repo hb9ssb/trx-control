@@ -111,8 +111,6 @@ local decoders = {
 }
 
 local function handleStatusUpdates(driver, data)
-	print('FT-710: handle status update, data:', data)
-
 	local command = string.sub(data, 1, 2)
 	local decoder = decoders[command]
 	if decoder ~= nil then
