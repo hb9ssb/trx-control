@@ -54,26 +54,19 @@ local function requestHandler(data, fd)
 		})
 	end
 
-	if request.data == nil then
-		return json.encode({
-			status = 'Error',
-			reason = 'No request data'
-		})
-	end
-	local data = request.data
 	local reply = {
 		status = 'Ok',
 		reply = request.request
 	}
 
 	if request.request == 'set-frequency' then
-		reply.frequency = driver:setFrequency(tonumber(data.frequency))
+		reply.frequency = driver:setFrequency(tonumber(request.frequency))
 	elseif request.request == 'get-frequency' then
 		reply.frequency, reply.mode = driver:getFrequency()
 	elseif request.request == 'set-mode' then
-		reply.band, reply.mode = driver:setMode(data.band, rdata.mode)
+		reply.band, reply.mode = driver:setMode(request.band, request.mode)
 	elseif request.request == 'get-mode' then
-		reply.mode = driver:getMode(data.band)
+		reply.mode = driver:getMode(request.band)
 	elseif request.request == 'get-info' then
 		reply.name = driver.name or 'unspecified'
 		reply.frequencyRange = driver.frequencyRange or {

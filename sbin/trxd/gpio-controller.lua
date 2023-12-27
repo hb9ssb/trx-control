@@ -54,13 +54,6 @@ local function requestHandler(data, fd)
 		})
 	end
 
-	if request.data == nil then
-		return json.encode({
-			status = 'Error',
-			reason = 'No request data'
-		})
-	end
-	local data = request.data
 	local reply = {
 		status = 'Ok',
 		reply = request.request
