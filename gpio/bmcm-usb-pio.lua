@@ -22,7 +22,45 @@
 
 -- direct driver commands
 
+local function setOutput(io, value)
+end
+
+local function getInput(io)
+end
+
+local function getOutput(io)
+end
+
+local function getDirection(io)
+end
+
+local function setGroupDirection(group, direction)
+end
+
+local function getGroupDirection(goup)
+end
+
 return {
 	name = 'BMCM USB-PIO driver',
-	statusUpdatesRequirePolling = true
+	ioNum = 24,
+
+	-- ioGroups are groups of IO pins whose direction can only be set
+	-- as a whole group. Set portGroups to nil if the direction of all
+	-- IO pins can be individually set.
+	-- Note that GPIO pins are 1 based.
+
+	ioGroups = {
+		{ from = 1, to = 8 },
+		{ from = 9, to = 16 },
+		{ from = 17, to = 20 },
+		{ from = 21, to = 24 }
+	},
+	statusUpdatesRequirePolling = true,
+	setOutput = setOutput,
+	getInput = getInput,
+	getOutput = getOutput,
+	setDirection = nil,
+	getDirection = getDirection,
+	setGroupDirection = setGroupDirection,
+	getGroupDirection = getGroupDirection
 }

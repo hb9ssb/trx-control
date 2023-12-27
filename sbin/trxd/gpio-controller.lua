@@ -20,8 +20,6 @@
 
 -- Upper half of gpio-control
 
--- XXX this has been copied from trx-controller.lua and is not yet working
-
 local driver = {}
 local device = ''
 
@@ -61,6 +59,39 @@ local function requestHandler(data, fd)
 
 	if request.request == 'get-info' then
 		reply.name = driver.name or 'unspecified'
+		reply.ioNum = driver.ioNum or 'unspecified'
+		if driver.ioGroups ~= nil then
+			reply.ioGroups = driver.ioGroups
+		end
+	elseif request.request == 'set-output' then
+	elseif request.request == 'get-input' then
+	elseif request.request == 'get-output' then
+	elseif request.request == 'set-direction' then
+		if driver.setDirection == nil then
+			reply.status = 'Error'
+			reply.reason =
+			    'IO direction can not be programmed individually'
+		else
+		end
+	elseif request.request == 'get-direction' then
+		if driver.setDirection == nil then
+			reply.status = 'Error'
+			reply.reason =
+			    'IO direction can not be programmed individually'
+		else
+		end
+	elseif request.request == 'set-group-direction' then
+		if driver.setDirection == nil then
+			reply.status = 'Error'
+			reply.reason = 'IO groups not supported by driver'
+		else
+		end
+	elseif request.request == 'get-group-direction' then
+		if driver.setDirection == nil then
+			reply.status = 'Error'
+			reply.reason = 'IO groups not supported by driver'
+		else
+		end
 	else
 		reply.status = 'Error'
 		reply.reason = 'Unknown request'
@@ -70,6 +101,7 @@ local function requestHandler(data, fd)
 end
 
 local function pollHandler(data, fd)
+	--[[
 	local frequency, mode = driver:getFrequency()
 	if lastFrequency ~= frequency or lastMode ~= mode then
 		local status = {
@@ -81,32 +113,18 @@ local function pollHandler(data, fd)
 		}
 
 		local jsonData = json.encode(status)
-		trxController.notifyListeners(device, jsonData)
+		gpioController.notifyListeners(device, jsonData)
 		lastFrequency = frequency
 		lastMode = mode
 	else
 		return nil
 	end
-end
-
--- Handle incoming data from the transceiver
-local function dataHandler(data)
-	if type(driver.handleStatusUpdates) == 'function' then
-		local reply = driver:handleStatusUpdates(data)
-		if reply ~= nil then
-			local status = {
-				request = 'status-update',
-				status = reply
-			}
-			local jsonData = json.encode(status)
-			trxController.notifyListeners(device, jsonData)
-		end
-	end
+	--]]
+	return nil
 end
 
 return {
 	registerDriver = registerDriver,
 	requestHandler = requestHandler,
-	pollHandler = pollHandler,
-	dataHandler = dataHandler
+	pollHandler = pollHandler
 }
