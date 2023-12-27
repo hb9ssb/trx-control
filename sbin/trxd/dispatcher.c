@@ -432,7 +432,7 @@ list_destination(dispatcher_tag_t *d)
 
 	buf_init(&buf);
 	buf_addstring(&buf, "{\"status\":\"Ok\",\"reply\":\"list-destination\","
-	    "\"data\":[");
+	    "\"destination\":[");
 	for (dest = destination; dest != NULL; dest = dest->next) {
 		if (dest != destination)
 			buf_addchar(&buf, ',');
