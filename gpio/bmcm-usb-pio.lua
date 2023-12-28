@@ -20,7 +20,53 @@
 
 -- bmcm USB-PIO driver
 
+-- The USB-PIO has three physical ports, keep thei stats
+local port = {
+	{ data = 0x00, direction = 0x00 },
+	{ data = 0x00, direction = 0x00 },
+	{ data = 0x00, direction = 0x00 }
+}
+
+local function getPortData(port)
+	gpio.write(string.format('@00P%d?\r', port - 1))
+	local res = gpio.read(6)
+	return tonumber(string.sub(res, 4, 5), 16)
+end
+
+local function setPortData(port, data)
+	gpio.write(string.format('@00P%d%2.2X\r', port - 1, data))
+	local res = gpio.read(6)
+	return tonumber(string.sub(res, 4, 5), 16)
+end
+
+local function getPortDirection(port)
+	gpio.write(string.format('@00D%d?\r', port - 1))
+	local res = gpio.read(6)
+	return tonumber(string.sub(res, 4, 5), 16)
+end
+
+local function setPortDirection(port, direction)
+	gpio.write(string.format('@00D%d%2.2X\r', port - 1, direction))
+	local res = gpio.read(4)
+end
+
 -- direct driver commands
+
+local function initialize()
+	print 'Initialize bmcm USB-PIO driver'
+	for k, v in pairs(port) do
+		v.direction = getPortDirection(k)
+		v.data = getPortData(k)
+	end
+
+	print 'Current port direction an data'
+
+	for k, v in pairs(port) do
+		print(string.format('Port %d direction=%2.2X data=%2.2X', k,
+		    v.direction, v.data))
+	end
+
+end
 
 local function setOutput(io, value)
 end
@@ -56,6 +102,7 @@ return {
 		{ from = 21, to = 24 }
 	},
 	statusUpdatesRequirePolling = true,
+	initialize = initialize,
 	setOutput = setOutput,
 	getInput = getInput,
 	getOutput = getOutput,

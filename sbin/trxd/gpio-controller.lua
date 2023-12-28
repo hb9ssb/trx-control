@@ -30,7 +30,7 @@ local function registerDriver(name, dev, newDriver)
 	device = dev
 
 	if type(driver.initialize) == 'function' then
-		driver:initialize()
+		driver.initialize()
 	end
 end
 
