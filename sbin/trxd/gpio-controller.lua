@@ -81,16 +81,33 @@ local function requestHandler(data, fd)
 		else
 		end
 	elseif request.request == 'set-group-direction' then
-		if driver.setDirection == nil then
+		if driver.setGroupDirection == nil then
 			reply.status = 'Error'
 			reply.reason = 'IO groups not supported by driver'
 		else
+			if request.group == nil or request.direction == nil then
+				reply.status = 'Error'
+				reply.reason = 'No group or direction specified'
+			else
+				reply.status = 'Ok'
+				reply.direction = driver.setGroupDirection(
+				    tonumber(request.group),
+				    request.direction)
+			end
 		end
 	elseif request.request == 'get-group-direction' then
-		if driver.setDirection == nil then
+		if driver.setGroupDirection == nil then
 			reply.status = 'Error'
 			reply.reason = 'IO groups not supported by driver'
 		else
+			if request.group == nil  then
+				reply.status = 'Error'
+				reply.reason = 'No group specified'
+			else
+				reply.status = 'Ok'
+				reply.direction = driver.getGroupDirection(
+				    tonumber(request.group))
+			end
 		end
 	else
 		reply.status = 'Error'

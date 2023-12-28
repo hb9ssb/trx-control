@@ -20,7 +20,10 @@
 
 -- bmcm USB-PIO driver
 
--- The USB-PIO has three physical ports, keep thei stats
+-- The USB-PIO has three physical ports, keep their status cached.
+-- Output direction can only be set by port, not by individual IO pin,
+-- port 3 can be set in groups of 4 bits.
+
 local port = {
 	{ data = 0x00, direction = 0x00 },
 	{ data = 0x00, direction = 0x00 },
@@ -50,6 +53,10 @@ local function setPortDirection(port, direction)
 	local res = gpio.read(4)
 end
 
+local function getPort(io)
+	return 1 + ((io - 1) // 8)
+end
+
 -- direct driver commands
 
 local function initialize()
@@ -58,36 +65,102 @@ local function initialize()
 		v.direction = getPortDirection(k)
 		v.data = getPortData(k)
 	end
-
-	print 'Current port direction an data'
-
-	for k, v in pairs(port) do
-		print(string.format('Port %d direction=%2.2X data=%2.2X', k,
-		    v.direction, v.data))
-	end
-
 end
 
 local function setOutput(io, value)
+	local k = getPort(io)
+	local bit = io - ((port - 1) * 8) - 1
+
+	if value == true then
+		port[k].data = port[k].data | (1 << bit)
+	else
+		port[k].data = port[k].data & (port[k].data ~ (1 << bit))
+	end
+	setPortData(k, port[k].data)
 end
 
 local function getInput(io)
+	local k = getPort(io)
+	local bit = io - ((port - 1) * 8) - 1
+
+	local data = getPortData(k)
+	return data & (1 << bit)
 end
 
 local function getOutput(io)
+	return getInput(io)
 end
 
 local function getDirection(io)
+	local k = getPort(io)
+	local bit = io - ((port - 1) * 8) - 1
+
+	return port[k].direction & (1 << bit)
 end
 
 local function setGroupDirection(group, direction)
+	local p = 1
+
+	if direction ~= 'in' and direction ~= 'out' then
+		return 'not set'
+	end
+
+	if group == 1 or group == 2 then
+		p = group
+		if direction == 'in' then
+			port[p].direction = 0xff
+		else
+			port[p].direction = 0x00
+		end
+	else
+		p = 3
+
+		if group == 3 then
+			if direction == 'in' then
+				port[p].direction = port[p].direction | 0x0f
+			else
+				port[p].direction = port[p].direction & 0xf0
+			end
+		else
+			if direction == 'in' then
+				port[p].direction = port[p].direction | 0xf0
+			else
+				port[p].direction = port[p].direction & 0x0f
+			end
+		end
+	end
+	setPortDirection(p, port[p].direction)
+	return direction
 end
 
-local function getGroupDirection(goup)
+local function getGroupDirection(group)
+	if group == 1 or group == 2 then
+		if port[group].direction == 0x00 then
+			return 'in'
+		else
+			return 'out'
+		end
+	else
+		local d = port[3].direction
+
+		if group == 3 then
+			if d & 0x0f then
+				return 'out'
+			else
+				return 'in'
+			end
+		else
+			if d & 0xf0 then
+				return 'out'
+			else
+				return 'in'
+			end
+		end
+	end
 end
 
 return {
-	name = 'BMCM USB-PIO driver',
+	name = 'bmcm USB-PIO driver',
 	ioNum = 24,
 
 	-- ioGroups are groups of IO pins whose direction can only be set
