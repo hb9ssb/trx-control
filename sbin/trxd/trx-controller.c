@@ -123,7 +123,7 @@ trx_controller(void *arg)
 	luaL_openlibs(t->L);
 
 	lua_pushinteger(t->L, fd);
-	lua_setglobal(t->L, "_CAT_DEVICE");
+	lua_setfield(t->L, LUA_REGISTRYINDEX, REGISTRY_CAT_FD);
 
 	luaopen_trx(t->L);
 	lua_setglobal(t->L, "trx");

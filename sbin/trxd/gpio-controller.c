@@ -122,7 +122,7 @@ gpio_controller(void *arg)
 	luaL_openlibs(t->L);
 
 	lua_pushinteger(t->L, fd);
-	lua_setglobal(t->L, "_GPIO_DEVICE");
+	lua_setfield(t->L, LUA_REGISTRYINDEX, REGISTRY_GPIO_FD);
 
 	luaopen_gpio(t->L);
 	lua_setglobal(t->L, "gpio");

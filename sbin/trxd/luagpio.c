@@ -45,7 +45,7 @@ get_fd(lua_State *L)
 {
 	int fd;
 
-	lua_getglobal(L, "_GPIO_DEVICE");
+	lua_getfield(L, LUA_REGISTRYINDEX, REGISTRY_GPIO_FD);
 	fd = lua_tointeger(L, -1);
 	lua_pop(L, 1);
 	return fd;

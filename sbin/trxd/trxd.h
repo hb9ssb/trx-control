@@ -34,6 +34,10 @@
 #define TRXD_USER	"trxd"
 #define TRXD_GROUP	"trxd"
 
+/* Names used to store data in the Lua registry */
+#define REGISTRY_CAT_FD		"trx-controller.cat-fd"
+#define REGISTRY_GPIO_FD	"gpio-controller.gpio-fd"
+
 typedef struct sender_tag sender_tag_t;
 
 typedef struct sender_list {
