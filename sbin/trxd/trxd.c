@@ -553,6 +553,14 @@ main(int argc, char *argv[])
 			t->call = t->done = 0;
 			name = (char *)lua_tostring(L, -2);
 
+			lua_getglobal(t->L, "package");
+			lua_getfield(t->L, -1, "cpath");
+			lua_pushstring(t->L, ";");
+			lua_pushstring(t->L, _PATH_LUA);
+			lua_concat(t->L, 3);
+			lua_setfield(t->L, -2, "cpath");
+			lua_pop(t->L, 1);
+
 			lua_getfield(L, -1, "path");
 			if (lua_isstring(L, -1)) {
 				p = lua_tostring(L, -1);

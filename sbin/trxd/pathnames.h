@@ -26,6 +26,7 @@
 #define _PATH_TRX		"/usr/share/trxd/trx"
 #define _PATH_GPIO		"/usr/share/trxd/gpio"
 #define _PATH_EXTENSION		"/usr/share/trxd/extension"
+#define _PATH_LUA		"/usr/share/trxd/lua/?.so"
 #define _PATH_PROTOCOL		"/usr/share/trxd/protocol"
 #define _PATH_ROTATOR		"/usr/share/trxd/rotator"
 #define _PATH_RELAY		"/usr/share/trxd/relay"
