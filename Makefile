@@ -7,7 +7,9 @@ SUBDIR+=	bin/trxctl \
 		protocol \
 		trx \
 		sbin/trxd \
-		udev
+		udev \
+		external/bsd/luacurl \
+		external/mit/luaexpat
 
 MANDIR?=	/usr/share/man
 
