@@ -123,11 +123,11 @@ local function lookupCallsign(callsign)
 		end
 		local callsign = t.QRZDatabase.Callsign
 		return {
-			call = callsign.call or '',
-			name = callsign.name or '',
-			fname = callsign.fname or '',
-			addr2 = callsign.addr2 or '',
-			country = callsign.country or ''
+			call = callsign.call.xmltext or '',
+			name = callsign.name.xmltext or '',
+			fname = callsign.fname.xmltext or '',
+			addr2 = callsign.addr2.xmltext or '',
+			country = callsign.country.xmltext or ''
 		}, nil
 	end
 	return nil, status
