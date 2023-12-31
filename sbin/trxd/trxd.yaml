@@ -76,3 +76,9 @@ extensions:
       configuration:
         connStr: dbname=logbook
         datestyle: German
+
+  qrz:
+    script: qrz:
+      configuration:
+      username: MYCALLSIGN
+      passwort: sicrit
