@@ -9,6 +9,9 @@ SUBDIR+=	bin/trxctl \
 		sbin/trxd \
 		udev \
 		external/bsd/luacurl \
+		external/bsd/luanet \
+		external/bsd/luapgsql \
+		external/bsd/luasqlite \
 		external/mit/luaexpat
 
 MANDIR?=	/usr/share/man
