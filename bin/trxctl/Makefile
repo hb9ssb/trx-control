@@ -23,7 +23,8 @@ clean:
 
 .PHONY: install trxctl.1 trxctl.lua
 install:	trxctl trxctl.1 trxctl.lua
-		install -m 755 trxctl $(DESTDIR)$(BINDIR)
+		install -d $(DESTDIR)$(BINDIR)
+		install -m 755 trxctl $(DESTDIR)$(BINDIR)/trxctl
 
 trxctl:		${OBJS}
 		cc ${CFLAGS} -o trxctl ${OBJS} ${LDFLAGS} ${LDADD}

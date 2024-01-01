@@ -47,7 +47,8 @@ clean:
 
 .PHONY: install trxd.8 trx-controller.lua gpio-controller.lua trxd.yaml
 install:	trxd trxd.8 trx-controller.lua gpio-controller.lua trxd.yaml
-		install -m 755 trxd $(DESTDIR)$(SBINDIR)
+		install -d $(DESTDIR)$(SBINDIR)
+		install -m 755 trxd $(DESTDIR)$(SBINDIR)/trxd
 
 trxd:		${OBJS}
 		cc ${CFLAGS} -o trxd ${OBJS} ${LDFLAGS} ${LDADD}
@@ -100,4 +101,3 @@ nmea-handler.o:	Makefile nmea-handler.c trxd.h
 trx-poller.o:	Makefile trx-poller.c trxd.h
 
 trxd.o:		Makefile trxd.c trxd.h trx-control.h
-

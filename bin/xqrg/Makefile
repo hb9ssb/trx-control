@@ -24,7 +24,8 @@ clean:
 
 .PHONY: install xqrg.1 XQRG xqrg.lua
 install:	xqrg xqrg.1 XQRG xqrg.lua
-		install -m 755 xqrg $(DESTDIR)$(BINDIR)
+		install -d $(DESTDIR)$(BINDIR)
+		install -m 755 xqrg $(DESTDIR)$(BINDIR)/xqrg
 
 xqrg:		${OBJS}
 		cc ${CFLAGS} -o xqrg ${OBJS} ${LDFLAGS} ${LDADD}
