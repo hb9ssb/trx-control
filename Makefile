@@ -49,3 +49,6 @@ trx-control.7:
 bin/trxctl:	lib/libtrx-control lib/liblua
 bin/xqrg:	lib/libtrx-control lib/liblua
 sbin/trxd:	lib/libtrx-control lib/liblua
+
+rpm:
+	make -C package/redhat
