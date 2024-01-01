@@ -1,6 +1,8 @@
 VERSION=	1.0.0
 RELEASE=	1
 
+PG_VERSION?=	16
+
 SUBDIR+=	bin/trxctl \
 		bin/xqrg \
 		gpio \
@@ -54,4 +56,5 @@ bin/xqrg:	lib/libtrx-control lib/liblua
 sbin/trxd:	lib/libtrx-control lib/liblua
 
 rpm:
-	VERSION=$(VERSION) RELEASE=$(RELEASE) make -C package/redhat
+	VERSION=$(VERSION) RELEASE=$(RELEASE) PG_VERSION=$(PG_VERSION) \
+		make -C package/redhat

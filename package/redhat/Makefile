@@ -5,5 +5,6 @@ all:
 		--transform=s/./trx-control-${VERSION}/ --exclude-vcs .
 	rpmbuild -bb --define "_topdir $$HOME/rpmbuild" \
 		--define "version ${VERSION}" \
-		--define "release ${RELEASE} " \
+		--define "release ${RELEASE}" \
+		--define "pg_version ${PG_VERSION}" \
 		${RPM_OPTS} trx-control.spec

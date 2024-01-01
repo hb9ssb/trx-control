@@ -8,10 +8,11 @@ Packager: https://msys.ch
 License: MIT
 Source: trx-control-%{version}.tar.gz
 Prefix: /usr
-BuildRequires: postgresql16-devel gcc make expat-devel curl-devel
-BuildRequires: sqlite-devel readline-devel
+BuildRequires: curl-devel expat-devel gcc make motif-devel
+BuildRequires: postgresql%{pg_version}-devel readline-devel sqlite-devel
 
-Requires: epel-release expat libcurl postgresql16-libs readline sqlite-libs
+Requires: epel-release expat libcurl motif postgresql16-libs readline
+Requires: sqlite-libs
 
 Provides: trx-control
 
