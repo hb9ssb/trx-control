@@ -1,4 +1,4 @@
-.\" Copyright (c) 2023 Marc Balmer HB9SSB
+.\" Copyright (c) 2023 - 2024 Marc Balmer HB9SSB
 .\"
 .\" Permission is hereby granted, free of charge, to any person obtaining a copy
 .\" of this software and associated documentation files (the "Software"), to
@@ -18,7 +18,7 @@
 .\" FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 .\" IN THE SOFTWARE.
 .\"
-.TH TRXD 8 "27 December 2023" "trx-control"
+.TH TRXD 8 "1 January 2024" "trx-control"
 .
 .SH NAME
 trxd
@@ -97,10 +97,23 @@ Yaesu	FT-991a	yaesu-ft-991a
 .TE
 .
 .
+.SH "SUPPORTED GPIO DEVICES"
+.PP
+.TS
+l l l.
+Manufacturor	Model	Driver
+.T&
+l l l.
+_
+bmcm	USB-PIO	bmcm-usb-pio
+bmcm	OR8	Attached to USB-PIO
+.TE
+.
+.
 .SH FILES
 .
 .TP
--I /etc/trxd.yaml
+.I /etc/trxd.yaml
 Default configuration file.
 An example configuration file can be found in /usr/share/trxd/trxd.yaml.
 .
@@ -128,7 +141,11 @@ New GPIO drivers must be added in this directory.
 .TP
 .I /usr/share/trxd/extension
 Directory containing trxd extension scripts in Lua.
--
+.
+.TP
+.I /usr/share/trxd/lua
+Directory containg Lua modules for use by extensions.
+.
 .SH AUTHORS
 .
 The
