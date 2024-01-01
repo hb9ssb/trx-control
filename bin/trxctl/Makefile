@@ -10,7 +10,7 @@ BINDIR?=	/usr/bin
 TRXCTLDIR?=	/usr/share/trxctl
 
 CFLAGS+=	-I../../lib/libtrx-control -I../../external/mit/lua/src \
-		-D_GNU_SOURCE
+		-D_GNU_SOURCE -DVERSION=\"${VERSION}\"
 LDFLAGS+=	-L../../lib/libtrx-control -ltrx-control \
 		-L../../lib/liblua -llua -lm -lreadline
 VPATH=		../../external/mit/luajson \

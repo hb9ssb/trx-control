@@ -34,6 +34,7 @@ TRXDDIR?=	/usr/share/trxd
 CFLAGS+=	-I../../lib/libtrx-control -I../../external/mit/lua/src \
 		-I../../external/mit/luayaml \
 		-I../../external/mit/luajson -pthread -D_GNU_SOURCE \
+		-DTRXD_VERSION=\"${VERSION}\" \
 		-export-dynamic
 LDFLAGS+=	-L../../lib/libtrx-control -ltrx-control \
 		-L../../lib/liblua -llua -lyaml -lm -lssl -lcrypto

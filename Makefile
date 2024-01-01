@@ -1,3 +1,6 @@
+VERSION=	1.0.0
+RELEASE=	1
+
 SUBDIR+=	bin/trxctl \
 		bin/xqrg \
 		gpio \
@@ -24,7 +27,7 @@ build:		subdir
 subdir: $(SUBDIR)
 
 $(SUBDIR):
-	$(MAKE) -C $@ $(TARGET)
+	VERSION=$(VERSION) $(MAKE) -C $@ $(TARGET)
 
 # Recursive targets
 .PHONY: clean
@@ -51,4 +54,4 @@ bin/xqrg:	lib/libtrx-control lib/liblua
 sbin/trxd:	lib/libtrx-control lib/liblua
 
 rpm:
-	make -C package/redhat
+	VERSION=$(VERSION) RELEASE=$(RELEASE) make -C package/redhat

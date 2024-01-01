@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Marc Balmer HB9SSB
+ * Copyright (c) 2023 - 2024 Marc Balmer HB9SSB
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -115,13 +115,13 @@ luaopen_gpio(lua_State *L)
 
 	luaL_newlib(L, luagpio);
 	lua_pushliteral(L, "_COPYRIGHT");
-	lua_pushliteral(L, "Copyright (c) 2023 Marc Balmer HB9SSB");
+	lua_pushliteral(L, "Copyright (c) 2023 - 2024 Marc Balmer HB9SSB");
 	lua_settable(L, -3);
 	lua_pushliteral(L, "_DESCRIPTION");
 	lua_pushliteral(L, "trx-control for Lua");
 	lua_settable(L, -3);
 	lua_pushliteral(L, "_VERSION");
-	lua_pushliteral(L, "gpio 1.0.0");
+	lua_pushliteral(L, "gpio " TRXD_VERSION);
 	lua_settable(L, -3);
 
 	return 1;

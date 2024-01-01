@@ -1,12 +1,12 @@
 Summary: trx-control
 Group: hb9ssb/trx-control
 Name: trx-control
-Version: 1.0.0
-Release: 1
+Version: %{version}
+Release: %{release}
 Vendor: micro systems <https://msys.ch>
 Packager: https://msys.ch
 License: MIT
-Source: trx-control-1.0.0.tar.gz
+Source: trx-control-%{version}.tar.gz
 Prefix: /usr
 BuildRequires: postgresql16-devel gcc make expat-devel curl-devel
 BuildRequires: sqlite-devel readline-devel

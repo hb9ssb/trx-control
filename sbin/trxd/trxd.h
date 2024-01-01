@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Marc Balmer HB9SSB
+ * Copyright (c) 2023 - 2024 Marc Balmer HB9SSB
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -30,7 +30,6 @@
 #include <lua.h>
 #include <lualib.h>
 
-#define TRXD_VERSION	"1.0.0"
 #define TRXD_USER	"trxd"
 #define TRXD_GROUP	"trxd"
 
