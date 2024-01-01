@@ -21,10 +21,6 @@
 -- The logbook extension for trx-control provides a hamradio logbook that
 -- store all data in a PostgreSQL database.
 
--- To use the pgsql Lua module you must build and install it from
--- https://github.com/arcapos/luapgsql. Indicate the path where you stored
--- the pgsql.so file in the configuration variable cpath of the extension.
-
 local pgsql = require 'pgsql'
 
 -- The configuration is stored in trxd.yaml under the extension.  The following
