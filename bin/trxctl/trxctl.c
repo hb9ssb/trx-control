@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Marc Balmer HB9SSB
+ * Copyright (c) 2023 - 2024 Marc Balmer HB9SSB
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -62,7 +62,7 @@ wordexp_t p;
 static void
 usage(void)
 {
-	(void)fprintf(stderr, "usage: trxctl [-lv] [-p port]\n");
+	(void)fprintf(stderr, "usage: trxctl [-lvV] [-p port]\n");
 	exit(1);
 }
 
@@ -146,11 +146,12 @@ main(int argc, char *argv[])
 		static struct option long_options[] = {
 			{ "host",		required_argument, 0, 'h' },
 			{ "verbose",		no_argument, 0, 'v' },
+			{ "version",		no_argument, 0, 'V' },
 			{ "port",		required_argument, 0, 'p' },
 			{ 0, 0, 0, 0 }
 		};
 
-		c = getopt_long(argc, argv, "h:vp:", long_options,
+		c = getopt_long(argc, argv, "h:vVp:", long_options,
 		    &option_index);
 
 		if (c == -1)
@@ -168,6 +169,9 @@ main(int argc, char *argv[])
 		case 'v':
 			verbose++;
 			break;
+		case 'V':
+			printf("trxctl %s\n", VERSION);
+			exit(0);
 		default:
 			usage();
 		}

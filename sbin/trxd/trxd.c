@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Marc Balmer HB9SSB
+ * Copyright (c) 2023 - 2024 Marc Balmer HB9SSB
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -76,7 +76,7 @@ destination_t *destination = NULL;
 static void
 usage(void)
 {
-	(void)fprintf(stderr, "usage: trxd [-dlv] [-b address] [-c path] "
+	(void)fprintf(stderr, "usage: trxd [-dlvV] [-b address] [-c path] "
 	    "[-g group] [-p port] [-u user] [-P path]\n");
 	exit(1);
 }
@@ -156,10 +156,11 @@ main(int argc, char *argv[])
 			{ "pid-file",		required_argument, 0, 'P' },
 			{ "user",		required_argument, 0, 'u' },
 			{ "verbose",		no_argument, 0, 'v' },
+			{ "version",		no_argument, 0, 'V' },
 			{ 0, 0, 0, 0 }
 		};
 
-		ch = getopt_long(argc, argv, "c:dlb:g:p:u:vP:", long_options,
+		ch = getopt_long(argc, argv, "c:dlb:g:p:u:vVP:", long_options,
 		    &option_index);
 
 		if (ch == -1)
@@ -192,6 +193,9 @@ main(int argc, char *argv[])
 		case 'v':
 			verbose++;
 			break;
+		case 'V':
+			printf("trxd %s\n", TRXD_VERSION);
+			exit(0);
 		case 'P':
 			pidfile = optarg;
 			break;
