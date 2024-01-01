@@ -1,0 +1,3 @@
+SUBSYSTEMS=="usb", KERNEL=="ttyUSB*", \
+	ATTRS{idVendor}=="0557", ATTRS{idProduct}=="2008", \
+	MODE:="0666", SYMLINK+="yaesu-cat"
