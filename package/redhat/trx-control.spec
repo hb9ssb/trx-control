@@ -43,6 +43,14 @@ trx-control
 /usr/share/trxd/gpio/bmcm-usb-pio.lua
 /usr/share/trxd/lua/curl.so
 /usr/share/trxd/lua/expat.so
+/usr/share/trxd/lua/linux.so
+/usr/share/trxd/lua/linux/sys/log.so
+/usr/share/trxd/lua/linux/sys/select.so
+/usr/share/trxd/lua/linux/sys/socket.so
+/usr/share/trxd/lua/linux/sys/stat.so
+/usr/share/trxd/lua/linux/dirent.so
+/usr/share/trxd/lua/linux/dl.so
+/usr/share/trxd/lua/linux/pwd.so
 /usr/share/trxd/lua/net.so
 /usr/share/trxd/lua/pgsql.so
 /usr/share/trxd/lua/sqlite.so
