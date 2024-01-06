@@ -51,7 +51,6 @@ trx-control
 /usr/share/trxd/lua/linux/dirent.so
 /usr/share/trxd/lua/linux/dl.so
 /usr/share/trxd/lua/linux/pwd.so
-/usr/share/trxd/lua/net.so
 /usr/share/trxd/lua/pgsql.so
 /usr/share/trxd/lua/sqlite.so
 /usr/share/trxd/protocol/cat-5-byte.lua
