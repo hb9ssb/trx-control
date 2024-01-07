@@ -39,6 +39,16 @@ purposes.
 * bmcm USB-PIO
 * bmcm OR8 (attached to a USB-PIO)
 
+## Available Extensions
+
+Extensions can optionally be configured to provide additional functionality.
+Currently the following extensions exist:
+
+* dxcluster, sending DXCluster spots to clients in real-time
+* qrz, querying QRZ.COM database (needs a login)
+* ping, sample extension
+* logbook, a proof-of-concept extension using PostgreSQL
+
 ## trx-control on Matrix
 
 There is a Matrix room ``#trx-control:matrix.org`` to discuss trx-control:
