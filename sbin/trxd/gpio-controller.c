@@ -51,6 +51,8 @@ extern int luaopen_json(lua_State *);
 
 extern int verbose;
 
+__thread int gpio_device;
+
 static void
 cleanup(void *arg)
 {
@@ -112,6 +114,7 @@ gpio_controller(void *arg)
 		}
 	}
 
+	gpio_device = fd;
 	t->gpio_device = fd;
 
 	/* Setup Lua */
@@ -120,9 +123,6 @@ gpio_controller(void *arg)
 		err(1, "gpio-controller: luaL_newstate");
 
 	luaL_openlibs(t->L);
-
-	lua_pushinteger(t->L, fd);
-	lua_setfield(t->L, LUA_REGISTRYINDEX, REGISTRY_GPIO_FD);
 
 	luaopen_gpio(t->L);
 	lua_setglobal(t->L, "gpio");

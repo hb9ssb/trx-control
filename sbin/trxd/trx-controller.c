@@ -52,6 +52,8 @@ extern void *trx_handler(void *);
 
 extern int verbose;
 
+__thread int cat_device;
+
 static void
 cleanup(void *arg)
 {
@@ -113,6 +115,7 @@ trx_controller(void *arg)
 		}
 	}
 
+	cat_device = fd;
 	t->cat_device = fd;
 
 	/* Setup Lua */
@@ -121,9 +124,6 @@ trx_controller(void *arg)
 		err(1, "trx-controller: luaL_newstate");
 
 	luaL_openlibs(t->L);
-
-	lua_pushinteger(t->L, fd);
-	lua_setfield(t->L, LUA_REGISTRYINDEX, REGISTRY_CAT_FD);
 
 	luaopen_trx(t->L);
 	lua_setglobal(t->L, "trx");

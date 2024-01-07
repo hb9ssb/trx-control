@@ -33,6 +33,8 @@
 
 #include "trxd.h"
 
+extern __thread int gpio_device;
+
 static int
 luagpio_version(lua_State *L)
 {
@@ -41,29 +43,15 @@ luagpio_version(lua_State *L)
 }
 
 static int
-get_fd(lua_State *L)
-{
-	int fd;
-
-	lua_getfield(L, LUA_REGISTRYINDEX, REGISTRY_GPIO_FD);
-	fd = lua_tointeger(L, -1);
-	lua_pop(L, 1);
-	return fd;
-}
-
-static int
 luagpio_read(lua_State *L)
 {
 	struct pollfd pfd;
 	char buf[256];
 	size_t len, nread, nfds;
-	int fd;
 
 	len = luaL_checkinteger(L, 1);
 
-	fd = get_fd(L);
-
-	pfd.fd = fd;
+	pfd.fd = gpio_device;
 	pfd.events = POLLIN;
 
 	nread = 0;
@@ -72,7 +60,7 @@ luagpio_read(lua_State *L)
 		if (nfds == -1)
 			return luaL_error(L, "poll error");
 		if (nfds == 1) {
-			nread += read(fd, &buf[nread], len - nread);
+			nread += read(gpio_device, &buf[nread], len - nread);
 		} else {
 			nread = 0;
 			break;
@@ -92,14 +80,11 @@ luagpio_write(lua_State *L)
 {
 	const char *data;
 	size_t len;
-	int fd;
-
-	fd = get_fd(L);
 
 	data = luaL_checklstring(L, 1, &len);
-	tcflush(fd, TCIFLUSH);
-	write(fd, data, len);
-	tcdrain(fd);
+	tcflush(gpio_device, TCIFLUSH);
+	write(gpio_device, data, len);
+	tcdrain(gpio_device);
 	return 0;
 }
 
