@@ -83,6 +83,14 @@ extensions:
         port: 7300
         callsign: MYCALLSIGN
 
+  sotacluster:
+    script: dxcluster:
+      configuration:
+        host: cluster.sota.org.uk
+        port: 7300
+        callsign: MYCALLSIGN
+        source: sotacluster
+
   qrz:
     script: qrz:
       configuration:

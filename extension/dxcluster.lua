@@ -41,29 +41,31 @@ local deline = 'DX de ([%w/]+):%s+(%d+%p%d+)%s+([%w/]+) +([%w%s%p-]+)%s+(%d%d)(%
 
 function dataReady()
 	if not loggedIn then
-		local prompt = conn:read(7, 1000)
-		if string.sub(prompt, 1, 6) == login then
+		local prompt = conn:readln(1000)
+		if prompt ~= nil and string.sub(prompt, 1, 6) == login then
 			conn:write(config.callsign .. '\n')
 			loggedIn = true
 		end
 	else
 		local data = conn:readln()
-		for spotter, frequency, spotted, message, hour, minute
-		    in string.gmatch(data, deline) do
-			local notification = {
-				dxcluster = {
-					spotter = spotter,
-					frequency = string.format('%d',
-					    (tonumber(frequency) or 0) * 1000),
-					spotted = spotted,
-					message = message,
-					time = string.format('%s:%s UTC',
-					    hour, minute)
+		if data ~= nil then
+			for spotter, frequency, spotted, message, hour, minute
+			    in string.gmatch(data, deline) do
+				local notification = {
+					[config.source or 'dxcluster'] = {
+						spotter = spotter,
+						frequency = string.format('%d',
+						    (tonumber(frequency) or 0)
+						    * 1000),
+						spotted = spotted,
+						message = message,
+						time = string.format('%s:%s UTC',
+						    hour, minute)
+					}
 				}
-			}
 
-			trxd.notify(json.encode(notification))
+				trxd.notify(json.encode(notification))
+			end
 		end
-
 	end
 end
