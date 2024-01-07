@@ -30,7 +30,6 @@ if trxd.verbose() > 0 then
 end
 
 local conn = socket.connect(config.host, config.port)
-print(conn, conn:socket())
 
 -- Spawn a data ready handler thread for the socket, it will call the
 -- dataReady function whenever data arrives on the socket
@@ -52,13 +51,13 @@ function dataReady()
 		for spotter, frequency, spotted, message, hour, minute
 		    in string.gmatch(data, deline) do
 			local notification = {
-				['dxcluster-spot'] = {
+				dxcluster = {
 					spotter = spotter,
 					frequency = (tonumber(frequency) or 0)
 					    * 1000,
-					['spotted-by'] = spotted,
+					spotted = spotted,
 					message = message,
-					when = string.format('%s:%s UTC',
+					time = string.format('%s:%s UTC',
 					    hour, minute)
 				}
 			}

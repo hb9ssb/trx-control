@@ -71,10 +71,6 @@ luatrxd_signal_input(lua_State *L)
 	s->func = strdup(luaL_checkstring(L, 2));
 	s->extension = extension_tag;
 
-	if (verbose)
-		printf("trxd: signal input for extension %p on file "
-		    "descriptor %d\n", s->extension, s->fd);
-
 	/* Create the signal-input thread */
 	pthread_create(&s->signal_input, NULL, signal_input, s);
 }
