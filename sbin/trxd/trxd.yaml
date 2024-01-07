@@ -76,8 +76,15 @@ extensions:
         connStr: dbname=logbook
         datestyle: German
 
+  dxcluster:
+    script: dxcluster:
+      configuration:
+        host: wr3d.dxcluster.net
+        port: 7300
+        callsign: MYCALLSIGN
+
   qrz:
     script: qrz:
       configuration:
-      username: MYCALLSIGN
-      passwort: sicrit
+        username: MYCALLSIGN
+        passwort: sicrit
