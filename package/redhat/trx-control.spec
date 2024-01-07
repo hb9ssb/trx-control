@@ -36,6 +36,7 @@ trx-control
 /usr/share/man/man7/trx-control.7.gz
 /usr/share/man/man8/trxd.8.gz
 /usr/share/trxctl/trxctl.lua
+/usr/share/trxd/extension/dxcluster.lua
 /usr/share/trxd/extension/logbook.lua
 /usr/share/trxd/extension/ping.lua
 /usr/share/trxd/extension/qrz.lua
