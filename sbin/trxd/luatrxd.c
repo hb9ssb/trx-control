@@ -36,6 +36,48 @@
 #include "trxd.h"
 
 extern int verbose;
+extern __thread extension_tag_t	*extension_tag;
+
+extern void *signal_input(void *);
+
+static int
+luatrxd_notify(lua_State *L)
+{
+	sender_list_t *l;
+	char *data;
+
+	data = (char *)luaL_checkstring(L, 1);
+
+	for (l = extension_tag->listeners; l != NULL; l = l->next) {
+		if (pthread_mutex_lock(&l->sender->mutex))
+			err(1, "luatrxd: pthread_mutex_lock");
+		l->sender->data = data;
+		if (pthread_cond_signal(&l->sender->cond))
+			err(1, "luatrxd: pthread_cond_signal");
+		if (pthread_mutex_unlock(&l->sender->mutex))
+			err(1, "luatrxd: pthread_mutex_unlock");
+	}
+}
+
+static int
+luatrxd_signal_input(lua_State *L)
+{
+	signal_input_t *s;
+
+	s = malloc(sizeof(signal_input_t));
+	if (s == NULL)
+		return luaL_error(L, "out of memory");
+	s->fd = luaL_checkinteger(L, 1);
+	s->func = strdup(luaL_checkstring(L, 2));
+	s->extension = extension_tag;
+
+	if (verbose)
+		printf("trxd: signal input for extension %p on file "
+		    "descriptor %d\n", s->extension, s->fd);
+
+	/* Create the signal-input thread */
+	pthread_create(&s->signal_input, NULL, signal_input, s);
+}
 
 static int
 luatrxd_verbose(lua_State *L)
@@ -48,6 +90,8 @@ int
 luaopen_trxd(lua_State *L)
 {
 	struct luaL_Reg luatrxd[] = {
+		{ "notify",		luatrxd_notify },
+		{ "signalInput",	luatrxd_signal_input },
 		{ "verbose",		luatrxd_verbose },
 		{ NULL, NULL }
 	};

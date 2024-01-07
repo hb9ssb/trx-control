@@ -59,6 +59,7 @@ int log_connections = 0;
 
 extern int luaopen_yaml(lua_State *);
 extern int luaopen_trxd(lua_State *);
+extern int luaopen_json(lua_State *);
 
 extern void proxy_map(lua_State *, lua_State *, int);
 extern void *nmea_handler(void *);
@@ -96,7 +97,7 @@ add_destination(const char *name, enum DestinationType type, void *arg)
 		err(1, "malloc");
 
 	d->next = NULL;
-	d->name = name;
+	d->name = strdup(name);
 	d->type = type;
 	switch (type) {
 	case DEST_TRX:
@@ -541,11 +542,11 @@ main(int argc, char *argv[])
 			const char *p;
 			char script[PATH_MAX], *name;
 
-			int has_config = 0;
-
 			t = malloc(sizeof(extension_tag_t));
 			if (t == NULL)
 				err(1, "malloc");
+			t->has_config = 0;
+			t->listeners = NULL;
 			t->L = luaL_newstate();
 			if (t->L == NULL)
 				err(1, "luaL_newstate");
@@ -553,6 +554,10 @@ main(int argc, char *argv[])
 			luaL_openlibs(t->L);
 			luaopen_trxd(t->L);
 			lua_setglobal(t->L, "trxd");
+
+			luaL_openlibs(t->L);
+			luaopen_json(t->L);
+			lua_setglobal(t->L, "json");
 
 			t->call = t->done = 0;
 			name = (char *)lua_tostring(L, -2);
@@ -611,14 +616,9 @@ main(int argc, char *argv[])
 			lua_getfield(L, -1, "configuration");
 			if (lua_istable(L, -1)) {
 				proxy_map(L, t->L, lua_gettop(t->L));
-				has_config = 1;
+				t->has_config = 1;
 			}
 			lua_pop(L, 1);
-
-			if (has_config)
-				lua_call(t->L, 1, 1);
-			else
-				lua_call(t->L, 0, 1);
 
 			if (add_destination(name, DEST_EXTENSION, t))
 				errx(1, "names must be unique");

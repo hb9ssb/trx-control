@@ -1,6 +1,7 @@
 SRCS=		trxd.c \
 		dispatcher.c \
 		extension.c \
+		signal-input.c \
 		trx-controller.c \
 		gpio-controller.c \
 		gpio-poller.c \
@@ -88,6 +89,8 @@ luatrx-controller.o:	Makefile luatrx-controller.c trxd.h trx-control.h
 proxy.o:	Makefile proxy.c trx-control.h
 
 extension.o:		Makefile extension.c pathnames.h trxd.h
+
+signal-input.o:		Makefile signal-input.c trxd.h
 
 trx-controller.o:	Makefile trx-controller.c pathnames.h trxd.h
 

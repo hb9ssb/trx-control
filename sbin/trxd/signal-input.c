@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 - 2024 Marc Balmer HB9SSB
+ * Copyright (c) 2024 Marc Balmer HB9SSB
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -20,22 +20,19 @@
  * IN THE SOFTWARE.
  */
 
-/* trx-control extensions written in Lua */
+/* Signal incoming data from a file descriptor (usually a socket) */
 
 #include <err.h>
 #include <errno.h>
+#include <poll.h>
 #include <pthread.h>
-#include <syslog.h>
+#include <sched.h>
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
+#include <syslog.h>
 #include <unistd.h>
 
-#include <lua.h>
-#include <lualib.h>
-#include <lauxlib.h>
-
-#include "pathnames.h"
 #include "trxd.h"
 
 extern int verbose;
@@ -43,61 +40,52 @@ extern int verbose;
 static void
 cleanup(void *arg)
 {
-	extension_tag_t *t = (extension_tag_t *)arg;
-
-	lua_close(t->L);
 	free(arg);
 }
 
-__thread extension_tag_t	*extension_tag;
-
 void *
-extension(void *arg)
+signal_input(void *arg)
 {
-	extension_tag_t *t = (extension_tag_t *)arg;
+	signal_input_t *i = (signal_input_t *)arg;
+	extension_tag_t *e;
+	struct pollfd pfd;
+
+	e = i->extension;
 
 	if (pthread_detach(pthread_self()))
-		err(1, "extension: pthread_detach");
-
-	extension_tag = t;
+		err(1, "signal-input: pthread_detach");
 
 	pthread_cleanup_push(cleanup, arg);
 
-	if (pthread_setname_np(pthread_self(), "trxd-extension"))
-		err(1, "extension: pthread_setname_np");
+	if (pthread_setname_np(pthread_self(), "signal-input"))
+		err(1, "signal-input: pthread_setname_np");
 
-	if (pthread_mutex_lock(&t->mutex2))
-		err(1, "extension: pthread_mutex_lock");
-
-
-	if (t->has_config)
-		lua_call(t->L, 1, 1);
-	else
-		lua_call(t->L, 0, 1);
+	pfd.fd = i->fd;
+	pfd.events = POLLIN;
 
 	for (;;) {
-		t->call = 0;
-		/* Wait on cond, this releases the mutex */
-		while (t->call == 0) {
-			if (pthread_cond_wait(&t->cond1, &t->mutex2))
-				err(1, "extension: pthread_cond_wait");
+		if (poll(&pfd, 1, 0) == -1)
+			err(1, "signal-input: poll");
+		if (pfd.revents) {
+
+			if (pthread_mutex_lock(&e->mutex2))
+				err(1, "signal-input: pthread_mutex_lock");
+
+			e->done = 0;
+			lua_getglobal(e->L, i->func);
+			lua_pushinteger(e->L, i->fd);
+
+			e->call = 1;
+			pthread_cond_signal(&e->cond1);
+
+			while (!e->done)
+				pthread_cond_wait(&e->cond2, &e->mutex2);
+
+			e->done = 0;
+
+			pthread_mutex_unlock(&e->mutex2);
 		}
-		t->call = 0;
-		switch (lua_pcall(t->L, 1, 1, 0)) {
-		case LUA_OK:
-			break;
-		case LUA_ERRRUN:
-		case LUA_ERRMEM:
-		case LUA_ERRERR:
-			syslog(LOG_ERR, "extension: Lua error: %s",
-			    lua_tostring(t->L, -1));
-			exit(1);
-			break;
-		}
-		t->done = 1;
-		if (pthread_cond_signal(&t->cond2))
-			err(1, "extension: pthread_cond_signal");
-	}
+	};
 	pthread_cleanup_pop(0);
 	return NULL;
 }

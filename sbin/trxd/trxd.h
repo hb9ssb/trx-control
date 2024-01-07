@@ -169,10 +169,13 @@ typedef struct extension_tag {
 
 	pthread_cond_t		 cond2;	/* The extension returned */
 	int			 done;
+	int			 has_config;
 
 	lua_State		*L;
 
 	pthread_t		 extension;
+
+	sender_list_t		*listeners;
 } extension_tag_t;
 
 enum DestinationType {
@@ -192,11 +195,17 @@ typedef struct destination {
 		gpio_controller_tag_t	*gpio;
 		relay_controller_tag_t	*relay;
 		extension_tag_t		*extension;
-
 	} tag;
 
 	struct destination	*next;
 } destination_t;
+
+typedef struct signal_input {
+	extension_tag_t	*extension;
+	int		 fd;
+	const char	*func;
+	pthread_t	 signal_input;
+} signal_input_t;
 
 typedef struct websocket_listener {
 	char			*bind_addr;

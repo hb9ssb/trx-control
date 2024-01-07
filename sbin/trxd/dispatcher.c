@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Marc Balmer HB9SSB
+ * Copyright (c) 2023 - 2024 Marc Balmer HB9SSB
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -213,6 +213,23 @@ request_not_supported(dispatcher_tag_t *d)
 }
 
 static void
+request_ok(dispatcher_tag_t *d)
+{
+	/* The sender mutex is already locked */
+	d->sender->data = "{\"status\":\"Ok\",\"reply\":"
+	    "\"Request handled\"}";
+
+	if (pthread_cond_signal(&d->sender->cond))
+		err(1, "dispatcher: pthread_cond_signal");
+
+	while (d->sender->data != NULL) {
+		if (pthread_cond_wait(&d->sender->cond2, &d->sender->mutex))
+			err(1, "dispatcher: pthread_cond_wait");
+	}
+	pthread_mutex_unlock(&d->sender->mutex);
+}
+
+static void
 status_updates_not_supported(dispatcher_tag_t *d)
 {
 	if (pthread_mutex_lock(&d->sender->mutex))
@@ -220,6 +237,25 @@ status_updates_not_supported(dispatcher_tag_t *d)
 
 	d->sender->data = "{\"status\":\"Error\",\"reason\":"
 	    "\"Automatic status updated not supported by destination\"}";
+
+	if (pthread_cond_signal(&d->sender->cond))
+		err(1, "dispatcher: pthread_cond_signal");
+
+	while (d->sender->data != NULL) {
+		if (pthread_cond_wait(&d->sender->cond2, &d->sender->mutex))
+			err(1, "dispatcher: pthread_cond_wait");
+	}
+	pthread_mutex_unlock(&d->sender->mutex);
+}
+
+static void
+listen_not_supported(dispatcher_tag_t *d)
+{
+	if (pthread_mutex_lock(&d->sender->mutex))
+		err(1, "dispatcher: pthread_mutex_lock");
+
+	d->sender->data = "{\"status\":\"Error\",\"reason\":"
+	    "\"Listen not supported by destination\"}";
 
 	if (pthread_cond_signal(&d->sender->cond))
 		err(1, "dispatcher: pthread_cond_signal");
@@ -293,7 +329,7 @@ remove_sender(dispatcher_tag_t *d, destination_t *dst)
 
 	pthread_mutex_lock(&dst->tag.trx->mutex);
 
-	for (l = dst->tag.trx->senders; l; p = l, l = l->next) {
+	for (l = dst->tag.trx->senders, p = NULL; l; p = l, l = l->next) {
 		if (l->sender == d->sender) {
 			if (p == NULL) {
 				dst->tag.trx->senders = NULL;
@@ -334,6 +370,63 @@ remove_sender(dispatcher_tag_t *d, destination_t *dst)
 		}
 	}
 	pthread_mutex_unlock(&dst->tag.trx->mutex);
+}
+
+static void
+add_listener(dispatcher_tag_t *d, destination_t *dst)
+{
+	sender_list_t *p, *l;
+
+	pthread_mutex_lock(&dst->tag.extension->mutex);
+	pthread_mutex_lock(&dst->tag.extension->mutex2);
+
+	if (dst->tag.extension->listeners != NULL) {
+		for (l = dst->tag.extension->listeners; l; p = l, l = l->next)
+			if (l->sender == d->sender)
+				break;
+		if (l == NULL) {
+			p->next = malloc(sizeof(sender_list_t));
+			if (p->next == NULL)
+				err(1, "malloc");
+			p = p->next;
+			p->sender = d->sender;
+			p->next = NULL;
+		}
+	} else {
+		dst->tag.extension->listeners = malloc(sizeof(sender_list_t));
+		if (dst->tag.extension->listeners == NULL)
+			err(1, "malloc");
+		dst->tag.extension->listeners->sender = d->sender;
+		dst->tag.extension->listeners->next = NULL;
+	}
+	pthread_mutex_unlock(&dst->tag.extension->mutex);
+	pthread_mutex_unlock(&dst->tag.extension->mutex2);
+}
+
+static void
+remove_listener(dispatcher_tag_t *d, destination_t *dst)
+{
+	sender_list_t *p, *l;
+	extension_tag_t * t;
+
+	pthread_mutex_lock(&dst->tag.extension->mutex);
+	pthread_mutex_lock(&dst->tag.extension->mutex2);
+
+	for (l = dst->tag.extension->listeners, p = NULL; l; p = l, l = l->next) {
+		if (l->sender == d->sender) {
+			if (p == NULL) {
+				dst->tag.extension->listeners = NULL;
+				free(l);
+				break;
+			} else {
+				p->next = l->next;
+				free(l);
+				break;
+			}
+		}
+	}
+	pthread_mutex_unlock(&dst->tag.extension->mutex);
+	pthread_mutex_unlock(&dst->tag.extension->mutex2);
 }
 
 static void
@@ -603,6 +696,18 @@ dispatcher(void *arg)
 					remove_sender(d, dst);
 				else
 					status_updates_not_supported(d);
+			} else if (req && !strcmp(req, "listen")) {
+				if (dst->type == DEST_EXTENSION) {
+					add_listener(d, dst);
+					request_ok(d);
+				} else
+					listen_not_supported(d);
+			} else if (req && !strcmp(req, "unlisten")) {
+				if (dst->type == DEST_EXTENSION) {
+					remove_listener(d, dst);
+					request_ok(d);
+				} else
+					listen_not_supported(d);
 			} else if (req && !strcmp(req, "list-destination"))
 				list_destination(d);
 			else if (req) {
