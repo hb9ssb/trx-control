@@ -53,8 +53,8 @@ function dataReady()
 			local notification = {
 				dxcluster = {
 					spotter = spotter,
-					frequency = (tonumber(frequency) or 0)
-					    * 1000,
+					frequency = string.format('%d',
+					    (tonumber(frequency) or 0) * 1000),
 					spotted = spotted,
 					message = message,
 					time = string.format('%s:%s UTC',
