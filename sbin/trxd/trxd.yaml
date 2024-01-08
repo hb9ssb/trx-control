@@ -82,6 +82,7 @@ extensions:
         host: wr3d.dxcluster.net
         port: 7300
         callsign: MYCALLSIGN
+        cacheTime: 3600
 
   sotacluster:
     script: dxcluster:
@@ -90,6 +91,7 @@ extensions:
         port: 7300
         callsign: MYCALLSIGN
         source: sotacluster
+        cacheTime: 3600
 
   qrz:
     script: qrz:
