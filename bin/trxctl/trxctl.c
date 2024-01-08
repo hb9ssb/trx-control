@@ -75,7 +75,7 @@ handle_status_updates()
 	pfd.fd = fd;
 	pfd.events = POLLIN;
 
-	if (poll(&pfd, 1, -0) == -1)
+	if (poll(&pfd, 1, 0) == -1)
 		err(1, "poll");
 
 	if (pfd.revents) {
