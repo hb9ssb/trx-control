@@ -64,7 +64,7 @@ signal_input(void *arg)
 	pfd.events = POLLIN;
 
 	for (;;) {
-		if (poll(&pfd, 1, 0) == -1)
+		if (poll(&pfd, 1, -1) == -1)
 			err(1, "signal-input: poll");
 		if (pfd.revents) {
 
