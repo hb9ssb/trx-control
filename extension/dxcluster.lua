@@ -100,7 +100,7 @@ function getSpots(request)
 	local spotList = {}
 	local n = 0
 
-	local count = tonumber(request.maxSlots)
+	local count = tonumber(request.maxSpots)
 	purgeSpots()
 
 	table.sort(spots, function (a, b) return a.timestamp > b.timestamp end)
