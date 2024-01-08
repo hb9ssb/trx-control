@@ -103,7 +103,13 @@ function getSpots(request)
 	local count = tonumber(request.maxSpots)
 	purgeSpots()
 
-	table.sort(spots, function (a, b) return a.timestamp > b.timestamp end)
+	table.sort(spots, function (a, b)
+		if a ~= nil and b ~= nil then
+			return a.timestamp > b.timestamp
+		else
+			return true
+		end
+		end)
 
 	for k, v in pairs(spots) do
 		spotList[#spotList + 1] = v.spot
@@ -115,7 +121,6 @@ function getSpots(request)
 
 	return {
 		status = 'Ok',
-		source = config.source or 'dxcluster',
 		spots = spotList
 	}
 end
