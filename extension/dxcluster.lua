@@ -104,11 +104,11 @@ function getSpots(request)
 	purgeSpots()
 
 	table.sort(spots, function (a, b)
-		if a ~= nil and b ~= nil then
-			return a.timestamp > b.timestamp
-		else
-			return true
-		end
+			if a ~= nil and b ~= nil then
+				return a.timestamp > b.timestamp
+			else
+				return false
+			end
 		end)
 
 	for k, v in pairs(spots) do
