@@ -51,6 +51,7 @@ extern int luaopen_json(lua_State *);
 
 extern int verbose;
 
+__thread gpio_controller_tag_t	*gpio_controller_tag;
 __thread int gpio_device;
 
 static void
@@ -78,6 +79,8 @@ gpio_controller(void *arg)
 		err(1, "gpio-controller: pthread_detach");
 	if (verbose)
 		printf("gpio-controller: initialising gpio %s\n", t->name);
+
+	gpio_controller_tag = t;
 
 	pthread_cleanup_push(cleanup, arg);
 

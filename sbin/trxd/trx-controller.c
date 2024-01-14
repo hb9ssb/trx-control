@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Marc Balmer HB9SSB
+ * Copyright (c) 2023 - 2024 Marc Balmer HB9SSB
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -52,6 +52,7 @@ extern void *trx_handler(void *);
 
 extern int verbose;
 
+__thread trx_controller_tag_t	*trx_controller_tag;
 __thread int cat_device;
 
 static void
@@ -79,6 +80,8 @@ trx_controller(void *arg)
 		err(1, "trx-controller: pthread_detach");
 	if (verbose)
 		printf("trx-controller: initialising trx %s\n", t->name);
+
+	trx_controller_tag = t;
 
 	pthread_cleanup_push(cleanup, arg);
 

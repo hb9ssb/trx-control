@@ -57,6 +57,7 @@ luatrxd_notify(lua_State *L)
 		if (pthread_mutex_unlock(&l->sender->mutex))
 			err(1, "luatrxd: pthread_mutex_unlock");
 	}
+	return 0;
 }
 
 static int
@@ -73,6 +74,7 @@ luatrxd_signal_input(lua_State *L)
 
 	/* Create the signal-input thread */
 	pthread_create(&s->signal_input, NULL, signal_input, s);
+	return 0;
 }
 
 static int

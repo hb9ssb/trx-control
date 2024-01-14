@@ -35,34 +35,24 @@
 #include "trx-control.h"
 #include "trxd.h"
 
-extern destination_t *destination;
+extern __thread gpio_controller_tag_t	*gpio_controller_tag;
 
 static int
 notify_listeners(lua_State *L)
 {
-	int n;
 	sender_list_t *l;
-	const char *device;
 	char *data;
-	destination_t *d;
 
-	device = luaL_checkstring(L, 1);
-	data = (char *)luaL_checkstring(L, 2);
+	data = (char *)luaL_checkstring(L, 1);
 
-	for (d = destination; d != NULL; d = d->next) {
-		if (d->type == DEST_TRX
-		    && !strcmp(d->tag.trx->device, device)) {
-			for (l = d->tag.trx->senders; l != NULL; l = l->next) {
-				if (pthread_mutex_lock(&l->sender->mutex))
-					err(1, "luatrxd: pthread_mutex_lock");
-				l->sender->data = data;
-				if (pthread_cond_signal(&l->sender->cond))
-					err(1, "luatrxd: pthread_cond_signal");
-				if (pthread_mutex_unlock(&l->sender->mutex))
-					err(1, "luatrxd: pthread_mutex_unlock");
-			}
-			break;
-		}
+	for (l = gpio_controller_tag->senders; l != NULL; l = l->next) {
+		if (pthread_mutex_lock(&l->sender->mutex))
+			err(1, "luatrxd: pthread_mutex_lock");
+		l->sender->data = data;
+		if (pthread_cond_signal(&l->sender->cond))
+			err(1, "luatrxd: pthread_cond_signal");
+		if (pthread_mutex_unlock(&l->sender->mutex))
+			err(1, "luatrxd: pthread_mutex_unlock");
 	}
 	return 0;
 }

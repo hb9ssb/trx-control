@@ -1,4 +1,4 @@
--- Copyright (c) 2023 Marc Balmer HB9SSB
+-- Copyright (c) 2023 - 2024 Marc Balmer HB9SSB
 --
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to
@@ -107,7 +107,7 @@ local function pollHandler(data, fd)
 		}
 
 		local jsonData = json.encode(status)
-		trxController.notifyListeners(device, jsonData)
+		trxController.notifyListeners(jsonData)
 		lastFrequency = frequency
 		lastMode = mode
 	else
@@ -125,7 +125,7 @@ local function dataHandler(data)
 				status = reply
 			}
 			local jsonData = json.encode(status)
-			trxController.notifyListeners(device, jsonData)
+			trxController.notifyListeners(jsonData)
 		end
 	end
 end

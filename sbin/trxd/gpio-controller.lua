@@ -130,7 +130,7 @@ local function pollHandler(data, fd)
 		}
 
 		local jsonData = json.encode(status)
-		gpioController.notifyListeners(device, jsonData)
+		gpioController.notifyListeners(jsonData)
 		lastFrequency = frequency
 		lastMode = mode
 	else
