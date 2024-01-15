@@ -69,7 +69,6 @@ extension(void *arg)
 	if (pthread_mutex_lock(&t->mutex2))
 		err(1, "extension: pthread_mutex_lock");
 
-
 	if (t->has_config)
 		lua_call(t->L, 1, 1);
 	else

@@ -412,7 +412,8 @@ remove_listener(dispatcher_tag_t *d, destination_t *dst)
 	pthread_mutex_lock(&dst->tag.extension->mutex);
 	pthread_mutex_lock(&dst->tag.extension->mutex2);
 
-	for (l = dst->tag.extension->listeners, p = NULL; l; p = l, l = l->next) {
+	for (l = dst->tag.extension->listeners, p = NULL; l;
+	    p = l, l = l->next) {
 		if (l->sender == d->sender) {
 			if (p == NULL) {
 				dst->tag.extension->listeners = NULL;
@@ -718,7 +719,6 @@ dispatcher(void *arg)
 				destination_set(d);
 		}
 		free(d->data);
-
 	}
 	pthread_cleanup_pop(0);
 	pthread_cleanup_pop(0);
