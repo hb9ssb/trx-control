@@ -64,6 +64,12 @@ local function requestHandler(data, fd)
 			reply.ioGroups = driver.ioGroups
 		end
 	elseif request.request == 'set-output' then
+		print(request.io, request.value)
+		if request.value == 'true' then
+			driver.setOutput(request.io, true)
+		else
+			driver.setOutput(request.io, false)
+		end
 	elseif request.request == 'get-input' then
 	elseif request.request == 'get-output' then
 	elseif request.request == 'set-direction' then

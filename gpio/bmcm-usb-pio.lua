@@ -38,8 +38,9 @@ end
 
 local function setPortData(port, data)
 	gpio.write(string.format('@00P%d%2.2X\r', port - 1, data))
-	local res = gpio.read(6)
-	return tonumber(string.sub(res, 4, 5), 16)
+	local res = gpio.read(4)
+	print('res', res)
+	-- return tonumber(string.sub(res, 4, 5), 16)
 end
 
 local function getPortDirection(port)
@@ -69,7 +70,7 @@ end
 
 local function setOutput(io, value)
 	local k = getPort(io)
-	local bit = io - ((port - 1) * 8) - 1
+	local bit = io - ((k - 1) * 8) - 1
 
 	if value == true then
 		port[k].data = port[k].data | (1 << bit)
@@ -136,9 +137,9 @@ end
 local function getGroupDirection(group)
 	if group == 1 or group == 2 then
 		if port[group].direction == 0x00 then
-			return 'in'
-		else
 			return 'out'
+		else
+			return 'in'
 		end
 	else
 		local d = port[3].direction
