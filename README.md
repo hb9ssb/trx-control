@@ -56,5 +56,6 @@ https://matrix.to/#/#trx-control:matrix.org.
 
 ## More information
 
-More information can be found the wiki at
+More information can be found on the trx-control website
+https://trx-control.msys.ch as well as on the wiki at
 https://github.com/hb9ssb/trx-control/wiki
