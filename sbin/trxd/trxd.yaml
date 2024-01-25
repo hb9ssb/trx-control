@@ -8,7 +8,7 @@
 # Run in the background
 no-daemon: false
 
-# We listen on localhost:14285 for incoming connections
+# Listen on localhost:14285 for incoming connections
 bind-address: localhost
 listen-port: 14285
 
@@ -25,14 +25,14 @@ nmea:
   device: /dev/ic-705-nmea
   speed: 9600
 
-# We log incoming connection using syslog
+# Log incoming connection using syslog
 log-connections: true
 
 # trxd shall run as trxd:trxd
 user: trxd
 group: trxd
 
-# We store the PID of the running trxd process in trxd.pid
+# Store the PID of the running trxd process in trxd.pid
 pid-file: trxd.pid
 
 # The list of transceivers we can control
