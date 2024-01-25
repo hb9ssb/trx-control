@@ -18,7 +18,7 @@
 .\" FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 .\" IN THE SOFTWARE.
 .\"
-.TH TRX-CONTROL 7 "1 January 2024" "trx-control"
+.TH TRX-CONTROL 7 "25 January 2024" "trx-control"
 .SH NAME
 trx-control \- software to control amateur radio transceivers
 .SH DESCRIPTION
@@ -59,63 +59,6 @@ this way new transceivers can easily be supported by supplying
 a corresponding Lua driver module for a specific transceiver model.
 See https://lua.org and https://lua.msys.ch for more information on Lua.
 .
-.
-.SH "SUPPORTED TRANSCEIVERS"
-.PP
-trx-control supports the following transceivers, more will be added over time:
-.
-.PP
-.TS
-l l l.
-Manufacturor	Model	Driver
-.T&
-l l l.
-_
-ICOM	IC-705	icom-ic-705
-Yaesu	FT-710	yaesu-ft-710
-Yaesu	FT-891	yaesu-ft-891
-Yaesu	FT-897	yaesu-ft-897
-Yaesu	FT-817	yaesu-ft-817
-Yaesu	FT-991a	yaesu-ft-991a
-.TE
-.PP
-Make sure to set the CAT bit rate used by the transceiver in the
-.IR trxd (8)
-configuration file.
-.
-.
-.SH "SUPPORTED GPIO DEVICES"
-.PP
-.TS
-l l l.
-Manufacturor	Model	Driver
-.T&
-l l l.
-_
-bmcm	USB-PIO	bmcm-usb-pio
-bmcm	OR8	Attached to USB-PIO
-.TE
-.
-.
-.SH "AVAILABLE EXTENSIONS"
-.PP
-Extensions can optionally be configured to provide additional functionality.
-Currently the following extensions exist:
-.
-.PP
-.TS
-l l.
-Extension	Purpose
-.T&
-l l.
-_
-dxcluster	Sending DXCluster spots to clients in real-time
-qrz	Querying QRZ.COM database (needs a login)
-ping	A very simple example extension
-logbook	A proof-of-concept extension using PostgreSQL
-.TE
-.PP
-
 .
 .SH FILES
 .
@@ -170,7 +113,7 @@ Marc Balmer HB9SSB
 .IR xqrg (1) ,
 .IR trxd (8)
 .PP
-The client/server protocol is documented in the projects wiki at
-https://github.com/hb9ssb/trx-control/wiki.
+The client/server protocol is documented in the projects website at
+https://trx-control.msys.ch.
 .
 .

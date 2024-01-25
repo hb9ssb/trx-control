@@ -20,35 +20,6 @@ transceivers can easily be supported by supplying a corresponding Lua driver
 module for a specific transceiver model. See https://lua.org and
 https://lua.msys.ch for more information on Lua.
 
-## Supported transceivers
-
-trx-control supports the following transceivers, more will be added over time:
-
-* ICOM IC-705
-* Yaesu FT-710
-* Yaesu FT-891
-* Yaesu FT-897
-* Yaesu FT-817
-* Yaesu FT-991a
-
-A special simulator transceiver driver exists for development and testing
-purposes.
-
-## Supported GPIO devices
-
-* bmcm USB-PIO
-* bmcm OR8 (attached to a USB-PIO)
-
-## Available Extensions
-
-Extensions can optionally be configured to provide additional functionality.
-Currently the following extensions exist:
-
-* dxcluster, sending DXCluster spots to clients in real-time
-* qrz, querying QRZ.COM database (needs a login)
-* ping, sample extension
-* logbook, a proof-of-concept extension using PostgreSQL
-
 ## trx-control on Matrix
 
 There is a Matrix room ``#trx-control:matrix.org`` to discuss trx-control:
@@ -56,6 +27,7 @@ https://matrix.to/#/#trx-control:matrix.org.
 
 ## More information
 
-More information can be found on the trx-control website
-https://trx-control.msys.ch as well as on the wiki at
-https://github.com/hb9ssb/trx-control/wiki
+More information and the list of devices and extensions can be found on
+the trx-control website https://trx-control.msys.ch.
+
+There is also a wiki at https://github.com/hb9ssb/trx-control/wiki
