@@ -20,8 +20,6 @@
 
 -- The trx-control ping extension
 
-local config = ... or {}
-
 if trxd.verbose() > 0 then
 	print 'installing the trx-control ping extension'
 end
