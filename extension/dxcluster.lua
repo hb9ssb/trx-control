@@ -55,7 +55,7 @@ local function purgeSpots()
 	end
 end
 
--- dataReady is called when new data from, the cluster arrives
+-- dataReady is called when new data from the cluster arrives
 function dataReady()
 	if not loggedIn then
 		local prompt = conn:readln(1000)
