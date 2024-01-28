@@ -18,7 +18,8 @@ SUBDIR+=	bin/trxctl \
 		external/bsd/luasqlite \
 		external/mit/luaexpat \
 		external/mit/lualinux \
-		external/mit/luayaml
+		external/mit/luayaml \
+		yum
 
 MANDIR?=	/usr/share/man
 

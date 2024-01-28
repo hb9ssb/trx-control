@@ -1,0 +1,5 @@
+[trx-control]
+name=trx-control for $releasever $basearch
+baseurl=https://trx-control.msys.ch/yum/rhel-$releasever-$basearch
+enabled=1
+gpgcheck=0

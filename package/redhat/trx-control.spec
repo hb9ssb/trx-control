@@ -19,8 +19,15 @@ Provides: trx-control
 
 Buildroot: /tmp/trx-control
 
+%package repo
+BuildArch: noarch
+Summary: trx-control repository for Alma Linux / RHEL / RockyLinux
+
 %description
 trx-control
+
+%description repo
+trx-control software repository
 
 %files
 /etc/X11/app-defaults/XQRG
@@ -70,6 +77,9 @@ trx-control
 /usr/share/trxd/trx/yaesu-ft-991a.lua
 /usr/share/trxd/trxd.yaml
 /usr/share/xqrg/xqrg.lua
+
+%files repo
+%config(noreplace) /etc/yum.repos.d/trx-control.repo
 
 %global debug_package %{nil}
 %prep
