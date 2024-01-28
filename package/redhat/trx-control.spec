@@ -36,6 +36,7 @@ trx-control
 /usr/share/man/man7/trx-control.7.gz
 /usr/share/man/man8/trxd.8.gz
 /usr/share/trxctl/trxctl.lua
+/usr/share/trxd/extension/config.lua
 /usr/share/trxd/extension/dxcluster.lua
 /usr/share/trxd/extension/logbook.lua
 /usr/share/trxd/extension/ping.lua
@@ -54,6 +55,7 @@ trx-control
 /usr/share/trxd/lua/linux/pwd.so
 /usr/share/trxd/lua/pgsql.so
 /usr/share/trxd/lua/sqlite.so
+/usr/share/trxd/lua/yaml.so
 /usr/share/trxd/protocol/cat-5-byte.lua
 /usr/share/trxd/protocol/cat-delimited.lua
 /usr/share/trxd/protocol/ci-v.lua

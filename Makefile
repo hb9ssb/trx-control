@@ -17,7 +17,8 @@ SUBDIR+=	bin/trxctl \
 		external/bsd/luapgsql \
 		external/bsd/luasqlite \
 		external/mit/luaexpat \
-		external/mit/lualinux
+		external/mit/lualinux \
+		external/mit/luayaml
 
 MANDIR?=	/usr/share/man
 

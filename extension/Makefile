@@ -1,4 +1,4 @@
-EXTENSION?=	dxcluster.lua ping.lua logbook.lua qrz.lua
+EXTENSION?=	config.lua dxcluster.lua ping.lua logbook.lua qrz.lua
 
 EXTDIR?=	/usr/share/trxd/extension
 
