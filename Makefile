@@ -56,6 +56,8 @@ bin/trxctl:	lib/libtrx-control lib/liblua
 bin/xqrg:	lib/libtrx-control lib/liblua
 sbin/trxd:	lib/libtrx-control lib/liblua
 
+external/mit/luayaml:	sbin/trxd
+
 rpm:
 	VERSION=$(VERSION) RELEASE=$(RELEASE) PG_VERSION=$(PG_VERSION) \
 		make -C package/redhat
