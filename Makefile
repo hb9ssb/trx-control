@@ -1,8 +1,30 @@
+-include /etc/os-release
+
 VERSION=	1.0.0
 RELEASE=	1
 
 PG_VERSION?=	16
 
+# Variables needed for distribution building
+ifeq ($(ID), none)
+ID=	$(shell lsb_release -si)
+endif
+
+ifeq ($(ID), "almalinux")
+ID="rhel"
+endif
+
+RELEASEVER=	$(shell echo $(VERSION_ID) | cut -d . -f 1)
+ARCH=		$(shell uname -m)
+
+REPOHOST=	trx-control.msys.ch
+REPORPM=	trx-control-repo-latest.noarch.rpm
+REPOBASE=	/var/www/trx-control/yum
+
+REPOUSER=	root
+REPOPATH=	$(REPOBASE)/rhel-$(RELEASEVER)-$(ARCH)
+
+# Build instructions
 SUBDIR+=	bin/trxctl \
 		bin/xqrg \
 		gpio \
@@ -59,6 +81,21 @@ sbin/trxd:	lib/libtrx-control lib/liblua
 
 external/mit/luayaml:	sbin/trxd
 
+# Special targets to build rpms and install them.  Should eventually be
+# be replaced by a CI/CD pipeline.
+
 rpm:
+	rm -f ~/rpmbuild/RPMS/*/trx-control-*
 	VERSION=$(VERSION) RELEASE=$(RELEASE) PG_VERSION=$(PG_VERSION) \
 		make -C package/redhat
+
+dist:	rpm
+	ssh $(REPOUSER)@$(REPOHOST) mkdir -p $(REPOPATH)
+	scp ~/rpmbuild/RPMS/$(ARCH)/trx-control-* \
+		~/rpmbuild/RPMS/noarch/trx-control-* \
+		$(REPOUSER)@$(REPOHOST):$(REPOPATH)
+
+	scp ~/rpmbuild/RPMS/noarch/trx-control-repo-*.rpm \
+		$(REPOUSER)@$(REPOHOST):$(REPOPATH)/$(REPORPM)
+
+	ssh $(REPOUSER)@$(REPOHOST) createrepo $(REPOPATH)
