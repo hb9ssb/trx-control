@@ -99,3 +99,18 @@ dist:	rpm
 		$(REPOUSER)@$(REPOHOST):$(REPOPATH)/$(REPORPM)
 
 	ssh $(REPOUSER)@$(REPOHOST) createrepo $(REPOPATH)
+
+dockerized:
+	cp -a /dist /build
+	cd /build
+	make rpm
+	cp -a ~/rpmbuild/RPMS /rpms
+
+almalinux-8:
+	-mkdir rpms
+	docker run --rm \
+		-v `pwd`:/dist \
+		-v `pwd`/rpms:/rpms \
+		--name $@ \
+		pkg-builder/alma-8 \
+		/usr/bin/make dockerized
