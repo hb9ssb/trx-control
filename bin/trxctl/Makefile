@@ -12,7 +12,7 @@ TRXCTLDIR?=	/usr/share/trxctl
 CFLAGS+=	-I../../lib/libtrx-control -I../../external/mit/lua/src \
 		-D_GNU_SOURCE -DVERSION=\"${VERSION}\"
 LDFLAGS+=	-L../../lib/libtrx-control -ltrx-control \
-		-L../../lib/liblua -llua -lm -lreadline
+		../../lib/liblua/liblua.a -ldl -lm -lreadline
 VPATH=		../../external/mit/luajson \
 		../../lib/libtrx-control
 

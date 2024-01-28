@@ -14,7 +14,7 @@ APP_DEFAULTS?=	/etc/X11/app-defaults
 CFLAGS+=	-I../../lib/libtrx-control -I../../external/mit/lua/src \
 		-D_GNU_SOURCE -DVERSION=\"${VERSION}\"
 LDFLAGS+=	-L../../lib/libtrx-control -ltrx-control \
-		-L../../lib/liblua -llua -lm -lXm -lXt -lX11 -lXm
+		../../lib/liblua/liblua.a -ldl -lm -lXm -lXt -lX11 -lXm
 VPATH=		../../external/mit/luajson ../../lib/libtrx-control
 
 build:		xqrg

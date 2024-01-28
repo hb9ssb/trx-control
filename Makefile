@@ -106,29 +106,65 @@ dockerized:
 	(cd /build && make rpm)
 	cp -a ~/rpmbuild/RPMS /rpms
 
-test:
-	-mkdir rpms
-	docker run -it --rm \
-		-v `pwd`:/dist \
-		-v `pwd`/rpms:/rpms \
-		--name $@ \
-		pkg-builder/alma-9 \
-		/bin/bash
-
-almalinux-9:
-	-mkdir rpms
+opensuse-leap-15.5:
+	-mkdir rpms/$@
 	docker run --rm \
 		-v `pwd`:/dist \
-		-v `pwd`/rpms:/rpms \
+		-v `pwd`/../rpms/$@:/rpms \
 		--name $@ \
-		pkg-builder/alma-9 \
+		pkg-builder/$@ \
 		/usr/bin/make -C /dist dockerized
 
-almalinux-8:
-	-mkdir rpms
+fedora-39:
+	-mkdir rpms/$@
 	docker run --rm \
 		-v `pwd`:/dist \
-		-v `pwd`/rpms:/rpms \
+		-v `pwd`/../rpms/$@:/rpms \
 		--name $@ \
-		pkg-builder/alma-8 \
+		pkg-builder/$@ \
+		/usr/bin/make -C /dist dockerized
+
+fedora-38:
+	-mkdir rpms/$@
+	docker run --rm \
+		-v `pwd`:/dist \
+		-v `pwd`/../rpms/$@:/rpms \
+		--name $@ \
+		pkg-builder/$@ \
+		/usr/bin/make -C /dist dockerized
+
+alma-9:
+	-mkdir rpms/$@
+	docker run --rm \
+		-v `pwd`:/dist \
+		-v `pwd`/../rpms/$@:/rpms \
+		--name $@ \
+		pkg-builder/$@ \
+		/usr/bin/make -C /dist dockerized
+
+alma-8:
+	-mkdir rpms/$@
+	docker run --rm \
+		-v `pwd`:/dist \
+		-v `pwd`/../rpms/$@:/rpms \
+		--name $@ \
+		pkg-builder/$@ \
+		/usr/bin/make -C /dist dockerized
+
+rocky-9:
+	-mkdir rpms/$@
+	docker run --rm \
+		-v `pwd`:/dist \
+		-v `pwd`/../rpms/$@:/rpms \
+		--name $@ \
+		pkg-builder/$@ \
+		/usr/bin/make -C /dist dockerized
+
+rocky-8:
+	-mkdir rpms/$@
+	docker run --rm \
+		-v `pwd`:/dist \
+		-v `pwd`/../rpms/$@:/rpms \
+		--name $@ \
+		pkg-builder/$@ \
 		/usr/bin/make -C /dist dockerized
