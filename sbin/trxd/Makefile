@@ -38,7 +38,7 @@ CFLAGS+=	-I../../lib/libtrx-control -I../../external/mit/lua/src \
 		-DTRXD_VERSION=\"${VERSION}\" \
 		-export-dynamic
 LDFLAGS+=	-L../../lib/libtrx-control -ltrx-control \
-		-ldl ../../lib/liblua/liblua.a -lyaml -lm -lssl -lcrypto
+		../../lib/liblua/liblua.a -ldl -lyaml -lm -lssl -lcrypto
 VPATH=		../../external/mit/luayaml ../../external/mit/luajson \
 		../../lib/libtrx-control
 
