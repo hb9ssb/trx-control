@@ -95,6 +95,10 @@ suse:
 	VERSION=$(VERSION) RELEASE=$(RELEASE) PG_VERSION=$(PG_VERSION) \
 		make -C package/suse
 
+debian-deb:
+	PG_CONFIG=/usr/bin/pg_config dpkg-buildpackage -rfakeroot \
+		--build=any,all
+
 dist:	rpm
 	ssh $(REPOUSER)@$(REPOHOST) mkdir -p $(REPOPATH)
 	scp ~/rpmbuild/RPMS/$(ARCH)/trx-control-* \
@@ -117,6 +121,12 @@ dockerized-suse:
 	cp -a /dist/* /build/
 	(cd /build && make suse)
 	cp -a ~/rpmbuild/RPMS /rpms
+
+dockerized-debian:
+	mkdir /build
+	cp -a /dist/* /build/
+	(cd /build && make debian-deb)
+	cp /trx-control_*.deb /deb
 
 opensuse-tumbleweed:
 	-mkdir rpms/$@
@@ -190,11 +200,38 @@ rocky-8:
 		pkg-builder/$@ \
 		/usr/bin/make -C /dist dockerized-redhat
 
-centos-8:
-	-mkdir rpms/$@
-	docker run --rm \
+ubuntu-23.10:
+	-mkdir ../deb/$@
+	docker run -it --rm \
 		-v `pwd`:/dist \
-		-v `pwd`/../rpms/$@:/rpms \
+		-v `pwd`/../deb/$@:/deb \
 		--name $@ \
 		pkg-builder/$@ \
-		/usr/bin/make -C /dist dockerized-redhat
+		/usr/bin/make -C /dist dockerized-debian
+
+ubuntu-23.04:
+	-mkdir ../deb/$@
+	docker run -it --rm \
+		-v `pwd`:/dist \
+		-v `pwd`/../deb/$@:/deb \
+		--name $@ \
+		pkg-builder/$@ \
+		/usr/bin/make -C /dist dockerized-debian
+
+ubuntu-22.04:
+	-mkdir ../deb/$@
+	docker run -it --rm \
+		-v `pwd`:/dist \
+		-v `pwd`/../deb/$@:/deb \
+		--name $@ \
+		pkg-builder/$@ \
+		/usr/bin/make -C /dist dockerized-debian
+
+ubuntu-20.04:
+	-mkdir ../deb/$@
+	docker run -it --rm \
+		-v `pwd`:/dist \
+		-v `pwd`/../deb/$@:/deb \
+		--name $@ \
+		pkg-builder/$@ \
+		/usr/bin/make -C /dist dockerized-debian
