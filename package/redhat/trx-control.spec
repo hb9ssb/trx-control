@@ -30,6 +30,7 @@ trx-control
 trx-control software repository
 
 %files
+/etc/systemd/system/trx-control.service
 /etc/X11/app-defaults/XQRG
 /usr/bin/trxctl
 /usr/bin/xqrg

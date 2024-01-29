@@ -1,0 +1,11 @@
+[Unit]
+Description=trx-control
+After=network.target
+
+[Service]
+ExecStart=/usr/sbin/trxd
+Type=forking
+Restart=always
+
+[Install]
+WantedBy=default.target

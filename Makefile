@@ -41,7 +41,8 @@ SUBDIR+=	bin/trxctl \
 		external/mit/luaexpat \
 		external/mit/lualinux \
 		external/mit/luayaml \
-		yum
+		yum \
+		systemd
 
 MANDIR?=	/usr/share/man
 
@@ -84,10 +85,15 @@ external/mit/luayaml:	sbin/trxd
 # Special targets to build rpms and install them.  Should eventually be
 # be replaced by a CI/CD pipeline.
 
-rpm:
+redhat:
 	rm -f ~/rpmbuild/RPMS/*/trx-control-*
 	VERSION=$(VERSION) RELEASE=$(RELEASE) PG_VERSION=$(PG_VERSION) \
 		make -C package/redhat
+
+suse:
+	rm -f ~/rpmbuild/RPMS/*/trx-control-*
+	VERSION=$(VERSION) RELEASE=$(RELEASE) PG_VERSION=$(PG_VERSION) \
+		make -C package/suse
 
 dist:	rpm
 	ssh $(REPOUSER)@$(REPOHOST) mkdir -p $(REPOPATH)
@@ -100,11 +106,26 @@ dist:	rpm
 
 	ssh $(REPOUSER)@$(REPOHOST) createrepo $(REPOPATH)
 
-dockerized:
+dockerized-redhat:
 	mkdir /build
 	cp -a /dist/* /build/
-	(cd /build && make rpm)
+	(cd /build && make redhat)
 	cp -a ~/rpmbuild/RPMS /rpms
+
+dockerized-suse:
+	mkdir /build
+	cp -a /dist/* /build/
+	(cd /build && make suse)
+	cp -a ~/rpmbuild/RPMS /rpms
+
+opensuse-tumbleweed:
+	-mkdir rpms/$@
+	docker run --rm \
+		-v `pwd`:/dist \
+		-v `pwd`/../rpms/$@:/rpms \
+		--name $@ \
+		pkg-builder/$@ \
+		/usr/bin/make -C /dist dockerized-suse
 
 opensuse-leap-15.5:
 	-mkdir rpms/$@
@@ -113,7 +134,7 @@ opensuse-leap-15.5:
 		-v `pwd`/../rpms/$@:/rpms \
 		--name $@ \
 		pkg-builder/$@ \
-		/usr/bin/make -C /dist dockerized
+		/usr/bin/make -C /dist dockerized-suse
 
 fedora-39:
 	-mkdir rpms/$@
@@ -122,7 +143,7 @@ fedora-39:
 		-v `pwd`/../rpms/$@:/rpms \
 		--name $@ \
 		pkg-builder/$@ \
-		/usr/bin/make -C /dist dockerized
+		/usr/bin/make -C /dist dockerized-redhat
 
 fedora-38:
 	-mkdir rpms/$@
@@ -131,7 +152,7 @@ fedora-38:
 		-v `pwd`/../rpms/$@:/rpms \
 		--name $@ \
 		pkg-builder/$@ \
-		/usr/bin/make -C /dist dockerized
+		/usr/bin/make -C /dist dockerized-redhat
 
 alma-9:
 	-mkdir rpms/$@
@@ -140,7 +161,7 @@ alma-9:
 		-v `pwd`/../rpms/$@:/rpms \
 		--name $@ \
 		pkg-builder/$@ \
-		/usr/bin/make -C /dist dockerized
+		/usr/bin/make -C /dist dockerized-redhat
 
 alma-8:
 	-mkdir rpms/$@
@@ -149,7 +170,7 @@ alma-8:
 		-v `pwd`/../rpms/$@:/rpms \
 		--name $@ \
 		pkg-builder/$@ \
-		/usr/bin/make -C /dist dockerized
+		/usr/bin/make -C /dist dockerized-redhat
 
 rocky-9:
 	-mkdir rpms/$@
@@ -158,7 +179,7 @@ rocky-9:
 		-v `pwd`/../rpms/$@:/rpms \
 		--name $@ \
 		pkg-builder/$@ \
-		/usr/bin/make -C /dist dockerized
+		/usr/bin/make -C /dist dockerized-redhat
 
 rocky-8:
 	-mkdir rpms/$@
@@ -167,4 +188,13 @@ rocky-8:
 		-v `pwd`/../rpms/$@:/rpms \
 		--name $@ \
 		pkg-builder/$@ \
-		/usr/bin/make -C /dist dockerized
+		/usr/bin/make -C /dist dockerized-redhat
+
+centos-8:
+	-mkdir rpms/$@
+	docker run --rm \
+		-v `pwd`:/dist \
+		-v `pwd`/../rpms/$@:/rpms \
+		--name $@ \
+		pkg-builder/$@ \
+		/usr/bin/make -C /dist dockerized-redhat
