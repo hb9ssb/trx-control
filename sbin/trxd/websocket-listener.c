@@ -179,7 +179,7 @@ websocket_listener(void *arg)
 	if (t->certificate != NULL) {
 		SSL_library_init();
 		SSL_load_error_strings();
-		if ((t->ctx = SSL_CTX_new(TLS_method())) == NULL)
+		if ((t->ctx = SSL_CTX_new(TLSv1_2_method())) == NULL)
 			err(1, "websocket-listener: can't create SSL context");
 
 		if (SSL_CTX_use_certificate_chain_file(t->ctx, t->certificate)
