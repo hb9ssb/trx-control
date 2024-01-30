@@ -1,7 +1,7 @@
 # trx-control
 
 Extensible software to control amateur radio transceivers and related hardware
-like relays, GPIO-pins and rotators and to integration clients with third-party
+like GPIO-pins etc. and to integrate clients with third-party
 software using application specific extensions.
 
 trx-control consists of trxd(8), a daemon to control the transceivers and
