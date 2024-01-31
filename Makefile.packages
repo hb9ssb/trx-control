@@ -15,8 +15,7 @@ RELEASEVER=	$(shell echo $(VERSION_ID) | cut -d . -f 1)
 ARCH=		$(shell uname -m)
 
 REPOHOST=	trx-control.msys.ch
-REPORPM=	trx-control-repo-latest.noarch.rpm
-REPOBASE=	/var/www/trx-control/yum
+REPOBASE=	/var/www/trx-control/pub/repos
 PKGDEST=	/tmp/trx-control
 
 YUMDEST=	$(PKGDEST)/yum
@@ -51,16 +50,37 @@ clean:
 # Special targets to build rpms and install them.  Should eventually be
 # be replaced by a CI/CD pipeline.
 
-dist:	rpm
-	ssh $(REPOUSER)@$(REPOHOST) mkdir -p $(REPOPATH)
-	scp ~/rpmbuild/RPMS/$(ARCH)/trx-control-* \
-		~/rpmbuild/RPMS/noarch/trx-control-* \
-		$(REPOUSER)@$(REPOHOST):$(REPOPATH)
+UID=	$(shell id -u)
+SOCK=	/tmp/.trx-control.$(UID)
 
-	scp ~/rpmbuild/RPMS/noarch/trx-control-repo-*.rpm \
-		$(REPOUSER)@$(REPOHOST):$(REPOPATH)/$(REPORPM)
+repos:	connect redhat-repo suse-repo debian-repo disconnect
 
-	ssh $(REPOUSER)@$(REPOHOST) createrepo $(REPOPATH)
+connect:
+	ssh -S $(SOCK) -M -N -o ControlMaster=yes -f root@trx-control.msys.ch
+
+disconnect:
+	ssh -S $(SOCK) -O exit trx-control.msys.ch
+
+redhat-repo:
+	ssh -S $(SOCK) trx-control.msys.ch mkdir -p $(REPOBASE)/yum
+	rsync -avz -e "ssh -o ControlPath=$(SOCK)" \
+		$(YUMDEST) root@trx-control.msys.ch:$(REPOBASE)
+	for f in $(REDHAT_BASED); \
+		do ssh -S $(SOCK) trx-control.msys.ch \
+				createrepo $(REPOBASE)/yum/$$f; done
+
+suse-repo:
+	ssh -S $(SOCK) trx-control.msys.ch mkdir -p $(REPOBASE)/zypp
+	rsync -avz -e "ssh -o ControlPath=$(SOCK)" \
+		$(ZYPPDEST) root@trx-control.msys.ch:$(REPOBASE)
+	for f in $(SUSE_BASED); \
+		do ssh -S $(SOCK) trx-control.msys.ch \
+				createrepo $(REPOBASE)/zypp/$$f; done
+
+debian-repo:
+	ssh -S $(SOCK) trx-control.msys.ch mkdir -p $(REPOBASE)/apt
+	rsync -avz -e "ssh -o ControlPath=$(SOCK)" \
+		$(APTDEST) root@trx-control.msys.ch:$(REPOBASE)
 
 $(REDHAT_BASED):
 	-mkdir -p $(YUMDEST)/$@
