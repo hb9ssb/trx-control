@@ -16,6 +16,11 @@ ARCH=		$(shell uname -m)
 REPOHOST=	trx-control.msys.ch
 REPORPM=	trx-control-repo-latest.noarch.rpm
 REPOBASE=	/var/www/trx-control/yum
+PKGDEST=	/tmp/trx-control
+
+YUMDEST=	$(PKGDEST)/yum
+APTDEST=	$(PKGDEST)/apt
+ZYPPDEST=	$(PKGDEST)/zypp
 
 REPOUSER=	root
 REPOPATH=	$(REPOBASE)/rhel-$(RELEASEVER)-$(ARCH)
@@ -31,14 +36,16 @@ DISTRIBUTIONS=	alma-9 \
 		opensuse-tumbleweed \
 		ubuntu-23.10 \
 		ubuntu-23.04 \
+		ubuntu-22.10 \
 		ubuntu-22.04 \
 		ubuntu-20.04 \
-		debian-12.4
+		debian-12.4 \
+		debian-12.2
 
 all:	$(DISTRIBUTIONS)
 
 clean:
-	rm -rf ../rpms ../deb
+	rm -rf $(PKGDEST)
 
 # Special targets to build rpms and install them.  Should eventually be
 # be replaced by a CI/CD pipeline.
@@ -72,144 +79,152 @@ dockerized-redhat:
 	mkdir /build
 	cp -a /dist/* /build/
 	(cd /build && make -f Makefile.packages redhat)
-	cp -a ~/rpmbuild/RPMS /rpms
+	cp -a ~/rpmbuild/RPMS/* /rpms
 
 dockerized-suse:
 	mkdir /build
 	cp -a /dist/* /build/
 	(cd /build && make -f Makefile.packages suse)
-	cp -a ~/rpmbuild/RPMS /rpms
+	cp -a ~/rpmbuild/RPMS/* /rpms
 
 dockerized-debian:
 	mkdir /build
 	cp -a /dist/* /build/
 	(cd /build && make -f Makefile.packages debian-deb)
-	cp /trx-control_*.deb /deb
+	cp /trx-control*.deb /deb
 
 opensuse-tumbleweed:
-	-mkdir -p ../rpms/$@
+	-mkdir -p $(ZYPPDEST)/$@
 	docker run --rm \
 		-v `pwd`:/dist \
-		-v `pwd`/../rpms/$@:/rpms \
+		-v $(ZYPPDEST)/$@:/rpms \
 		--name $@ \
 		pkg-builder/$@ \
 		/usr/bin/make -C /dist -f Makefile.packages dockerized-suse
 
 opensuse-leap-15.5:
-	-mkdir -p ../rpms/$@
+	-mkdir -p $(ZYPPDEST)/$@
 	docker run --rm \
 		-v `pwd`:/dist \
-		-v `pwd`/../rpms/$@:/rpms \
+		-v $(ZYPPDEST)/$@:/rpms \
 		--name $@ \
 		pkg-builder/$@ \
 		/usr/bin/make -C /dist -f Makefile.packages dockerized-suse
 
 fedora-39:
-	-mkdir -p ../rpms/$@
+	-mkdir -p $(YUMDEST)/$@
 	docker run --rm \
 		-v `pwd`:/dist \
-		-v `pwd`/../rpms/$@:/rpms \
+		-v $(YUMDEST)/$@:/rpms \
 		--name $@ \
 		pkg-builder/$@ \
 		/usr/bin/make -C /dist -f Makefile.packages dockerized-redhat
 
 fedora-38:
-	-mkdir -p ../rpms/$@
+	-mkdir -p $(YUMDEST)/$@
 	docker run --rm \
 		-v `pwd`:/dist \
-		-v `pwd`/../rpms/$@:/rpms \
+		-v $(YUMDEST)/$@:/rpms \
 		--name $@ \
 		pkg-builder/$@ \
 		/usr/bin/make -C /dist -f Makefile.packages dockerized-redhat
 
 alma-9:
-	-mkdir -p ../rpms/$@
+	-mkdir -p $(YUMDEST)/$@
 	docker run --rm \
 		-v `pwd`:/dist \
-		-v `pwd`/../rpms/$@:/rpms \
+		-v $(YUMDEST)/$@:/rpms \
 		--name $@ \
 		pkg-builder/$@ \
 		/usr/bin/make -C /dist -f Makefile.packages dockerized-redhat
 
 alma-8:
-	-mkdir -p ../rpms/$@
+	-mkdir -p $(YUMDEST)/$@
 	docker run --rm \
 		-v `pwd`:/dist \
-		-v `pwd`/../rpms/$@:/rpms \
+		-v $(YUMDEST)/$@:/rpms \
 		--name $@ \
 		pkg-builder/$@ \
 		/usr/bin/make -C /dist -f Makefile.packages dockerized-redhat
 
 rocky-9:
-	-mkdir -p ../rpms/$@
+	-mkdir -p $(YUMDEST)/$@
 	docker run --rm \
 		-v `pwd`:/dist \
-		-v `pwd`/../rpms/$@:/rpms \
+		-v $(YUMDEST)/$@:/rpms \
 		--name $@ \
 		pkg-builder/$@ \
 		/usr/bin/make -C /dist -f Makefile.packages dockerized-redhat
 
 rocky-8:
-	-mkdir -p ../rpms/$@
+	-mkdir -p $(YUMDEST)/$@
 	docker run --rm \
 		-v `pwd`:/dist \
-		-v `pwd`/../rpms/$@:/rpms \
+		-v $(YUMDEST)/$@:/rpms \
 		--name $@ \
 		pkg-builder/$@ \
 		/usr/bin/make -C /dist -f Makefile.packages dockerized-redhat
 
 centos-7:
-	-mkdir -p ../rpms/$@
+	-mkdir -p $(YUMDEST)/$@
 	docker run --rm \
 		-e PG_CONFIG=/usr/pgsql-15/bin/pg_config \
 		-v `pwd`:/dist \
-		-v `pwd`/../rpms/$@:/rpms \
+		-v $(YUMDEST)/$@:/rpms \
 		--name $@ \
 		pkg-builder/$@ \
 		/usr/bin/make -C /dist -f Makefile.packages dockerized-redhat
 
 ubuntu-23.10:
-	-mkdir -p ../deb/$@
-	docker run -it --rm \
+	-mkdir -p $(APTDEST)/$@
+	docker run --rm \
 		-v `pwd`:/dist \
-		-v `pwd`/../deb/$@:/deb \
+		-v $(APTDEST)/$@:/deb \
 		--name $@ \
 		pkg-builder/$@ \
 		/usr/bin/make -C /dist -f Makefile.packages dockerized-debian
 
 ubuntu-23.04:
-	-mkdir -p ../deb/$@
-	docker run -it --rm \
+	-mkdir -p .$(APTDEST)/$@
+	docker run --rm \
 		-v `pwd`:/dist \
-		-v `pwd`/../deb/$@:/deb \
+		-v $(APTDEST)/$@:/deb \
 		--name $@ \
 		pkg-builder/$@ \
 		/usr/bin/make -C /dist -f Makefile.packages dockerized-debian
 
 ubuntu-22.04:
-	-mkdir -p ../deb/$@
-	docker run -it --rm \
+	-mkdir -p $(APTDEST)/$@
+	docker run --rm \
 		-v `pwd`:/dist \
-		-v `pwd`/../deb/$@:/deb \
+		-v $(APTDEST)/$@:/deb \
 		--name $@ \
 		pkg-builder/$@ \
 		/usr/bin/make -C /dist -f Makefile.packages dockerized-debian
 
 ubuntu-20.04:
-	-mkdir -p ../deb/$@
-	docker run -it --rm \
+	-mkdir -p $(APTDEST)/$@
+	docker run --rm \
 		-v `pwd`:/dist \
-		-v `pwd`/../deb/$@:/deb \
+		-v $(APTDEST)/$@:/deb \
 		--name $@ \
 		pkg-builder/$@ \
 		/usr/bin/make -C /dist -f Makefile.packages dockerized-debian
 
 debian-12.4:
-	-mkdir -p ../deb/$@
-	docker run -it --rm \
+	-mkdir $(APTDEST)/$@
+	docker run --rm \
 		-v `pwd`:/dist \
-		-v `pwd`/../deb/$@:/deb \
+		-v $(APTDEST)/$@:/deb \
 		--name $@ \
 		pkg-builder/$@ \
 		/usr/bin/make -C /dist -f Makefile.packages dockerized-debian
 
+debian-12.2:
+	-mkdir $(APTDEST)/$@
+	docker run --rm \
+		-v `pwd`:/dist \
+		-v $(APTDEST)/$@:/deb \
+		--name $@ \
+		pkg-builder/$@ \
+		/usr/bin/make -C /dist -f Makefile.packages dockerized-debian

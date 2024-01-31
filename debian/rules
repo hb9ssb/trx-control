@@ -30,7 +30,6 @@ export DH_VERBOSE=1
 binary:
 	dh_gencontrol
 	dh_builddeb
-	ls /build / /build/debian
 
 %:
 	dh $@ --parallel
