@@ -20,6 +20,26 @@ REPOBASE=	/var/www/trx-control/yum
 REPOUSER=	root
 REPOPATH=	$(REPOBASE)/rhel-$(RELEASEVER)-$(ARCH)
 
+DISTRIBUTIONS=	alma-9 \
+		alma-8 \
+		centos-7 \
+		rocky-9 \
+		rocky-8 \
+		fedora-39 \
+		fedora-38 \
+		opensuse-leap-15.5 \
+		opensuse-tumbleweed \
+		ubuntu-23.10 \
+		ubuntu-23.04 \
+		ubuntu-22.04 \
+		ubuntu-20.04 \
+		debian-12.4
+
+all:	$(DISTRIBUTIONS)
+
+clean:
+	rm -rf ../rpms ../deb
+
 # Special targets to build rpms and install them.  Should eventually be
 # be replaced by a CI/CD pipeline.
 
@@ -67,7 +87,7 @@ dockerized-debian:
 	cp /trx-control_*.deb /deb
 
 opensuse-tumbleweed:
-	-mkdir rpms/$@
+	-mkdir -p ../rpms/$@
 	docker run --rm \
 		-v `pwd`:/dist \
 		-v `pwd`/../rpms/$@:/rpms \
@@ -76,7 +96,7 @@ opensuse-tumbleweed:
 		/usr/bin/make -C /dist -f Makefile.packages dockerized-suse
 
 opensuse-leap-15.5:
-	-mkdir rpms/$@
+	-mkdir -p ../rpms/$@
 	docker run --rm \
 		-v `pwd`:/dist \
 		-v `pwd`/../rpms/$@:/rpms \
@@ -85,25 +105,25 @@ opensuse-leap-15.5:
 		/usr/bin/make -C /dist -f Makefile.packages dockerized-suse
 
 fedora-39:
-	-mkdir rpms/$@
+	-mkdir -p ../rpms/$@
 	docker run --rm \
 		-v `pwd`:/dist \
 		-v `pwd`/../rpms/$@:/rpms \
 		--name $@ \
 		pkg-builder/$@ \
-		/usr/bin/make -C /dist dockerized-redhat
+		/usr/bin/make -C /dist -f Makefile.packages dockerized-redhat
 
 fedora-38:
-	-mkdir rpms/$@
+	-mkdir -p ../rpms/$@
 	docker run --rm \
 		-v `pwd`:/dist \
 		-v `pwd`/../rpms/$@:/rpms \
 		--name $@ \
 		pkg-builder/$@ \
-		/usr/bin/make -C /dist dockerized-redhat
+		/usr/bin/make -C /dist -f Makefile.packages dockerized-redhat
 
 alma-9:
-	-mkdir rpms/$@
+	-mkdir -p ../rpms/$@
 	docker run --rm \
 		-v `pwd`:/dist \
 		-v `pwd`/../rpms/$@:/rpms \
@@ -112,7 +132,7 @@ alma-9:
 		/usr/bin/make -C /dist -f Makefile.packages dockerized-redhat
 
 alma-8:
-	-mkdir rpms/$@
+	-mkdir -p ../rpms/$@
 	docker run --rm \
 		-v `pwd`:/dist \
 		-v `pwd`/../rpms/$@:/rpms \
@@ -121,7 +141,7 @@ alma-8:
 		/usr/bin/make -C /dist -f Makefile.packages dockerized-redhat
 
 rocky-9:
-	-mkdir rpms/$@
+	-mkdir -p ../rpms/$@
 	docker run --rm \
 		-v `pwd`:/dist \
 		-v `pwd`/../rpms/$@:/rpms \
@@ -130,7 +150,7 @@ rocky-9:
 		/usr/bin/make -C /dist -f Makefile.packages dockerized-redhat
 
 rocky-8:
-	-mkdir rpms/$@
+	-mkdir -p ../rpms/$@
 	docker run --rm \
 		-v `pwd`:/dist \
 		-v `pwd`/../rpms/$@:/rpms \
@@ -139,7 +159,7 @@ rocky-8:
 		/usr/bin/make -C /dist -f Makefile.packages dockerized-redhat
 
 centos-7:
-	-mkdir rpms/$@
+	-mkdir -p ../rpms/$@
 	docker run --rm \
 		-e PG_CONFIG=/usr/pgsql-15/bin/pg_config \
 		-v `pwd`:/dist \
@@ -149,7 +169,7 @@ centos-7:
 		/usr/bin/make -C /dist -f Makefile.packages dockerized-redhat
 
 ubuntu-23.10:
-	-mkdir ../deb/$@
+	-mkdir -p ../deb/$@
 	docker run -it --rm \
 		-v `pwd`:/dist \
 		-v `pwd`/../deb/$@:/deb \
@@ -158,7 +178,7 @@ ubuntu-23.10:
 		/usr/bin/make -C /dist -f Makefile.packages dockerized-debian
 
 ubuntu-23.04:
-	-mkdir ../deb/$@
+	-mkdir -p ../deb/$@
 	docker run -it --rm \
 		-v `pwd`:/dist \
 		-v `pwd`/../deb/$@:/deb \
@@ -167,7 +187,7 @@ ubuntu-23.04:
 		/usr/bin/make -C /dist -f Makefile.packages dockerized-debian
 
 ubuntu-22.04:
-	-mkdir ../deb/$@
+	-mkdir -p ../deb/$@
 	docker run -it --rm \
 		-v `pwd`:/dist \
 		-v `pwd`/../deb/$@:/deb \
@@ -176,10 +196,20 @@ ubuntu-22.04:
 		/usr/bin/make -C /dist -f Makefile.packages dockerized-debian
 
 ubuntu-20.04:
-	-mkdir ../deb/$@
+	-mkdir -p ../deb/$@
 	docker run -it --rm \
 		-v `pwd`:/dist \
 		-v `pwd`/../deb/$@:/deb \
 		--name $@ \
 		pkg-builder/$@ \
 		/usr/bin/make -C /dist -f Makefile.packages dockerized-debian
+
+debian-12.4:
+	-mkdir -p ../deb/$@
+	docker run -it --rm \
+		-v `pwd`:/dist \
+		-v `pwd`/../deb/$@:/deb \
+		--name $@ \
+		pkg-builder/$@ \
+		/usr/bin/make -C /dist -f Makefile.packages dockerized-debian
+
