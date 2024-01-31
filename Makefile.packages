@@ -1,5 +1,6 @@
+# This Makefile is used on the docker host, outside containers
 -include /etc/os-release
-include version.mk
+include Makefile.version
 
 # Variables needed for distribution building
 ifeq ($(ID), none)
@@ -25,44 +26,30 @@ ZYPPDEST=	$(PKGDEST)/zypp
 REPOUSER=	root
 REPOPATH=	$(REPOBASE)/rhel-$(RELEASEVER)-$(ARCH)
 
-DISTRIBUTIONS=	alma-9 \
+REDHAT_BASED=	alma-9 \
 		alma-8 \
-		centos-7 \
 		rocky-9 \
 		rocky-8 \
 		fedora-39 \
-		fedora-38 \
-		opensuse-leap-15.5 \
-		opensuse-tumbleweed \
-		ubuntu-23.10 \
+		fedora-38
+
+SUSE_BASED=	opensuse-leap-15.5 \
+		opensuse-tumbleweed
+
+DEBIAN_BASED=	ubuntu-23.10 \
 		ubuntu-23.04 \
-		ubuntu-22.10 \
 		ubuntu-22.04 \
 		ubuntu-20.04 \
 		debian-12.4 \
 		debian-12.2
 
-all:	$(DISTRIBUTIONS)
+all:	$(REDHAT_BASED) $(SUSE_BASED) $(DEBIAN_BASED)
 
 clean:
 	rm -rf $(PKGDEST)
 
 # Special targets to build rpms and install them.  Should eventually be
 # be replaced by a CI/CD pipeline.
-
-redhat:
-	rm -f ~/rpmbuild/RPMS/*/trx-control-*
-	VERSION=$(VERSION) RELEASE=$(RELEASE) PG_VERSION=$(PG_VERSION) \
-		make -C package/redhat
-
-suse:
-	rm -f ~/rpmbuild/RPMS/*/trx-control-*
-	VERSION=$(VERSION) RELEASE=$(RELEASE) PG_VERSION=$(PG_VERSION) \
-		make -C package/suse
-
-debian-deb:
-	PG_CONFIG=/usr/bin/pg_config dpkg-buildpackage -rfakeroot \
-		--build=any,all
 
 dist:	rpm
 	ssh $(REPOUSER)@$(REPOHOST) mkdir -p $(REPOPATH)
@@ -75,156 +62,30 @@ dist:	rpm
 
 	ssh $(REPOUSER)@$(REPOHOST) createrepo $(REPOPATH)
 
-dockerized-redhat:
-	mkdir /build
-	cp -a /dist/* /build/
-	(cd /build && make -f Makefile.packages redhat)
-	cp -a ~/rpmbuild/RPMS/* /rpms
+$(REDHAT_BASED):
+	-mkdir -p $(YUMDEST)/$@
+	docker run --rm \
+		-v `pwd`:/dist \
+		-v $(YUMDEST)/$@:/yum \
+		--name $@ \
+		pkg-builder/$@ \
+		/usr/bin/make -C /dist -f Makefile.docker redhat-packages
 
-dockerized-suse:
-	mkdir /build
-	cp -a /dist/* /build/
-	(cd /build && make -f Makefile.packages suse)
-	cp -a ~/rpmbuild/RPMS/* /rpms
-
-dockerized-debian:
-	mkdir /build
-	cp -a /dist/* /build/
-	(cd /build && make -f Makefile.packages debian-deb)
-	cp /trx-control*.deb /deb
-
-opensuse-tumbleweed:
+$(SUSE_BASED):
 	-mkdir -p $(ZYPPDEST)/$@
 	docker run --rm \
 		-v `pwd`:/dist \
-		-v $(ZYPPDEST)/$@:/rpms \
+		-v $(ZYPPDEST)/$@:/zypp \
 		--name $@ \
 		pkg-builder/$@ \
-		/usr/bin/make -C /dist -f Makefile.packages dockerized-suse
+		/usr/bin/make -C /dist -f Makefile.docker suse-packages
 
-opensuse-leap-15.5:
-	-mkdir -p $(ZYPPDEST)/$@
-	docker run --rm \
-		-v `pwd`:/dist \
-		-v $(ZYPPDEST)/$@:/rpms \
-		--name $@ \
-		pkg-builder/$@ \
-		/usr/bin/make -C /dist -f Makefile.packages dockerized-suse
-
-fedora-39:
-	-mkdir -p $(YUMDEST)/$@
-	docker run --rm \
-		-v `pwd`:/dist \
-		-v $(YUMDEST)/$@:/rpms \
-		--name $@ \
-		pkg-builder/$@ \
-		/usr/bin/make -C /dist -f Makefile.packages dockerized-redhat
-
-fedora-38:
-	-mkdir -p $(YUMDEST)/$@
-	docker run --rm \
-		-v `pwd`:/dist \
-		-v $(YUMDEST)/$@:/rpms \
-		--name $@ \
-		pkg-builder/$@ \
-		/usr/bin/make -C /dist -f Makefile.packages dockerized-redhat
-
-alma-9:
-	-mkdir -p $(YUMDEST)/$@
-	docker run --rm \
-		-v `pwd`:/dist \
-		-v $(YUMDEST)/$@:/rpms \
-		--name $@ \
-		pkg-builder/$@ \
-		/usr/bin/make -C /dist -f Makefile.packages dockerized-redhat
-
-alma-8:
-	-mkdir -p $(YUMDEST)/$@
-	docker run --rm \
-		-v `pwd`:/dist \
-		-v $(YUMDEST)/$@:/rpms \
-		--name $@ \
-		pkg-builder/$@ \
-		/usr/bin/make -C /dist -f Makefile.packages dockerized-redhat
-
-rocky-9:
-	-mkdir -p $(YUMDEST)/$@
-	docker run --rm \
-		-v `pwd`:/dist \
-		-v $(YUMDEST)/$@:/rpms \
-		--name $@ \
-		pkg-builder/$@ \
-		/usr/bin/make -C /dist -f Makefile.packages dockerized-redhat
-
-rocky-8:
-	-mkdir -p $(YUMDEST)/$@
-	docker run --rm \
-		-v `pwd`:/dist \
-		-v $(YUMDEST)/$@:/rpms \
-		--name $@ \
-		pkg-builder/$@ \
-		/usr/bin/make -C /dist -f Makefile.packages dockerized-redhat
-
-centos-7:
-	-mkdir -p $(YUMDEST)/$@
-	docker run --rm \
-		-e PG_CONFIG=/usr/pgsql-15/bin/pg_config \
-		-v `pwd`:/dist \
-		-v $(YUMDEST)/$@:/rpms \
-		--name $@ \
-		pkg-builder/$@ \
-		/usr/bin/make -C /dist -f Makefile.packages dockerized-redhat
-
-ubuntu-23.10:
-	-mkdir -p $(APTDEST)/$@
-	docker run --rm \
-		-v `pwd`:/dist \
-		-v $(APTDEST)/$@:/deb \
-		--name $@ \
-		pkg-builder/$@ \
-		/usr/bin/make -C /dist -f Makefile.packages dockerized-debian
-
-ubuntu-23.04:
-	-mkdir -p .$(APTDEST)/$@
-	docker run --rm \
-		-v `pwd`:/dist \
-		-v $(APTDEST)/$@:/deb \
-		--name $@ \
-		pkg-builder/$@ \
-		/usr/bin/make -C /dist -f Makefile.packages dockerized-debian
-
-ubuntu-22.04:
-	-mkdir -p $(APTDEST)/$@
-	docker run --rm \
-		-v `pwd`:/dist \
-		-v $(APTDEST)/$@:/deb \
-		--name $@ \
-		pkg-builder/$@ \
-		/usr/bin/make -C /dist -f Makefile.packages dockerized-debian
-
-ubuntu-20.04:
-	-mkdir -p $(APTDEST)/$@
-	docker run --rm \
-		-v `pwd`:/dist \
-		-v $(APTDEST)/$@:/deb \
-		--name $@ \
-		pkg-builder/$@ \
-		/usr/bin/make -C /dist -f Makefile.packages dockerized-debian
-
-debian-12.4:
+$(DEBIAN_BASED):
 	-mkdir $(APTDEST)/$@
 	docker run --rm \
 		-v `pwd`:/dist \
-		-v $(APTDEST)/$@:/deb \
+		-v $(APTDEST)/$@:/apt \
 		--name $@ \
 		pkg-builder/$@ \
-		/usr/bin/make -C /dist -f Makefile.packages dockerized-debian
+		/usr/bin/make -C /dist -f Makefile.docker debian-packages
 
-debian-12.2:
-	-mkdir $(APTDEST)/$@
-	docker run --rm \
-		-v `pwd`:/dist \
-		-v $(APTDEST)/$@:/deb \
-		--name $@ \
-		pkg-builder/$@ \
-		/usr/bin/make -C /dist -f Makefile.packages dockerized-debian

@@ -1,5 +1,7 @@
+# This Makefile is used on the target OS to build trx-control locally
+
 -include /etc/os-release
-include version.mk
+include Makefile.version
 
 # Build instructions
 SUBDIR+=	bin/trxctl \
@@ -57,3 +59,11 @@ bin/xqrg:	lib/libtrx-control lib/liblua
 sbin/trxd:	lib/libtrx-control lib/liblua
 
 external/mit/luayaml:	sbin/trxd
+
+# Package building
+
+packages:
+	make -f Makefile.packages -j 4
+
+packages-clean:
+	make -f Makefile.packages clean

@@ -1,0 +1,27 @@
+# This Makefile is used within a docker container
+
+include Makefile.version
+
+prepare:
+	mkdir /build
+	cp -a /dist/* /build/
+
+redhat-packages: prepare
+	rm -f ~/rpmbuild/RPMS/*/trx-control-*
+	(cd /build && \
+		VERSION=$(VERSION) RELEASE=$(RELEASE) PG_VERSION=$(PG_VERSION) \
+		make -C package/redhat)
+	cp -a ~/rpmbuild/RPMS/* /yum
+
+suse-packages: prepare
+	rm -f ~/rpmbuild/RPMS/*/trx-control-*
+	(cd /build && \
+		VERSION=$(VERSION) RELEASE=$(RELEASE) PG_VERSION=$(PG_VERSION) \
+		make -C package/suse)
+	cp -a ~/rpmbuild/RPMS/* /zypp
+
+debian-packages: prepare
+	(cd /build && \
+		PG_CONFIG=/usr/bin/pg_config dpkg-buildpackage -rfakeroot \
+			--build=any,all)
+	cp /trx-control*.deb /apt
