@@ -1,0 +1,13 @@
+Source: trx-control
+Section: hamradio
+Priority: optional
+Maintainer: trx-control releases (automatic signing) <info@hb9ssb.ch>
+Build-Depends: debhelper (>= 9)
+Standards-Version: 3.8.4
+Homepage: https://trx-control.msys.ch/
+
+Package: trx-control
+Architecture: any
+Depends: ${misc:Depends}, postgresql-client (>=16), yaml, json, expat
+Description: trx-control
+ trx-control

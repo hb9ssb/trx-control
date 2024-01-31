@@ -1,0 +1,10 @@
+#!/bin/sh
+
+case "$1" in
+	install)
+		groupadd -frg 100 trxd
+		useradd -r -c "trx-control" -d /usr/share/trxd -g trxd trxd
+		;;
+esac
+
+exit 0

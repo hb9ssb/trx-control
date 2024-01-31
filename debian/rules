@@ -1,0 +1,36 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+
+# Uncomment this to turn on verbose mode.
+export DH_VERBOSE=1
+
+# This has to be exported to make some magic below work.
+#export DH_OPTIONS
+
+#override_dh_usrlocal:
+
+#override_dh_update_autotools_config:
+
+#override_dh_auto_build:
+#	dh_auto_build -- ALL=yes
+
+#override_dh_strip:
+#	dh_strip --no-automatic-dbgsym -- ALL=yes
+
+#override_dh_auto_clean:
+#	dh_auto_clean -- ALL=yes
+#	$(MAKE) ALL=yes clean
+
+#override_dh_auto_install:
+#	dh_auto_install -- ALL=yes
+
+#override_dh_install:
+#	dh_install --fail-missing
+
+binary:
+	dh_gencontrol
+	dh_builddeb
+	ls /build / /build/debian
+
+%:
+	dh $@ --parallel

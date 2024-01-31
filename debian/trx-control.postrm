@@ -1,0 +1,15 @@
+#!/bin/sh
+
+case "$1" in
+	purge)
+		;;
+	remove)
+		userdel trxd
+		groupdel trxd
+
+		systemctl daemon-reload
+		;;
+	upgrade)
+		;;
+esac
+exit 0
