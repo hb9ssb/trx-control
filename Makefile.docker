@@ -26,19 +26,11 @@ suse-packages: prepare
 	(cd /build && \
 		VERSION=$(VERSION) RELEASE=$(RELEASE) PG_VERSION=$(PG_VERSION) \
 		make -C package/suse)
-	ls /build
-	ls /build/usr/sbin
 	cp -a ~/rpmbuild/RPMS/* /zypp
 
-debian-packages:
-	cd /build
-	pwd
-	(cd /build && pwd)
-	env
+debian-packages: prepare
 	chmod 700 /root/.gnupg
 	(cd /build && PG_CONFIG=/usr/bin/pg_config dpkg-buildpackage -b)
-	find /build/debian
-	dpkg -c /trx-control*.deb
 	mkdir -p $(DEBPATH)
 	cp /trx-control*.deb $(DEBPATH)
 	cd /apt && \

@@ -121,7 +121,5 @@ $(DEBIAN_BASED):
 		-v ~/.gnupg/private-keys-v1.d:/root/.gnupg/private-keys-v1.d \
 		--name $@ \
 		pkg-builder/$@ \
-		/usr/bin/bash
-
-#		/usr/bin/make -C /dist -f Makefile.docker debian-packages
+		/usr/bin/make -C /dist -f Makefile.docker debian-packages
 
