@@ -53,10 +53,15 @@ clean:
 UID=	$(shell id -u)
 SOCK=	/tmp/.trx-control.$(UID)
 
-repos:	connect redhat-repo suse-repo debian-repo disconnect
+repos:	connect redhat-repo suse-repo debian-repo pubkey disconnect
 
 connect:
 	ssh -S $(SOCK) -M -N -o ControlMaster=yes -f root@trx-control.msys.ch
+
+pubkey:
+	gpg --export -a info@hb9ssb.ch | \
+		ssh -S $(SOCK) trx-control.msys.ch cat \> \
+		$(REPOBASE)/trx-control.asc
 
 disconnect:
 	ssh -S $(SOCK) -O exit trx-control.msys.ch
@@ -85,8 +90,11 @@ debian-repo:
 $(REDHAT_BASED):
 	-mkdir -p $(YUMDEST)/$@
 	docker run --rm \
+		-e REPO=$@ \
 		-v `pwd`:/dist \
 		-v $(YUMDEST)/$@:/yum \
+		-v ~/.gnupg/pubring.gpg:/root/.gnupg/pubring.gpg \
+		-v ~/.gnupg/private-keys-v1.d:/root/.gnupg/private-keys-v1.d \
 		--name $@ \
 		pkg-builder/$@ \
 		/usr/bin/make -C /dist -f Makefile.docker redhat-packages
@@ -94,18 +102,26 @@ $(REDHAT_BASED):
 $(SUSE_BASED):
 	-mkdir -p $(ZYPPDEST)/$@
 	docker run --rm \
+		-e REPO=$@ \
 		-v `pwd`:/dist \
 		-v $(ZYPPDEST)/$@:/zypp \
+		-v ~/.gnupg/pubring.gpg:/root/.gnupg/pubring.gpg \
+		-v ~/.gnupg/private-keys-v1.d:/root/.gnupg/private-keys-v1.d \
 		--name $@ \
 		pkg-builder/$@ \
 		/usr/bin/make -C /dist -f Makefile.docker suse-packages
 
 $(DEBIAN_BASED):
-	-mkdir $(APTDEST)/$@
-	docker run --rm \
+	-mkdir $(APTDEST)
+	docker run -it --rm \
+		-e REPO=$@ \
 		-v `pwd`:/dist \
-		-v $(APTDEST)/$@:/apt \
+		-v $(APTDEST):/apt \
+		-v ~/.gnupg/pubring.gpg:/root/.gnupg/pubring.gpg \
+		-v ~/.gnupg/private-keys-v1.d:/root/.gnupg/private-keys-v1.d \
 		--name $@ \
 		pkg-builder/$@ \
-		/usr/bin/make -C /dist -f Makefile.docker debian-packages
+		/usr/bin/bash
+
+#		/usr/bin/make -C /dist -f Makefile.docker debian-packages
 

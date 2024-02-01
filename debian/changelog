@@ -2,5 +2,5 @@ trx-control (1.0.0-1) stable; urgency=low
 
   * First debian packaging.
 
- -- arcapos releases (automatic signing) <info@hb9ssb.ch>  Wed, 10 Jan 2024 18:00:00 +0100
+ -- Marc Balmer HB9SSB (trx-control package signing) <info@hb9ssb.ch>  Wed, 10 Jan 2024 18:00:00 +0100
 

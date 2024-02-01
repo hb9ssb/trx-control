@@ -2,6 +2,14 @@
 
 include Makefile.version
 
+ifeq ($(origin ARCH), undefined)
+ARCH:=		$(shell dpkg --print-architecture)
+endif
+
+CODENAME?=	$(shell lsb_release -sc)
+DEBBASE=	/apt/dists/$(CODENAME)
+DEBPATH=	/apt/dists/$(CODENAME)/stable/binary-$(ARCH)
+
 prepare:
 	mkdir /build
 	cp -a /dist/* /build/
@@ -18,10 +26,31 @@ suse-packages: prepare
 	(cd /build && \
 		VERSION=$(VERSION) RELEASE=$(RELEASE) PG_VERSION=$(PG_VERSION) \
 		make -C package/suse)
+	ls /build
+	ls /build/usr/sbin
 	cp -a ~/rpmbuild/RPMS/* /zypp
 
-debian-packages: prepare
-	(cd /build && \
-		PG_CONFIG=/usr/bin/pg_config dpkg-buildpackage -rfakeroot \
-			--build=any,all)
-	cp /trx-control*.deb /apt
+debian-packages:
+	cd /build
+	pwd
+	(cd /build && pwd)
+	env
+	chmod 700 /root/.gnupg
+	(cd /build && PG_CONFIG=/usr/bin/pg_config dpkg-buildpackage -b)
+	find /build/debian
+	dpkg -c /trx-control*.deb
+	mkdir -p $(DEBPATH)
+	cp /trx-control*.deb $(DEBPATH)
+	cd /apt && \
+		dpkg-scanpackages \
+		dists/$(CODENAME)/stable/binary-$(ARCH) > $(DEBPATH)/Packages
+	gzip -c $(DEBPATH)/Packages > $(DEBPATH)/Packages.gz
+	echo Origin: trx-control > $(DEBBASE)/Release
+	echo Label: trx-control >> $(DEBBASE)/Release
+	echo Suite: stable >> $(DEBBASE)/Release
+	echo Version: $(VERSION)-$(RELEASE) >> $(DEBBASE)/Release
+	echo Codename: $(CODENAME) >> $(DEBBASE)/Release
+	apt-ftparchive release $(DEBBASE) >> $(DEBBASE)/Release
+	gpg -a --yes --output $(DEBBASE)/Release.gpg \
+		--local-user "info@hb9ssb.ch" \
+		--detach-sign $(DEBBASE)/Release

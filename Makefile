@@ -3,6 +3,8 @@
 -include /etc/os-release
 include Makefile.version
 
+build:
+
 # Build instructions
 SUBDIR+=	bin/trxctl \
 		bin/xqrg \
@@ -21,6 +23,7 @@ SUBDIR+=	bin/trxctl \
 		external/mit/lualinux \
 		external/mit/luayaml \
 		yum \
+		zypp \
 		systemd
 
 MANDIR?=	/usr/share/man
@@ -61,9 +64,16 @@ sbin/trxd:	lib/libtrx-control lib/liblua
 external/mit/luayaml:	sbin/trxd
 
 # Package building
-
 packages:
 	make -f Makefile.packages -j 4
 
 packages-clean:
 	make -f Makefile.packages clean
+
+# Build packages and send them to the repository
+repos:	packages
+	make -f Makefile.packages repos
+
+# Same, without building packages
+repos-nb:
+	make -f Makefile.packages repos

@@ -24,7 +24,9 @@ BuildArch: noarch
 Summary: trx-control repository for OpenSUSE Leap and OpenSUSE Tumbleweed
 
 %description
-trx-control
+A modern and extensible software system to control transceivers and other
+devices over the network by exchaning JSON formatted data packesg over
+plain TCP/IP sockets or WebSockets.
 
 %description repo
 trx-control software repository
@@ -80,7 +82,8 @@ trx-control software repository
 /usr/share/xqrg/xqrg.lua
 
 %files repo
-%config(noreplace) /etc/yum.repos.d/trx-control.repo
+%config(noreplace) /etc/zypp/trx-control.repo
+%exclude /etc/yum.repos.d/trx-control.repo
 
 %global debug_package %{nil}
 %prep

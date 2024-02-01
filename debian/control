@@ -1,13 +1,15 @@
 Source: trx-control
 Section: hamradio
 Priority: optional
-Maintainer: trx-control releases (automatic signing) <info@hb9ssb.ch>
-Build-Depends: debhelper (>= 9)
-Standards-Version: 3.8.4
+Maintainer: Marc Balmer HB9SSB (trx-control package signing) <info@hb9ssb.ch>
+Build-Depends: debhelper (>= 10)
+Standards-Version: 4.0.0
 Homepage: https://trx-control.msys.ch/
 
 Package: trx-control
 Architecture: any
-Depends: ${misc:Depends}, postgresql-client (>=16), yaml, json, expat
+Depends: ${misc:Depends}, postgresql-client (>=16), expat
 Description: trx-control
- trx-control
+ A modern and extensible software system to control transceivers and other
+ devices over the network by exchaning JSON formatted data packesg over
+ plain TCP/IP sockets or WebSockets.

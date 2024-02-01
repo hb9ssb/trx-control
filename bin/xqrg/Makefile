@@ -20,7 +20,7 @@ VPATH=		../../external/mit/luajson ../../lib/libtrx-control
 build:		xqrg
 
 clean:
-		rm -f xqrg *.o
+		rm -f  *.o
 
 .PHONY: install xqrg.1 XQRG xqrg.lua
 install:	xqrg xqrg.1 XQRG xqrg.lua

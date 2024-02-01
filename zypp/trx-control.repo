@@ -1,5 +1,5 @@
 [trx-control]
 name=trx-control for @@REPO@@
-baseurl=https://trx-control.msys.ch/pub/repos/yum/@@REPO@@
+baseurl=https://trx-control.msys.ch/pub/repos/zypp/@@REPO@@
 enabled=1
 gpgcheck=0

@@ -24,7 +24,9 @@ BuildArch: noarch
 Summary: trx-control repository for Alma Linux / RHEL / RockyLinux
 
 %description
-trx-control
+A modern and extensible software system to control transceivers and other
+devices over the network by exchaning JSON formatted data packesg over
+plain TCP/IP sockets or WebSockets.
 
 %description repo
 trx-control software repository
@@ -81,6 +83,7 @@ trx-control software repository
 
 %files repo
 %config(noreplace) /etc/yum.repos.d/trx-control.repo
+%exclude /etc/zypp/trx-control.repo
 
 %global debug_package %{nil}
 %prep

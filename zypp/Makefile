@@ -1,4 +1,4 @@
-REPODIR?=	/etc/yum.repos.d
+REPODIR?=	/etc/zypp
 
 all:
 
