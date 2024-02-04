@@ -11,6 +11,8 @@ DEBBASE=	/apt/dists/$(CODENAME)
 DEBPATH=	/apt/dists/$(CODENAME)/stable/binary-$(ARCH)
 
 prepare:
+	gpg --import /keys/private.asc
+	gpg --import /keys/public.asc
 	mkdir /build
 	cp -a /dist/* /build/
 
@@ -25,6 +27,7 @@ suse-packages: prepare
 	rm -f ~/rpmbuild/RPMS/*/trx-control-*
 	(cd /build && \
 		VERSION=$(VERSION) RELEASE=$(RELEASE) PG_VERSION=$(PG_VERSION) \
+		PG_CONFIG=/usr/bin/pgconfig \
 		make -C package/suse)
 	cp -a ~/rpmbuild/RPMS/* /zypp
 

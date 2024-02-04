@@ -25,6 +25,7 @@ ZYPPDEST=	$(PKGDEST)/zypp
 REPOUSER=	root
 REPOPATH=	$(REPOBASE)/rhel-$(RELEASEVER)-$(ARCH)
 
+ifeq ($(ARCH), "x86_64")
 REDHAT_BASED=	alma-9 \
 		alma-8 \
 		rocky-9 \
@@ -38,11 +39,24 @@ SUSE_BASED=	opensuse-leap-15.5 \
 DEBIAN_BASED=	ubuntu-23.10 \
 		ubuntu-23.04 \
 		ubuntu-22.04 \
+		debian-12.4 \
+		debian-12.2
+endif
+
+ifeq ($(ARCH), arm64)
+REDHAT_BASED=	alma-9
+
+SUSE_BASED=	opensuse-leap-15.5 \
+		opensuse-tumbleweed
+
+DEBIAN_BASED=	ubuntu-22.04 \
 		ubuntu-20.04 \
 		debian-12.4 \
 		debian-12.2
+endif
 
 all:	$(REDHAT_BASED) $(SUSE_BASED) $(DEBIAN_BASED)
+	echo $(ARCH)
 
 clean:
 	rm -rf $(PKGDEST)
@@ -87,39 +101,43 @@ debian-repo:
 	rsync -avz -e "ssh -o ControlPath=$(SOCK)" \
 		$(APTDEST) root@trx-control.msys.ch:$(REPOBASE)
 
-$(REDHAT_BASED):
+keys:
+	-mkdir -p $(PKGDEST)
+	rm -f $(PKGDEST)/*.asc
+	-gpg -q --output $(PKGDEST)/public.asc --armor \
+		--export info@hb9ssb.ch
+	-gpg -q --output $(PKGDEST)/private.asc --armor \
+		--export-secret-key info@hb9ssb.ch
+
+$(REDHAT_BASED): keys
 	-mkdir -p $(YUMDEST)/$@
 	docker run --rm \
 		-e REPO=$@ \
 		-v `pwd`:/dist \
 		-v $(YUMDEST)/$@:/yum \
-		-v ~/.gnupg/pubring.gpg:/root/.gnupg/pubring.gpg \
-		-v ~/.gnupg/private-keys-v1.d:/root/.gnupg/private-keys-v1.d \
+		-v $(PKGDEST):/keys \
 		--name $@ \
 		pkg-builder/$@ \
 		/usr/bin/make -C /dist -f Makefile.docker redhat-packages
 
-$(SUSE_BASED):
+$(SUSE_BASED): keys
 	-mkdir -p $(ZYPPDEST)/$@
 	docker run --rm \
 		-e REPO=$@ \
 		-v `pwd`:/dist \
 		-v $(ZYPPDEST)/$@:/zypp \
-		-v ~/.gnupg/pubring.gpg:/root/.gnupg/pubring.gpg \
-		-v ~/.gnupg/private-keys-v1.d:/root/.gnupg/private-keys-v1.d \
+		-v $(PKGDEST):/keys \
 		--name $@ \
 		pkg-builder/$@ \
 		/usr/bin/make -C /dist -f Makefile.docker suse-packages
 
-$(DEBIAN_BASED):
-	-mkdir $(APTDEST)
-	docker run -it --rm \
+$(DEBIAN_BASED): keys
+	-mkdir -p $(APTDEST)
+	docker run --rm \
 		-e REPO=$@ \
 		-v `pwd`:/dist \
 		-v $(APTDEST):/apt \
-		-v ~/.gnupg/pubring.gpg:/root/.gnupg/pubring.gpg \
-		-v ~/.gnupg/private-keys-v1.d:/root/.gnupg/private-keys-v1.d \
+		-v $(PKGDEST):/keys \
 		--name $@ \
 		pkg-builder/$@ \
 		/usr/bin/make -C /dist -f Makefile.docker debian-packages
-
