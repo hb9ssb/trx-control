@@ -89,7 +89,7 @@ ZYPPDEST=	$(PKGDEST)/zypp
 REPOUSER=	root
 REPOPATH=	$(REPOBASE)/rhel-$(RELEASEVER)-$(ARCH)
 
-ifeq ($(ARCH), "x86_64")
+ifeq ($(ARCH), x86_64)
 REDHAT_BASED=	alma-9 \
 		alma-8 \
 		rocky-9 \
@@ -166,6 +166,12 @@ debian-packages: prepare
 
 packages:	$(REDHAT_BASED) $(SUSE_BASED) $(DEBIAN_BASED)
 	@echo All packages built
+
+redhat:	$(REDHAT_BASED)
+
+suse:	$(SUSE_BASED)
+
+debian:	$(DEBIAN_BASED)
 
 packages-clean:
 	rm -rf $(PKGDEST)
