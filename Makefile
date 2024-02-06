@@ -147,8 +147,8 @@ suse-packages: prepare
 
 debian-packages: prepare
 	chmod 700 /root/.gnupg
-	(cd /build && PG_CONFIG=/usr/bin/pg_config dpkg-buildpackage -b)
 	mkdir -p $(DEBPATH)
+	(cd /build && PG_CONFIG=/usr/bin/pg_config dpkg-buildpackage -b)
 	cp /trx-control*.deb $(DEBPATH)
 	cd /apt && \
 		dpkg-scanpackages \
@@ -171,7 +171,7 @@ redhat:	$(REDHAT_BASED)
 
 suse:	$(SUSE_BASED)
 
-debian:	$(DEBIAN_BASED)
+debian:	connect fetch-debian $(DEBIAN_BASED) disconnect
 
 packages-clean:
 	rm -rf $(PKGDEST)
@@ -184,12 +184,18 @@ packages-clean:
 UID=	$(shell id -u)
 SOCK=	/tmp/.trx-control.$(UID)
 
-repos:	packages connect redhat-repo suse-repo debian-repo pubkey disconnect
+repos:	connect fetch-debian packages redhat-repo suse-repo debian-repo \
+	pubkey disconnect
 
 repos-nb:	connect redhat-repo suse-repo debian-repo pubkey disconnect
 
 connect:
 	ssh -S $(SOCK) -M -N -o ControlMaster=yes -f root@trx-control.msys.ch
+	@echo connected
+
+fetch-debian:
+	rsync -avz -e "ssh -o ControlPath=$(SOCK)" \
+		root@trx-control.msys.ch:$(REPOBASE)/apt $(PKGDEST)
 
 pubkey:
 	gpg --export -a info@hb9ssb.ch | \
@@ -198,6 +204,7 @@ pubkey:
 
 disconnect:
 	ssh -S $(SOCK) -O exit trx-control.msys.ch
+	@echo disconnected
 
 redhat-repo:
 	ssh -S $(SOCK) trx-control.msys.ch mkdir -p $(REPOBASE)/yum
