@@ -211,16 +211,28 @@ redhat-repo:
 	rsync -avz -e "ssh -o ControlPath=$(SOCK)" \
 		$(YUMDEST) root@trx-control.msys.ch:$(REPOBASE)
 	for f in $(REDHAT_BASED); \
-		do ssh -S $(SOCK) trx-control.msys.ch \
-				createrepo $(REPOBASE)/yum/$$f; done
+		do \
+			ssh -S $(SOCK) trx-control.msys.ch \
+				createrepo $(REPOBASE)/yum/$$f; \
+			ssh -S $(SOCK) trx-control.msys.ch \
+				ln -f -s \
+				$(REPOBASE)/yum/$$f/noarch/trx-control-repo-$(VERSION)-$(RELEASE).noarch.rpm \
+				$(REPOBASE)/yum/$$f/noarch/trx-control-repo-latest.noarch.rpm; \
+		done
 
 suse-repo:
 	ssh -S $(SOCK) trx-control.msys.ch mkdir -p $(REPOBASE)/zypp
 	rsync -avz -e "ssh -o ControlPath=$(SOCK)" \
 		$(ZYPPDEST) root@trx-control.msys.ch:$(REPOBASE)
 	for f in $(SUSE_BASED); \
-		do ssh -S $(SOCK) trx-control.msys.ch \
-				createrepo $(REPOBASE)/zypp/$$f; done
+		do \
+			ssh -S $(SOCK) trx-control.msys.ch \
+				createrepo $(REPOBASE)/zypp/$$f; \
+			ssh -S $(SOCK) trx-control.msys.ch \
+				ln -f -s \
+				$(REPOBASE)/zypp/$$f/noarch/trx-control-repo-$(VERSION)-$(RELEASE).noarch.rpm \
+				$(REPOBASE)/zypp/$$f/noarch/trx-control-repo-latest.noarch.rpm; \
+		done
 
 debian-repo:
 	ssh -S $(SOCK) trx-control.msys.ch mkdir -p $(REPOBASE)/apt
