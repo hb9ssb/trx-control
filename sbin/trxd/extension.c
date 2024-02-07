@@ -66,37 +66,45 @@ extension(void *arg)
 	if (pthread_setname_np(pthread_self(), "trxd-extension"))
 		err(1, "extension: pthread_setname_np");
 
-	if (pthread_mutex_lock(&t->mutex2))
-		err(1, "extension: pthread_mutex_lock");
+	if (t->is_callable) {
+		if (pthread_mutex_lock(&t->mutex2))
+			err(1, "extension: pthread_mutex_lock");
 
-	if (t->has_config)
-		lua_call(t->L, 1, 1);
-	else
-		lua_call(t->L, 0, 1);
+		if (t->has_config)
+			lua_call(t->L, 1, 1);
+		else
+			lua_call(t->L, 0, 1);
 
-	for (;;) {
-		t->call = 0;
-		/* Wait on cond, this releases the mutex */
-		while (t->call == 0) {
-			if (pthread_cond_wait(&t->cond1, &t->mutex2))
-				err(1, "extension: pthread_cond_wait");
+		for (;;) {
+			t->call = 0;
+			/* Wait on cond, this releases the mutex */
+			while (t->call == 0) {
+				if (pthread_cond_wait(&t->cond1, &t->mutex2))
+					err(1, "extension: pthread_cond_wait");
+			}
+			t->call = 0;
+			switch (lua_pcall(t->L, 1, 1, 0)) {
+			case LUA_OK:
+				break;
+			case LUA_ERRRUN:
+			case LUA_ERRMEM:
+			case LUA_ERRERR:
+				syslog(LOG_ERR, "extension: Lua error: %s",
+				    lua_tostring(t->L, -1));
+				exit(1);
+				break;
+			}
+			t->done = 1;
+			if (pthread_cond_signal(&t->cond2))
+				err(1, "extension: pthread_cond_signal");
 		}
-		t->call = 0;
-		switch (lua_pcall(t->L, 1, 1, 0)) {
-		case LUA_OK:
-			break;
-		case LUA_ERRRUN:
-		case LUA_ERRMEM:
-		case LUA_ERRERR:
-			syslog(LOG_ERR, "extension: Lua error: %s",
-			    lua_tostring(t->L, -1));
-			exit(1);
-			break;
-		}
-		t->done = 1;
-		if (pthread_cond_signal(&t->cond2))
-			err(1, "extension: pthread_cond_signal");
+	} else {
+		if (t->has_config)
+			lua_call(t->L, 1, 1);
+		else
+			lua_call(t->L, 0, 1);
 	}
+
 	pthread_cleanup_pop(0);
 	return NULL;
 }

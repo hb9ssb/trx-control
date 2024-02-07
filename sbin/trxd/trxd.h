@@ -166,6 +166,7 @@ typedef struct extension_tag {
 	pthread_cond_t		 cond2;	/* The extension returned */
 	int			 done;
 	int			 has_config;
+	int			 is_callable;
 
 	lua_State		*L;
 

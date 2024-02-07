@@ -620,6 +620,13 @@ main(int argc, char *argv[])
 			}
 			lua_pop(L, 1);
 
+			lua_getfield(L, -1, "callable");
+			if (lua_isboolean(L, -1))
+				t->is_callable = lua_toboolean(L, -1);
+			else
+				t->is_callable = 1;
+			lua_pop(L, 1);
+
 			if (add_destination(name, DEST_EXTENSION, t))
 				errx(1, "names must be unique");
 
