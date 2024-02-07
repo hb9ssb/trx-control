@@ -48,6 +48,7 @@ trx-control software repository
 /usr/share/trxctl/trxctl.lua
 /usr/share/trxd/extension/config.lua
 /usr/share/trxd/extension/dxcluster.lua
+/usr/share/trxd/extension/keepalive.lua
 /usr/share/trxd/extension/logbook.lua
 /usr/share/trxd/extension/ping.lua
 /usr/share/trxd/extension/qrz.lua
