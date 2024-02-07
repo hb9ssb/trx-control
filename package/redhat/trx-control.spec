@@ -101,5 +101,10 @@ rm -rf $RPM_BUILD_ROOT
 %{__make} clean
 
 %changelog
+* Wed Feb 7 2024 Marc Balmer HB9SSB <info@hb9ssb.ch>
+
+- trx-control-1.0.1: Add the keepalive extension
+
 * Mon Jan 1 2024 Marc Balmer HB9SSB <info@hb9ssb.ch>
-- Initial version
+
+- trx-control-1.0.0: Initial version
