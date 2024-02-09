@@ -236,10 +236,11 @@ typedef struct websocket {
  * controller (or extension).
  */
 typedef struct dispatcher_tag {
-	/* The first mutex locks the sender */
+	/* The first mutex locks the dispatcher */
 	pthread_mutex_t		 mutex;
-
+	pthread_mutex_t		 mutex2;
 	pthread_cond_t		 cond;	/* data is ready to be dispatched */
+	pthread_cond_t		 cond2;	/* Request has been handled */
 
 	char			*data;
 
