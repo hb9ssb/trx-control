@@ -324,7 +324,7 @@ static void
 remove_sender(dispatcher_tag_t *d, destination_t *dst)
 {
 	sender_list_t *p, *l;
-	trx_controller_tag_t * t;
+	trx_controller_tag_t *t;
 	int n;
 
 	pthread_mutex_lock(&dst->tag.trx->mutex);
@@ -359,7 +359,7 @@ remove_sender(dispatcher_tag_t *d, destination_t *dst)
 			if (verbose > 1)
 				printf("dispatcher: stopping the poller\n");
 			pthread_cancel(t->trx_poller);
-		} else if (dst->tag.trx->handler_running) {
+		} else if (t->handler_running) {
 			t->handler_running = 0;
 			if (verbose > 1)
 				printf("dispatcher: stopping the handler\n");
@@ -576,12 +576,15 @@ cleanup(void *arg)
 	destination_t *dst;
 
 	for (dst = destination; dst != NULL; dst = dst->next) {
-		if (dst->type == DEST_TRX) {
-			if (pthread_mutex_lock(&dst->tag.trx->mutex))
-				err(1, "pthread_mutex_lock");
+		switch (dst->type) {
+		case DEST_TRX:
 			remove_sender(d, dst);
-			if (pthread_mutex_unlock(&dst->tag.trx->mutex))
-				err(1, "pthread_mutex_unlock");
+			break;
+		case DEST_EXTENSION:
+			remove_listener(d, dst);
+			break;
+		default:
+			break;
 		}
 	}
 	free(arg);
@@ -719,6 +722,8 @@ dispatcher(void *arg)
 				destination_set(d);
 		}
 		free(d->data);
+		if (pthread_cond_signal(&d->cond2))
+			err(1, "dispatcher: pthread_cond_signal");
 	}
 	pthread_cleanup_pop(0);
 	pthread_cleanup_pop(0);

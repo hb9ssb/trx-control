@@ -187,13 +187,22 @@ websocket_handler(void *arg)
 	if (pthread_mutex_init(&d->mutex, NULL))
 		err(1, "websocket-handler: pthread_mutex_init");
 
+	if (pthread_mutex_init(&d->mutex2, NULL))
+		err(1, "websocket-handler: pthread_mutex_init");
+
 	if (pthread_cond_init(&d->cond, NULL))
+		err(1, "websocket-handler: pthread_cond_init");
+
+	if (pthread_cond_init(&d->cond2, NULL))
 		err(1, "websocket-handler: pthread_cond_init");
 
 	if (pthread_create(&d->dispatcher, NULL, dispatcher, d))
 		err(1, "websocket-handler: pthread_create");
 
 	pthread_cleanup_push(cleanup_dispatcher, d);
+
+	if (pthread_mutex_lock(&d->mutex2))
+		err(1, "websocket-handler: pthread_mutex_lock");
 
 	for (;;) {
 		/* buf will later be freed by the dispatcher */
@@ -202,18 +211,13 @@ websocket_handler(void *arg)
 		else if (verbose)
 			printf("websocket-handler: <- %s\n", buf);
 
-		if (pthread_mutex_lock(&d->mutex))
-			err(1, "socket-handler: pthread_mutex_lock");
-
 		d->data = buf;
-
-		pthread_cond_signal(&d->cond);
 
 		if (pthread_cond_signal(&d->cond))
 			err(1, "websocket-handler: pthread_cond_signal");
 
-		if (pthread_mutex_unlock(&d->mutex))
-			err(1, "websocket-handler: pthread_mutex_unlock");
+		if (pthread_cond_wait(&d->cond2, &d->mutex2))
+			err(1, "websocket-handler: pthread_cond_wait");
 	}
 	pthread_cleanup_pop(0);
 	pthread_cleanup_pop(0);
