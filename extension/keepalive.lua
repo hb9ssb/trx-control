@@ -18,7 +18,7 @@
 -- FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 -- IN THE SOFTWARE.
 
--- The keepalive extension for trx.control
+-- The keepalive extension for trx-control
 
 local linux = require 'linux'
 
