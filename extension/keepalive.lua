@@ -42,8 +42,5 @@ while true do
 
 	linux.sleep(timeout)
 
-	if trxd.verbose() > 0 then
-		print 'sending keepalive package to clients'
-	end
 	trxd.notify(keepalive)
 end
