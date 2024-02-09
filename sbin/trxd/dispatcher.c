@@ -691,14 +691,16 @@ dispatcher(void *arg)
 			destination_not_found(d);
 		else {
 			if (req && !strcmp(req, "start-status-updates")) {
-				if (dst->type == DEST_TRX)
+				if (dst->type == DEST_TRX) {
 					add_sender(d, dst);
-				else
+					request_ok(d);
+				} else
 					status_updates_not_supported(d);
 			} else if (req && !strcmp(req, "stop-status-updates")) {
-				if (dst->type == DEST_TRX)
+				if (dst->type == DEST_TRX) {
 					remove_sender(d, dst);
-				else
+					request_ok(d);
+				} else
 					status_updates_not_supported(d);
 			} else if (req && !strcmp(req, "listen")) {
 				if (dst->type == DEST_EXTENSION) {

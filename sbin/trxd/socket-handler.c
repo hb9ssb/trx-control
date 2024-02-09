@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Marc Balmer HB9SSB
+ * Copyright (c) 2023 - 2024 Marc Balmer HB9SSB
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -83,6 +83,7 @@ socket_handler(void *arg)
 		err(1, "socket-handler: malloc");
 	s->data = NULL;
 	s->socket = fd;
+
 	if (pthread_mutex_init(&s->mutex, NULL))
 		err(1, "socket-handler: pthread_mutex_init");
 
@@ -96,6 +97,7 @@ socket_handler(void *arg)
 		err(1, "socket-handler: pthread_create");
 
 	pthread_cleanup_push(cleanup_sender, s);
+
 	/* Create a dispatcher thread to dispatch incoming data */
 	d = malloc(sizeof(dispatcher_tag_t));
 	if (d == NULL)
@@ -105,13 +107,22 @@ socket_handler(void *arg)
 	if (pthread_mutex_init(&d->mutex, NULL))
 		err(1, "socket-handler: pthread_mutex_init");
 
+	if (pthread_mutex_init(&d->mutex2, NULL))
+		err(1, "socket-handler: pthread_mutex_init");
+
 	if (pthread_cond_init(&d->cond, NULL))
+		err(1, "socket-handler: pthread_cond_init");
+
+	if (pthread_cond_init(&d->cond2, NULL))
 		err(1, "socket-handler: pthread_cond_init");
 
 	if (pthread_create(&d->dispatcher, NULL, dispatcher, d))
 		err(1, "socket-handler: pthread_create");
 
 	pthread_cleanup_push(cleanup_dispatcher, d);
+
+	if (pthread_mutex_lock(&d->mutex2))
+		err(1, "websocket-handler: pthread_mutex_lock");
 
 	for (;;) {
 		/* buf will later be freed by the dispatcher */
@@ -122,18 +133,13 @@ socket_handler(void *arg)
 		else if (verbose)
 			printf("socket-handler: <- %s\n", buf);
 
-		if (pthread_mutex_lock(&d->mutex))
-			err(1, "socket-handler: pthread_mutex_lock");
-
 		d->data = buf;
-
-		pthread_cond_signal(&d->cond);
 
 		if (pthread_cond_signal(&d->cond))
 			err(1, "socket-handler: pthread_cond_signal");
 
-		if (pthread_mutex_unlock(&d->mutex))
-			err(1, "socket-handler: pthread_mutex_unlock");
+		if (pthread_cond_wait(&d->cond2, &d->mutex2))
+			err(1, "socket-handler: pthread_cond_wait");
 	}
 	pthread_cleanup_pop(0);
 	pthread_cleanup_pop(0);
