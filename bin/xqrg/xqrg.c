@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Marc Balmer HB9SSB
+ * Copyright (c) 2023 - 2024 Marc Balmer HB9SSB
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -86,6 +86,8 @@ xqrg_input_cb(XtPointer client_data, int *source, XtInputId *id)
 	buf = trxd_readln(fd);
 
 	if (buf) {
+		if (verbose)
+			printf("< %s\n", buf);
 		lua_rawgeti(L, LUA_REGISTRYINDEX, handler_ref);
 		lua_pushstring(L, buf);
 		free(buf);
@@ -134,6 +136,9 @@ main(int argc, char *argv[])
 
 	if (fd < 0)
 		err(1, "can't connect to %s:%s", config.host, config.port);
+
+	/* XXX give trxd(8) a bit slack to setup everything */
+	sleep(1);
 
 	snprintf(script, sizeof(script), "%s/xqrg.lua", PATH_XQRG);
 	if (luaL_loadfile(L, script) != LUA_OK)
