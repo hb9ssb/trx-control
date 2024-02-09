@@ -383,6 +383,7 @@ main(int argc, char *argv[])
 			t->speed = 9600;
 			t->poller_required = 0;
 			t->poller_running = 0;
+			t->handler_running = 0;
 			t->senders = NULL;
 
 			lua_getfield(L, -1, "device");
