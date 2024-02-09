@@ -83,7 +83,21 @@ function call(to, command, param)
 	trxctl.writeln(json.encode(request))
 	local reply = json.decode(trxctl.readln())
 
-	vardump(reply)
+	if reply.status == 'Ok' then
+		if reply.reply == 'list-destination' then
+			print 'Destination list:\n'
+			print 'Name\t\tType'
+			print '----\t\t----'
+			for k, v in ipairs(reply.destination) do
+				print(string.format('%-15s %s', v.name, v.type))
+			end
+		else
+			vardump(reply)
+		end
+	else
+		print 'Error!'
+		vardump(reply)
+	end
 end
 
 local function ts(s)
