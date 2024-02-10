@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Marc Balmer HB9SSB
+ * Copyright (c) 2023 - 2024 Marc Balmer HB9SSB
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -157,7 +157,7 @@ websocket_handler(void *arg)
 	s = malloc(sizeof(sender_tag_t));
 	if (s == NULL)
 		err(1, "websocket-handler: malloc");
-	s->data = NULL;
+	s->data = (char *)1;
 	s->socket = w->socket;
 	s->ssl = w->ssl;
 	s->ctx = w->ctx;
@@ -165,6 +165,9 @@ websocket_handler(void *arg)
 	w->sender = s;
 
 	if (pthread_mutex_init(&s->mutex, NULL))
+		err(1, "websocket-handler: pthread_mutex_init");
+
+	if (pthread_mutex_init(&s->mutex2, NULL))
 		err(1, "websocket-handler: pthread_mutex_init");
 
 	if (pthread_cond_init(&s->cond, NULL))
@@ -182,6 +185,7 @@ websocket_handler(void *arg)
 	d = malloc(sizeof(dispatcher_tag_t));
 	if (d == NULL)
 		err(1, "websocket-handler: malloc");
+	d->data = (char *)1;
 	d->sender = s;
 
 	if (pthread_mutex_init(&d->mutex, NULL))
@@ -203,6 +207,26 @@ websocket_handler(void *arg)
 
 	if (pthread_mutex_lock(&d->mutex2))
 		err(1, "websocket-handler: pthread_mutex_lock");
+
+	if (verbose)
+		printf("websocket-handler:  wait for dispatcher\n");
+
+	while (d->data != NULL)
+		if (pthread_cond_wait(&d->cond2, &d->mutex2))
+			err(1, "wbsocket-handler: pthread_cond_wait");
+
+	if (pthread_mutex_lock(&s->mutex2))
+		err(1, "wbsocket-handler: pthread_mutex_lock");
+
+	if (verbose)
+		printf("wbsocket-handler:  wait for sender\n");
+
+	while (d->data != NULL)
+		if (pthread_cond_wait(&d->cond2, &d->mutex2))
+			err(1, "websocket-handler: pthread_cond_wait");
+
+	if (verbose)
+		printf("websocket-handler:  sender is ready\n");
 
 	for (;;) {
 		/* buf will later be freed by the dispatcher */

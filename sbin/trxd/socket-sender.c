@@ -57,6 +57,10 @@ socket_sender(void *arg)
 	if (pthread_mutex_lock(&s->mutex))
 		err(1, "socket-sender: pthread_mutex_lock");
 
+	s->data = NULL;
+	if (pthread_cond_signal(&s->cond2))
+		err(1, "socket-sender: pthread_cond_signal");
+
 	for (;;) {
 		while (s->data == NULL) {
 			if (pthread_cond_wait(&s->cond, &s->mutex))

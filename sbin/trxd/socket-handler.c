@@ -81,10 +81,13 @@ socket_handler(void *arg)
 	s = malloc(sizeof(sender_tag_t));
 	if (s == NULL)
 		err(1, "socket-handler: malloc");
-	s->data = NULL;
 	s->socket = fd;
+	s->data = (char *)1;
 
 	if (pthread_mutex_init(&s->mutex, NULL))
+		err(1, "socket-handler: pthread_mutex_init");
+
+	if (pthread_mutex_init(&s->mutex2, NULL))
 		err(1, "socket-handler: pthread_mutex_init");
 
 	if (pthread_cond_init(&s->cond, NULL))
@@ -103,6 +106,7 @@ socket_handler(void *arg)
 	if (d == NULL)
 		err(1, "socket-handler: malloc");
 	d->sender = s;
+	d->data = (char *)1;
 
 	if (pthread_mutex_init(&d->mutex, NULL))
 		err(1, "socket-handler: pthread_mutex_init");
@@ -122,7 +126,27 @@ socket_handler(void *arg)
 	pthread_cleanup_push(cleanup_dispatcher, d);
 
 	if (pthread_mutex_lock(&d->mutex2))
-		err(1, "websocket-handler: pthread_mutex_lock");
+		err(1, "socket-handler: pthread_mutex_lock");
+
+	if (verbose)
+		printf("socket-handler:  wait for dispatcher\n");
+
+	while (d->data != NULL)
+		if (pthread_cond_wait(&d->cond2, &d->mutex2))
+			err(1, "socket-handler: pthread_cond_wait");
+
+	if (pthread_mutex_lock(&s->mutex2))
+		err(1, "socket-handler: pthread_mutex_lock");
+
+	if (verbose)
+		printf("socket-handler:  wait for sender\n");
+
+	while (d->data != NULL)
+		if (pthread_cond_wait(&d->cond2, &d->mutex2))
+			err(1, "socket-handler: pthread_cond_wait");
+
+	if (verbose)
+		printf("socket-handler:  sender is ready\n");
 
 	for (;;) {
 		/* buf will later be freed by the dispatcher */

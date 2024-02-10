@@ -643,6 +643,13 @@ dispatcher(void *arg)
 	if (pthread_mutex_lock(&d->mutex))
 		err(1, "dispatcher: pthread_mutex_lock");
 
+	if (verbose)
+		printf("dispatcher: ready\n");
+
+	d->data = NULL;
+	if (pthread_cond_signal(&d->cond2))
+		err(1, "dispatcher: pthread_cond_signal");
+
 	for (;;) {
 		for (d->data = NULL; d->data == NULL; ) {
 			if (pthread_cond_wait(&d->cond, &d->mutex))

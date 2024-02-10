@@ -257,7 +257,7 @@ typedef struct dispatcher_tag {
 typedef struct sender_tag {
 	/* The first mutex locks the sender */
 	pthread_mutex_t		 mutex;
-
+	pthread_mutex_t		 mutex2;
 	pthread_cond_t		 cond;	/* data is ready to be send set */
 	pthread_cond_t		 cond2;	/* data has been sent */
 	char			*data;
