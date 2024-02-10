@@ -137,9 +137,6 @@ main(int argc, char *argv[])
 	if (fd < 0)
 		err(1, "can't connect to %s:%s", config.host, config.port);
 
-	/* XXX give trxd(8) a bit slack to setup everything */
-	sleep(1);
-
 	snprintf(script, sizeof(script), "%s/xqrg.lua", PATH_XQRG);
 	if (luaL_loadfile(L, script) != LUA_OK)
 		err(1, "xqrg.lua not loaded: %s", lua_tostring(L, -1));
