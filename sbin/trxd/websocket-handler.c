@@ -20,7 +20,7 @@
  * IN THE SOFTWARE.
  */
 
-/* Handle network clients WebSockets */
+/* Handle network clients over WebSockets */
 
 #include <sys/socket.h>
 
@@ -54,6 +54,8 @@ websocket_recv(websocket_t *websock, char **dest)
 	int type;
 
 	buf = malloc(BUFSIZE);
+	if (buf == NULL)
+		return -1;
 
 	nread = len = 0;
 	type = WS_INCOMPLETE_FRAME;
