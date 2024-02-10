@@ -724,6 +724,7 @@ dispatcher(void *arg)
 				destination_set(d);
 		}
 		free(d->data);
+		d->data = NULL;
 		if (pthread_cond_signal(&d->cond2))
 			err(1, "dispatcher: pthread_cond_signal");
 	}

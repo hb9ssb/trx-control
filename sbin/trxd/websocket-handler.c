@@ -216,8 +216,9 @@ websocket_handler(void *arg)
 		if (pthread_cond_signal(&d->cond))
 			err(1, "websocket-handler: pthread_cond_signal");
 
-		if (pthread_cond_wait(&d->cond2, &d->mutex2))
-			err(1, "websocket-handler: pthread_cond_wait");
+		while (d->data != NULL)
+			if (pthread_cond_wait(&d->cond2, &d->mutex2))
+				err(1, "websocket-handler: pthread_cond_wait");
 	}
 	pthread_cleanup_pop(0);
 	pthread_cleanup_pop(0);
