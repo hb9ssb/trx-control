@@ -75,7 +75,7 @@ socket_handler(void *arg)
 
 	pthread_cleanup_push(cleanup, arg);
 
-	if (pthread_setname_np(pthread_self(), "trxd-sock"))
+	if (pthread_setname_np(pthread_self(), "socket"))
 		err(1, "socket-handler: pthread_setname_np");
 
 	s = malloc(sizeof(sender_tag_t));

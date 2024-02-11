@@ -56,7 +56,7 @@ trx_handler(void *arg)
 
 	pthread_cleanup_push(cleanup, arg);
 
-	if (pthread_setname_np(pthread_self(), "trxd-trx"))
+	if (pthread_setname_np(pthread_self(), "trx-handler"))
 		err(1, "trx-handler: pthread_setname_np");
 
 	fd = t->cat_device;

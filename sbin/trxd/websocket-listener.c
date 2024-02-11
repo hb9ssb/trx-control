@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Marc Balmer HB9SSB
+ * Copyright (c) 2023 - 2024 Marc Balmer HB9SSB
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -124,7 +124,7 @@ websocket_listener(void *arg)
 	if (pthread_detach(pthread_self()))
 		err(1, "websocket-listener: pthread_detach");
 
-	if (pthread_setname_np(pthread_self(), "trxd-ws-listen"))
+	if (pthread_setname_np(pthread_self(), "ws-listen"))
 		err(1, "websocket-listener: pthread_setname_np");
 
 	/* Setup network listening */

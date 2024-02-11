@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Marc Balmer HB9SSB
+ * Copyright (c) 2023 - 2024 Marc Balmer HB9SSB
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -56,7 +56,7 @@ nmea_handler(void *arg)
 
 	pthread_cleanup_push(cleanup, arg);
 
-	if (pthread_setname_np(pthread_self(), "trxd-nmea"))
+	if (pthread_setname_np(pthread_self(), "nmea"))
 		err(1, "nmea-handler: pthread_setname_np");
 
 	pfd.fd = t->fd;

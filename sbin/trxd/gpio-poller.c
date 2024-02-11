@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Marc Balmer HB9SSB
+ * Copyright (c) 2023 - 2024 Marc Balmer HB9SSB
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -50,7 +50,7 @@ gpio_poller(void *arg)
 
 	pthread_cleanup_push(cleanup, NULL);
 
-	if (pthread_setname_np(pthread_self(), "trxd-gpio-poll"))
+	if (pthread_setname_np(pthread_self(), "gpio-poller"))
 		err(1, "gpio-poller: pthread_setname_np");
 
 	for (;;) {

@@ -613,7 +613,7 @@ dispatcher(void *arg)
 
 	pthread_cleanup_push(cleanup, arg);
 
-	if (pthread_setname_np(pthread_self(), "trxd-dispatcher"))
+	if (pthread_setname_np(pthread_self(), "dispatcher"))
 		err(1, "dispatcher: pthread_setname_np");
 
 	/* Check if have a default transceiver */

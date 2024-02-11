@@ -77,13 +77,13 @@ relay_controller(void *arg)
 	if (pthread_detach(pthread_self()))
 		err(1, "relay-controller: pthread_detach");
 
-	if (pthread_setname_np(pthread_self(), "trxd-relay"))
+	if (pthread_setname_np(pthread_self(), "relay"))
 		err(1, "relay-controller: pthread_setname_np");
 
 	pthread_cleanup_push(cleanup, arg);
 
 	/*
-	 * Lock this transceivers mutex, so that no other thread accesses
+	 * Lock this relays mutex, so that no other thread accesses
 	 * while we are initialising.
 	 */
 	if (pthread_mutex_lock(&t->mutex))
@@ -110,7 +110,7 @@ relay_controller(void *arg)
 
 	/*
 	 * We are ready to go, unlock the mutex, so that client-handlers,
-	 * trx-handlers, and, try-pollers can access it.
+	 * relay-handlers, and, relay-pollers can access it.
 	 */
 	if (pthread_mutex_unlock(&t->mutex))
 		err(1, "relay-controller: pthread_mutex_unlock");

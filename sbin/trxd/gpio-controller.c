@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Marc Balmer HB9SSB
+ * Copyright (c) 2023 - 2024 Marc Balmer HB9SSB
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -84,11 +84,11 @@ gpio_controller(void *arg)
 
 	pthread_cleanup_push(cleanup, arg);
 
-	if (pthread_setname_np(pthread_self(), "trxd-gpio"))
+	if (pthread_setname_np(pthread_self(), "gpio"))
 		err(1, "gpio-controller: pthread_setname_np");
 
 	/*
-	 * Lock this transceivers mutex, so that no other thread accesses
+	 * Lock this gpios mutex, so that no other thread accesses
 	 * while we are initialising.
 	 */
 	if (pthread_mutex_lock(&t->mutex))
@@ -177,7 +177,7 @@ gpio_controller(void *arg)
 
 	/*
 	 * We are ready to go, unlock the mutex, so that client-handlers,
-	 * trx-handlers, and, try-pollers can access it.
+	 * gpio-handlers, and, gpio-pollers can access it.
 	 */
 	if (pthread_mutex_unlock(&t->mutex))
 		err(1, "gpio-controller: pthread_mutex_unlock");

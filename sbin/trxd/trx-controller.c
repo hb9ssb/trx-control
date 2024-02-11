@@ -85,7 +85,7 @@ trx_controller(void *arg)
 
 	pthread_cleanup_push(cleanup, arg);
 
-	if (pthread_setname_np(pthread_self(), "trxd-trx-ctrl"))
+	if (pthread_setname_np(pthread_self(), "trx"))
 		err(1, "trx-controller: pthread_setname_np");
 
 	/*
@@ -185,7 +185,7 @@ trx_controller(void *arg)
 
 	/*
 	 * We are ready to go, unlock the mutex, so that client-handlers,
-	 * trx-handlers, and, try-pollers can access it.
+	 * trx-handlers, and, trx-pollers can access it.
 	 */
 
 	if (verbose)

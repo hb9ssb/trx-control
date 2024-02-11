@@ -63,7 +63,7 @@ extension(void *arg)
 
 	pthread_cleanup_push(cleanup, arg);
 
-	if (pthread_setname_np(pthread_self(), "trxd-extension"))
+	if (pthread_setname_np(pthread_self(), "extension"))
 		err(1, "extension: pthread_setname_np");
 
 	if (t->is_callable) {
