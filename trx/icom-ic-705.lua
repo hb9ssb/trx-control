@@ -23,22 +23,22 @@
 local ic705 = require 'ci-v'
 
 ic705.validModes = {
-	['lsb'] = '00',
-	['usb'] = '01',
-	['am'] = '02',
-	['cw'] = '03',
-	['rtty'] = '04',
-	['fm'] = '05',
-	['wfm'] = '06',
-	['cw-r'] = '07',
-	['rtty-r'] = '08',
-	['dv'] = '17'
+	['lsb'] = 0x00,
+	['usb'] = 0x01,
+	['am'] = 0x02,
+	['cw'] = 0x03,
+	['rtty'] = 0x04,
+	['fm'] = 0x05,
+	['wfm'] = 0x06,
+	['cw-r'] = 0x07,
+	['rtty-r'] = 0x08,
+	['dv'] = 0x17
 }
 
 ic705.filterSetting = {
-	['fil1'] = '01',
-	['fil2'] = '02',
-	['fil3'] = '03'
+	['fil1'] = 0x01,
+	['fil2'] = 0x02,
+	['fil3'] = 0x03
 }
 
 ic705.name = 'ICOM IC-705'
