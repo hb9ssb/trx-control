@@ -30,7 +30,8 @@ local function useTrx(trx)
 	xqrg.writeln(json.encode(d))
 	local reply = json.decode(xqrg.readln())
 	if reply.status ~= 'Ok' then
-		print(string.format('%s: %s', reply.status, reply.reason))
+		print(string.format('xqrg: %s: %s', reply.status, reply.reason))
+		os.exit(1)
 	end
 end
 
