@@ -223,8 +223,8 @@ websocket_handler(void *arg)
 	if (verbose)
 		printf("wbsocket-handler:  wait for sender\n");
 
-	while (d->data != NULL)
-		if (pthread_cond_wait(&d->cond2, &d->mutex2))
+	while (s->data != NULL)
+		if (pthread_cond_wait(&s->cond2, &s->mutex2))
 			err(1, "websocket-handler: pthread_cond_wait");
 
 	if (verbose)
