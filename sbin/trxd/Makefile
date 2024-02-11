@@ -77,6 +77,9 @@ socket-handler.o:	Makefile socket-handler.c trxd.h trx-control.h
 socket-sender.o:	Makefile socket-sender.c trxd.h trx-control.h
 websocket-sender.o:	Makefile websocket-sender.c trxd.h trx-control.h \
 			websocket.h
+websocket-handler.o:	Makefile websocket-handler.c trxd.h trx-control.h \
+			websocket.h
+
 websocket.o:		Makefile websocket.c websocket.h
 base64.o:		Makefile base64.c base64.h
 
