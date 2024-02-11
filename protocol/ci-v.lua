@@ -1,4 +1,4 @@
--- Copyright (c) 2023 Marc Balmer HB9SSB
+-- Copyright (c) 2023 - 2024 Marc Balmer HB9SSB
 --
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to
@@ -21,6 +21,9 @@
 -- ICOM CI-V protocol
 
 -- Internal functions
+
+local internalMode = {}
+
 local function sendMessage(cn, sc, data)
 	local message = '\xfe\xfe\xa4\xe0' .. cn
 
@@ -34,12 +37,14 @@ local function sendMessage(cn, sc, data)
 
 	message = message .. '\xfd'
 
+	--[[
 	print('write message of ' .. #message .. ' bytes to trx')
 
 	for n = 1, #message do
 		io.write(string.format('%02x ', string.byte(message, n)))
 	end
 	print('')
+	--]]
 
 	trx.write(message)
 end
@@ -47,11 +52,13 @@ end
 local function recvReply()
 	local reply = trx.read(6)
 
+	--[[
 	print('got reply: ')
 	for n = 1, #reply do
 		io.write(string.format('%02x ', string.byte(reply, n)))
 	end
 	print('')
+	--]]
 	if string.byte(reply, 5) == 0xfb then
 		return true
 	else
@@ -62,6 +69,10 @@ end
 -- Exported functions
 local function initialize(driver)
 	print (driver.name .. ': initialize')
+
+	for k, v in pairs(driver.validModes) do
+		internalMode[v] = k
+	end
 end
 
 local function lock(driver)
@@ -73,18 +84,10 @@ local function unlock(driver)
 end
 
 local function setFrequency(driver, frequency)
-	print (string.format('%s: set frequency to %s', driver.name, frequency))
 
 	local freq = string.sub(string.format('%010d', frequency), 1, -1)
-	print('freq', freq)
 	local bcd = string.reverse(trx.stringToBcd(freq))
 
-	for n = 1, #bcd do
-		io.write(string.format('%02x ', string.byte(bcd, n)))
-	end
-	print('')
-	print('bcd len:', #bcd)
-	print('setting frequency')
 	sendMessage('\x05', nil, bcd)
 	if recvReply() == true then
 		print 'frequency set'
@@ -95,25 +98,20 @@ local function setFrequency(driver, frequency)
 end
 
 local function getFrequency(driver)
-	print (driver.name .. ': get frequency')
-
 	sendMessage('\x03')
 	local reply = trx.read(11)
 
-	print('got reply: ')
-	for n = 1, #reply do
-		io.write(string.format('%02x ', string.byte(reply, n)))
-	end
-	print('')
-
 	local freq = trx.bcdToString(string.reverse(string.sub(reply, 6, -2)))
-	print('freq as string', freq)
 
-	return tonumber(freq), 'usb'
+	sendMessage('\x04')
+	reply = trx.read(8)
+
+	local mode = string.byte(reply, 6)
+
+	return tonumber(freq), internalMode[mode] or '??'
 end
 
 local function setMode(driver, mode)
-	print (string.format('%s: set mode to %s', driver.name, mode))
 	if driver.validModes[mode] ~= nil then
 		return mode
 	else
@@ -122,8 +120,12 @@ local function setMode(driver, mode)
 end
 
 local function getMode(driver)
-	print (driver.name .. ': get mode')
-	return 'usb'
+	sendMessage('\x04')
+	local reply = trx.read(8)
+
+	local mode = string.byte(reply, 6)
+
+	return internalMode[mode] or '??'
 end
 
 return {
