@@ -102,6 +102,18 @@ rm -rf $RPM_BUILD_ROOT
 %{__make} clean
 
 %changelog
+* Sun 11 Feb 2024 Marc Balmer HB9SSB <info@hb9ssb.ch>
+
+- trx-control 1.0.4: Adding the tasmota extension.
+
+* Sun 11 Feb 2024 Marc Balmer HB9SSB <info@hb9ssb.ch>
+
+- trx-control 1.0.3: Bug fixes.
+
+* Sun 11 Feb 2024 Marc Balmer HB9SSB <info@hb9ssb.ch>
+
+- trx-control 1.0.2: Bug fixes.
+
 * Wed Feb 7 2024 Marc Balmer HB9SSB <info@hb9ssb.ch>
 
 - trx-control-1.0.1: Add the keepalive extension
