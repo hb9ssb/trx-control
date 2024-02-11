@@ -1,4 +1,5 @@
 REPODIR?=	/etc/yum.repos.d
+REPO?=		alma-9
 
 all:
 
