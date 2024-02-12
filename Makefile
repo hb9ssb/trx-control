@@ -122,7 +122,13 @@ endif
 # The following targets are used within the docker container
 CODENAME?=	$(shell lsb_release -sc)
 DEBBASE=	/apt/dists/$(CODENAME)
-DEBPATH=	/apt/dists/$(CODENAME)/stable/binary-$(ARCH)
+
+ifeq ($(ARCH), x86_64)
+DEBPATH=	/apt/dists/$(CODENAME)/stable/binary-amd64
+endif
+ifeq ($(ARCH), aarch64)
+DEBPATH=	/apt/dists/$(CODENAME)/stable/binary-aarch64
+endif
 
 prepare:
 	gpg --import /keys/private.asc
