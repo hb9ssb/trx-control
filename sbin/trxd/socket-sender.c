@@ -51,7 +51,7 @@ socket_sender(void *arg)
 
 	pthread_cleanup_push(cleanup, arg);
 
-	if (pthread_setname_np(pthread_self(), "trxd-sender"))
+	if (pthread_setname_np(pthread_self(), "sender"))
 		err(1, "socket-sender: pthread_setname_np");
 
 	if (pthread_mutex_lock(&s->mutex))
