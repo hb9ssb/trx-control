@@ -91,7 +91,6 @@ websocket_handshake(websocket_t *websock, char *handshake)
 			buf[nread] = '\0';
 			rv = 0;
 		} else {
-			printf("404 not found\n");
 			nread = sprintf(buf, "HTTP/1.1 404 Not Found\r\n\r\n");
 			if (websock->ssl)
 				SSL_write(websock->ssl, buf, nread);
@@ -99,7 +98,6 @@ websocket_handshake(websocket_t *websock, char *handshake)
 				send(websock->socket, buf, nread, 0);
 		}
 	} else {
-		printf("400 bad request\n");
 		nread = sprintf(buf,
 			"HTTP/1.1 400 Bad Request\r\n"
 			"%s%s\r\n\r\n",

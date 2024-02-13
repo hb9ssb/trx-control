@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Marc Balmer HB9SSB
+ * Copyright (c) 2023 - 2024 Marc Balmer HB9SSB
  * Copyright (c) 2014 Micro Systems Marc Balmer, CH-5073 Gipf-Oberfrick.
  * Copyright (c) 2014 Putilov Andrey
  *
@@ -112,24 +112,24 @@ wsParseHandshake(const uint8_t *inputFrame, size_t inputLength,
 	/* parse next lines */
 	while (inputPtr < endPtr && inputPtr[0] != '\r'
 	    && inputPtr[1] != '\n') {
-		if (!memcmp(inputPtr, hostField, strlen(hostField))) {
+		if (!strncasecmp(inputPtr, hostField, strlen(hostField))) {
 			inputPtr += strlen(hostField);
 			free(hs->host);
 			hs->host = getUptoLinefeed(inputPtr);
-		} else if (!memcmp(inputPtr, originField,
+		} else if (!strncasecmp(inputPtr, originField,
 		    strlen(originField))) {
 			inputPtr += strlen(originField);
 			free(hs->origin);
 			hs->origin = getUptoLinefeed(inputPtr);
-		} else if (!memcmp(inputPtr, protocolField,
+		} else if (!strncasecmp(inputPtr, protocolField,
 		    strlen(protocolField))) {
 			inputPtr += strlen(protocolField);
 			subprotocolFlag = 1;
-		} else if (!memcmp(inputPtr, keyField, strlen(keyField))) {
+		} else if (!strncasecmp(inputPtr, keyField, strlen(keyField))) {
 			inputPtr += strlen(keyField);
 			free(hs->key);
 			hs->key = getUptoLinefeed(inputPtr);
-		} else if (!memcmp(inputPtr, versionField,
+		} else if (!strncasecmp(inputPtr, versionField,
 		    strlen(versionField))) {
 			char *versionString;
 
@@ -138,7 +138,7 @@ wsParseHandshake(const uint8_t *inputFrame, size_t inputLength,
 			if (memcmp(versionString, version, strlen(version)))
 				versionMismatch = 1;
 			free(versionString);
-		} else if (!memcmp(inputPtr, connectionField,
+		} else if (!strncasecmp(inputPtr, connectionField,
 		    strlen(connectionField))) {
 			char *connectionValue;
 
@@ -148,7 +148,7 @@ wsParseHandshake(const uint8_t *inputFrame, size_t inputLength,
 			if (strcasestr(connectionValue, upgrade) != NULL)
 				connectionFlag = 1;
 			free(connectionValue);
-		} else if (!memcmp(inputPtr, upgradeField,
+		} else if (!strncasecmp(inputPtr, upgradeField,
 		    strlen(upgradeField))) {
 			char *compare;
 
