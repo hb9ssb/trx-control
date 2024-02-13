@@ -103,8 +103,7 @@ SUSE_BASED=	opensuse-leap-15.5 \
 DEBIAN_BASED=	ubuntu-23.10 \
 		ubuntu-23.04 \
 		ubuntu-22.04 \
-		debian-12.4 \
-		debian-12.2
+		debian-12.4
 endif
 
 ifeq ($(ARCH), arm64)
@@ -115,14 +114,19 @@ SUSE_BASED=	opensuse-leap-15.5 \
 
 DEBIAN_BASED=	ubuntu-22.04 \
 		ubuntu-20.04 \
-		debian-12.4 \
-		debian-12.2
+		debian-12.4
 endif
 
 # The following targets are used within the docker container
 CODENAME?=	$(shell lsb_release -sc)
 DEBBASE=	/apt/dists/$(CODENAME)
-DEBPATH=	/apt/dists/$(CODENAME)/stable/binary-$(ARCH)
+
+ifeq ($(ARCH), x86_64)
+DEBPATH=	/apt/dists/$(CODENAME)/stable/binary-amd64
+endif
+ifeq ($(ARCH), aarch64)
+DEBPATH=	/apt/dists/$(CODENAME)/stable/binary-aarch64
+endif
 
 prepare:
 	gpg --import /keys/private.asc
