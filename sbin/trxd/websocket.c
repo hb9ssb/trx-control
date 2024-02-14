@@ -322,7 +322,7 @@ wsParseInputFrame(uint8_t *inputFrame, size_t inputLength, uint8_t **dataPtr,
 }
 
 enum wsFrameType
-wsRead(char **dest, size_t *len, int(*readfunc)(void *, char *, size_t),
+wsRead(char **dest, size_t *destlen, int(*readfunc)(void *, char *, size_t),
     int(*writefunc)(void *, char *, size_t), void *client_data)
 {
 	unsigned char *data;
@@ -398,8 +398,8 @@ wsRead(char **dest, size_t *len, int(*readfunc)(void *, char *, size_t),
 		case WS_TEXT_FRAME:
 			data[datasize] = '\0';
 			*dest = strdup(data);
-			if (len != NULL)
-				*len = datasize;
+			if (destlen != NULL)
+				*destlen = datasize;
 			if (*dest == NULL) {
 				free(buf);
 				return -1;
