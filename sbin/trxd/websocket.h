@@ -82,7 +82,7 @@ extern size_t wsGetPayloadLength(const uint8_t *, size_t, uint8_t *,
 extern enum wsFrameType wsParseInputFrame(uint8_t *, size_t, uint8_t **,
     size_t *);
 
-extern enum wsFrameType wsRead(char **dest,
+extern enum wsFrameType wsRead(char **dest, size_t *,
     int(*readfunc)(void *, char *, size_t),
     int(*writefunc)(void *, char *, size_t), void *);
 

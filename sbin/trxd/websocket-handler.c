@@ -191,7 +191,7 @@ websocket_handler(void *arg)
 
 	for (;;) {
 		/* buf will later be freed by the dispatcher */
-		if (wsRead(&buf, websocket_read, websocket_write, w))
+		if (wsRead(&buf, NULL, websocket_read, websocket_write, w))
 			pthread_exit(NULL);
 		else if (verbose)
 			printf("websocket-handler: <- %s\n", buf);
