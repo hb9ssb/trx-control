@@ -37,6 +37,8 @@
 #include "base64.h"
 #include "websocket.h"
 
+#define INITIAL_BUFSIZE		256
+
 void
 nullHandshake(struct handshake *hs)
 {
@@ -243,8 +245,8 @@ wsMakeFrame(const uint8_t *data, size_t dataLength, uint8_t *outFrame,
 	*outLength += dataLength;
 }
 
-static size_t
-getPayloadLength(const uint8_t *inputFrame, size_t inputLength,
+size_t
+wsGetPayloadLength(const uint8_t *inputFrame, size_t inputLength,
     uint8_t *payloadFieldExtraBytes, enum wsFrameType *frameType)
 {
 	size_t payloadLength = inputFrame[1] & 0x7F;
@@ -289,16 +291,6 @@ wsParseInputFrame(uint8_t *inputFrame, size_t inputLength, uint8_t **dataPtr,
 {
 	assert(inputFrame && inputLength);
 
-	if (inputLength < 2)
-		return WS_INCOMPLETE_FRAME;
-
-	if ((inputFrame[0] & 0x70) != 0x0)	/* checks extensions off */
-		return WS_ERROR_FRAME;
-	if ((inputFrame[0] & 0x80) != 0x80)	/* no continuation frames */
-		return WS_ERROR_FRAME;		/* so, fin flag must be set */
-	if ((inputFrame[1] & 0x80) != 0x80)	/* checks masking bit */
-		return WS_ERROR_FRAME;
-
 	uint8_t opcode = inputFrame[0] & 0x0F;
 	if (opcode == WS_TEXT_FRAME ||
 	    opcode == WS_BINARY_FRAME ||
@@ -308,16 +300,10 @@ wsParseInputFrame(uint8_t *inputFrame, size_t inputLength, uint8_t **dataPtr,
 		enum wsFrameType frameType = opcode;
 
 		uint8_t payloadFieldExtraBytes = 0;
-		size_t payloadLength = getPayloadLength(inputFrame, inputLength,
-		    &payloadFieldExtraBytes, &frameType);
+		size_t payloadLength = wsGetPayloadLength(inputFrame,
+		    inputLength, &payloadFieldExtraBytes, &frameType);
 		if (payloadLength > 0) {
 			size_t i;
-
-			/* 4 - maskingKey, 2 - header */
-			if (payloadLength < inputLength - 6 -
-			    payloadFieldExtraBytes)
-				return WS_INCOMPLETE_FRAME;
-
 			uint8_t *maskingKey = &inputFrame[2 +
 			     payloadFieldExtraBytes];
 
@@ -330,7 +316,100 @@ wsParseInputFrame(uint8_t *inputFrame, size_t inputLength, uint8_t **dataPtr,
 			for (i = 0; i < *dataLength; i++)
 				(*dataPtr)[i] = (*dataPtr)[i] ^ maskingKey[i%4];
 		}
-		return frameType;
+		return opcode;
 	}
 	return WS_ERROR_FRAME;
+}
+
+enum wsFrameType
+wsRead(char **dest, int(*readfunc)(void *, char *, size_t),
+    int(*writefunc)(void *, char *, size_t), void *client_data)
+{
+	unsigned char *data;
+	char *buf;
+	size_t bufsize, nread, len, datasize;
+	int type;
+	uint8_t payloadFieldExtraBytes = 0;
+	size_t payloadLength;
+	enum wsFrameType frameType;
+
+	bufsize = INITIAL_BUFSIZE;
+	buf = malloc(bufsize);
+	if (buf == NULL)
+		return -1;
+
+	nread = len = 0;
+	type = WS_INCOMPLETE_FRAME;
+	do {
+		/*
+		 * The most common frame header is six bytes long, try to read
+		 * 6 bytes and then determine the actual payload size and read
+		 * the remaining data.
+		 */
+		do {
+			nread = readfunc(client_data, buf, 6);
+			if (nread == -1) {	/* remote closed */
+				free(buf);
+				return -1;
+			}
+			len += nread;
+		} while (len < 2);	/* 2 is the minimum */
+
+		if (((buf[0] & 0x70) != 0x0) || ((buf[0] & 0x80) != 0x80) ||
+		    ((buf[1] & 0x80) != 0x80)) {
+			free(buf);
+			return -1;
+		}
+
+		payloadLength = wsGetPayloadLength(buf, len,
+		    &payloadFieldExtraBytes, &frameType);
+
+		/* Ensure buf can hold the complete payload */
+		if (6 + payloadFieldExtraBytes + payloadLength > bufsize) {
+			bufsize = 6 + payloadFieldExtraBytes + payloadLength;
+			buf = realloc(buf, bufsize);
+			if (buf == NULL)
+				return -1;
+		}
+
+		do {
+			nread = readfunc(client_data, buf + len, payloadLength +
+			    payloadFieldExtraBytes);
+			len += nread;
+		} while (len < 6 + payloadFieldExtraBytes + payloadLength);
+
+		type = wsParseInputFrame((unsigned char *)buf, len, &data,
+			&datasize);
+
+		switch (type) {
+		case WS_CLOSING_FRAME:
+			wsMakeFrame(NULL, 0, (unsigned char *)buf, &datasize,
+			    WS_CLOSING_FRAME);
+			writefunc(client_data, buf, datasize);
+			free(buf);
+			return -1;
+		case WS_PING_FRAME:
+			wsMakeFrame(NULL, 0, (unsigned char *)buf, &datasize,
+			    WS_PONG_FRAME);
+			writefunc(client_data, buf, datasize);
+			len = 0;
+			type = WS_INCOMPLETE_FRAME;
+			break;
+		case WS_TEXT_FRAME:
+			data[datasize] = '\0';
+			*dest = strdup(data);
+			if (*dest == NULL) {
+				free(buf);
+				return -1;
+			}
+			break;
+		case WS_INCOMPLETE_FRAME:
+			break;
+		default:
+			free(buf);
+			return -1;
+		}
+	} while (type == WS_INCOMPLETE_FRAME);
+	free(buf);
+	return 0;
 }

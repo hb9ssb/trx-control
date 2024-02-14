@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Marc Balmer HB9SSB
+ * Copyright (c) 2023 - 2024 Marc Balmer HB9SSB
  * Copyright (c) 2014 Micro Systems Marc Balmer, CH-5073 Gipf-Oberfrick.
  * Copyright (c) 2014 Putilov Andrey
  *
@@ -76,7 +76,15 @@ extern void wsGetHandshakeAnswer(const struct handshake *, uint8_t *,
 extern void wsMakeFrame(const uint8_t *, size_t, uint8_t *, size_t *,
     enum wsFrameType);
 
-enum wsFrameType wsParseInputFrame(uint8_t *, size_t, uint8_t **, size_t *);
+extern size_t wsGetPayloadLength(const uint8_t *, size_t, uint8_t *,
+    enum wsFrameType *);
+
+extern enum wsFrameType wsParseInputFrame(uint8_t *, size_t, uint8_t **,
+    size_t *);
+
+extern enum wsFrameType wsRead(char **dest,
+    int(*readfunc)(void *, char *, size_t),
+    int(*writefunc)(void *, char *, size_t), void *);
 
 extern void nullHandshake(struct handshake *);
 extern void freeHandshake(struct handshake *);
