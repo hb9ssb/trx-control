@@ -102,6 +102,10 @@ rm -rf $RPM_BUILD_ROOT
 %{__make} clean
 
 %changelog
+* Thu Feb 15 2024 Marc Balmer HB9SSB <info@hb9ssb.ch>
+
+- Bug fixes in the WebSocket implementation.
+
 * Sun Feb 11 2024 Marc Balmer HB9SSB <info@hb9ssb.ch>
 
 - trx-control 1.0.4: Adding the tasmota extension.
