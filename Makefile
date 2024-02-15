@@ -103,7 +103,9 @@ SUSE_BASED=	opensuse-leap-15.5 \
 DEBIAN_BASED=	ubuntu-23.10 \
 		ubuntu-23.04 \
 		ubuntu-22.04 \
-		debian-12.5
+		debian-12 \
+		debian-11 \
+		debian-10
 endif
 
 ifeq ($(ARCH), arm64)
@@ -116,7 +118,9 @@ SUSE_BASED=	opensuse-leap-15.5 \
 
 DEBIAN_BASED=	ubuntu-22.04 \
 		ubuntu-20.04 \
-		debian-12.5
+		debian-12 \
+		debian-11 \
+		debian-10
 endif
 
 # The following targets are used within the docker container
