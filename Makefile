@@ -129,9 +129,11 @@ DEBBASE=	/apt/dists/$(CODENAME)
 
 ifeq ($(ARCH), x86_64)
 DEBPATH=	/apt/dists/$(CODENAME)/stable/binary-amd64
+DEBARCH=	amd64
 endif
 ifeq ($(ARCH), aarch64)
 DEBPATH=	/apt/dists/$(CODENAME)/stable/binary-aarch64
+DEBARCH=	$(ARCH)
 endif
 
 prepare:
@@ -162,7 +164,7 @@ debian-packages: prepare
 	cp /trx-control*.deb $(DEBPATH)
 	cd /apt && \
 		dpkg-scanpackages \
-		dists/$(CODENAME)/stable/binary-$(ARCH) > $(DEBPATH)/Packages
+		dists/$(CODENAME)/stable/binary-$(DEBARCH) > $(DEBPATH)/Packages
 	gzip -c $(DEBPATH)/Packages > $(DEBPATH)/Packages.gz
 	echo Origin: trx-control > $(DEBBASE)/Release
 	echo Label: trx-control >> $(DEBBASE)/Release
