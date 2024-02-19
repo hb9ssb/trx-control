@@ -102,6 +102,10 @@ rm -rf $RPM_BUILD_ROOT
 %{__make} clean
 
 %changelog
+* Mon Feb 19 2024 Marc Balmer HB9SSB <info@hb9ssb.ch>
+
+- Bug fixes in the WebSocket payload calculation.
+
 * Thu Feb 15 2024 Marc Balmer HB9SSB <info@hb9ssb.ch>
 
 - Bug fixes in the WebSocket implementation.
