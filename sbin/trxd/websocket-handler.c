@@ -180,7 +180,7 @@ websocket_handler(void *arg)
 		err(1, "wbsocket-handler: pthread_mutex_lock");
 
 	if (verbose)
-		printf("wbsocket-handler:  wait for sender\n");
+		printf("websocket-handler:  wait for sender\n");
 
 	while (s->data != NULL)
 		if (pthread_cond_wait(&s->cond2, &s->mutex2))
