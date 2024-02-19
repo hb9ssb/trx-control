@@ -28,6 +28,7 @@
 #include <openssl/evp.h>
 
 #include <assert.h>
+#include <endian.h>
 #include <stdlib.h>
 #include <netinet/in.h>
 #include <string.h>
@@ -263,25 +264,17 @@ wsGetPayloadLength(const uint8_t *inputFrame, size_t inputLength,
 	}
 
 	if (payloadLength == 0x7E) {
-		uint16_t payloadLength16b = 0;
-
 		*payloadFieldExtraBytes = 2;
-		memcpy(&payloadLength16b, &inputFrame[2],
-		    *payloadFieldExtraBytes);
-		payloadLength = payloadLength16b;
-	} else if (payloadLength == 0x7F) {
-		uint64_t payloadLength64b = 0;
 
+		payloadLength = be16toh(*(uint16_t *)&inputFrame[2]);
+	} else if (payloadLength == 0x7F) {
 		*payloadFieldExtraBytes = 8;
-		memcpy(&payloadLength64b, &inputFrame[2],
-		    *payloadFieldExtraBytes);
-		if (payloadLength64b > SIZE_MAX) {
+
+		if (payloadLength > SIZE_MAX) {
 			*frameType = WS_ERROR_FRAME;
 			return 0;
 		}
-		payloadLength = (size_t)payloadLength64b;
 	}
-
 	return payloadLength;
 }
 
