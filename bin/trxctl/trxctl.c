@@ -62,7 +62,7 @@ wordexp_t p;
 static void
 usage(void)
 {
-	(void)fprintf(stderr, "usage: trxctl [-lvV] [-p port]\n");
+	(void)fprintf(stderr, "usage: trxctl [-vV] [-h host] [-p port]\n");
 	exit(1);
 }
 
