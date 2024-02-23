@@ -118,6 +118,7 @@ endif
 
 ifeq ($(ARCH), arm64)
 REDHAT_BASED=	alma-9 \
+		alma-8 \
 		rocky-9 \
 		rocky-8 \
 		centos-7
