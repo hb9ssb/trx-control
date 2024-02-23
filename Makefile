@@ -75,6 +75,12 @@ ifeq ($(ID), "almalinux")
 ID="rhel"
 endif
 
+ifeq ($ID), "centos")
+ifeq ($VERSION_ID), "7")
+PG_VERSION=15
+endif
+endif
+
 RELEASEVER=	$(shell echo $(VERSION_ID) | cut -d . -f 1)
 ARCH=		$(shell uname -m)
 
@@ -95,7 +101,8 @@ REDHAT_BASED=	alma-9 \
 		rocky-9 \
 		rocky-8 \
 		fedora-39 \
-		fedora-38
+		fedora-38 \
+		centos-7
 
 SUSE_BASED=	opensuse-leap-15.5 \
 		opensuse-tumbleweed
@@ -199,7 +206,7 @@ UID=	$(shell id -u)
 SOCK=	/tmp/.trx-control.$(UID)
 
 repos:	connect fetch-debian packages redhat-repo suse-repo debian-repo \
-	pubkey disconnect
+	pubkey fix-permissions disconnect
 
 repos-nb:	connect redhat-repo suse-repo debian-repo pubkey disconnect
 
@@ -215,6 +222,9 @@ pubkey:
 	gpg --export -a info@hb9ssb.ch | \
 		ssh -S $(SOCK) trx-control.msys.ch cat \> \
 		$(REPOBASE)/trx-control.asc
+
+fix-permissions:
+	ssh -S $(SOCK) trx-control.msys.ch chmod -R g+r,a+r $(REPOBASE)
 
 disconnect:
 	ssh -S $(SOCK) -O exit trx-control.msys.ch
