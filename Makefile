@@ -119,7 +119,8 @@ endif
 ifeq ($(ARCH), arm64)
 REDHAT_BASED=	alma-9 \
 		rocky-9 \
-		rocky-8
+		rocky-8 \
+		centos-7
 
 SUSE_BASED=	opensuse-leap-15.5 \
 		opensuse-tumbleweed
