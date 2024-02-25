@@ -84,6 +84,13 @@ luatrxd_verbose(lua_State *L)
 	return 1;
 }
 
+static int
+luatrxd_version(lua_State *L)
+{
+	lua_pushstring(L, verbose);
+	return 1;
+}
+
 int
 luaopen_trxd(lua_State *L)
 {
@@ -91,6 +98,7 @@ luaopen_trxd(lua_State *L)
 		{ "notify",		luatrxd_notify },
 		{ "signalInput",	luatrxd_signal_input },
 		{ "verbose",		luatrxd_verbose },
+		{ "version",		luatrxd_version },
 		{ NULL, NULL }
 	};
 
