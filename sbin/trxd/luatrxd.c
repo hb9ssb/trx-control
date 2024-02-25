@@ -87,7 +87,7 @@ luatrxd_verbose(lua_State *L)
 static int
 luatrxd_version(lua_State *L)
 {
-	lua_pushstring(L, verbose);
+	lua_pushstring(L, TRXD_VERSION);
 	return 1;
 }
 
