@@ -18,7 +18,12 @@
 -- FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 -- IN THE SOFTWARE.
 
--- The QRZ.COM callsign lookup extension for trx-control
+-- The QRZ.com callsign lookup extension for trx-control.  NB: A QRZ.com
+-- subscription is needed in order to use the full functionality of this
+-- extension.
+
+-- The QRZ XML Interface Specification can be found at
+-- https://www.qrz.com/XML/current_spec.html
 
 local curl = require 'curl'
 local expat = require 'expat'
