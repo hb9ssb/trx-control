@@ -1,0 +1,20 @@
+<?xml version="1.0" standalone='no'?>
+<!DOCTYPE service-group SYSTEM "avahi-service.dtd">
+
+<!--
+  This file is part of trx-control.
+
+  See avahi.service(5) for more information about avahi services files.
+-->
+
+<service-group>
+
+  <name replace-wildcards="yes">trx-control on %h</name>
+
+  <service>
+    <type>_trx-control._tcp</type>
+    <port>14290</port>
+    <txt-record>handshake=/trx-control</txt-record>
+  </service>
+
+</service-group>
