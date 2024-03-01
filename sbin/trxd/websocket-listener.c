@@ -63,7 +63,7 @@ extern int log_connections;
 #define BUFSIZE		65535
 
 static int
-websocket_handshake(websocket_t *websock, char *handshake)
+websocket_handshake(websocket_t *websock, char *path)
 {
 	struct handshake hs;
 	size_t nread;
@@ -81,7 +81,7 @@ websocket_handshake(websocket_t *websock, char *handshake)
 
 	if (wsParseHandshake((unsigned char *)buf, nread, &hs) ==
 	    WS_OPENING_FRAME) {
-		if (!strcmp(hs.resource, handshake)) {
+		if (!strcmp(hs.resource, path)) {
 			wsGetHandshakeAnswer(&hs, (unsigned char *)buf, &nread);
 			freeHandshake(&hs);
 			if (websock->ssl)
@@ -267,7 +267,7 @@ websocket_listener(void *arg)
 				}
 			}
 
-			if (!websocket_handshake(w, t->handshake)) {
+			if (!websocket_handshake(w, t->path)) {
 				pthread_create(&w->listen_thread, NULL,
 				    websocket_handler, w);
 			} else {

@@ -207,7 +207,7 @@ typedef struct signal_input {
 typedef struct websocket_listener {
 	char			*bind_addr;
 	char			*listen_port;
-	char			*handshake;
+	char			*path;
 	char			*certificate;
 
 	int			 socket;

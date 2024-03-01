@@ -14,7 +14,7 @@
   <service>
     <type>_trx-control._tcp</type>
     <port>14290</port>
-    <txt-record>handshake=/trx-control</txt-record>
+    <txt-record>path=/trx-control</txt-record>
   </service>
 
 </service-group>

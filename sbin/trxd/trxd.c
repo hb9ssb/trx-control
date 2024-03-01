@@ -673,10 +673,10 @@ main(int argc, char *argv[])
 		t->listen_port = strdup(lua_tostring(L, -1));
 		lua_pop(L, 1);
 
-		lua_getfield(L, -1, "handshake");
+		lua_getfield(L, -1, "path");
 		if (!lua_isstring(L, -1))
-			errx(1, "missing websocket handshake name");
-		t->handshake = strdup(lua_tostring(L, -1));
+			errx(1, "missing websocket path");
+		t->path = strdup(lua_tostring(L, -1));
 		lua_pop(L, 1);
 
 		lua_getfield(L, -1, "certificate");

@@ -19,7 +19,7 @@ websocket:
 
   # If a certificate path is defined, wss is used instead of ws
   certificate: server.pem
-  handshake: trx-control
+  path: /trx-control
 
 nmea:
   device: /dev/ic-705-nmea
