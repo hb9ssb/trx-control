@@ -36,7 +36,7 @@ build:		subdir
 subdir: $(SUBDIR)
 
 $(SUBDIR):
-	VERSION=$(VERSION) $(MAKE) -C $@ $(TARGET)
+	VERSION=$(VERSION) PG_VERSION=$(PG_VERSION) $(MAKE) -C $@ $(TARGET)
 
 # Recursive targets
 .PHONY: clean
