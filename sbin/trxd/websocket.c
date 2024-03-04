@@ -222,7 +222,7 @@ void
 wsMakeFrame(const uint8_t *data, size_t dataLength, uint8_t *outFrame,
     size_t *outLength, enum wsFrameType frameType)
 {
-	assert(outFrame && *outLength);
+	assert(outFrame && outLength);
 	assert(frameType < 0x10);
 	if (dataLength > 0)
 		assert(data);
