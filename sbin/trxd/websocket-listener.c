@@ -81,7 +81,8 @@ websocket_handshake(websocket_t *websock, char *path)
 
 	if (wsParseHandshake((unsigned char *)buf, nread, &hs) ==
 	    WS_OPENING_FRAME) {
-		if (!strcmp(hs.resource, path)) {
+		/* Skip leading slash */
+		if (!strcmp(&hs.resource[1], path)) {
 			wsGetHandshakeAnswer(&hs, (unsigned char *)buf, &nread);
 			freeHandshake(&hs);
 			if (websock->ssl)
