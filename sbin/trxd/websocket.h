@@ -1,5 +1,4 @@
 /*
- * Copyright (c) 2023 - 2024 Marc Balmer HB9SSB
  * Copyright (c) 2014 Micro Systems Marc Balmer, CH-5073 Gipf-Oberfrick.
  * Copyright (c) 2014 Putilov Andrey
  *
