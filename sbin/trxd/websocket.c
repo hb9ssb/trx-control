@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2023 - 2024 Marc Balmer HB9SSB
- * Copyright (c) 2014 Micro Systems Marc Balmer, CH-5073 Gipf-Oberfrick.
+ * Copyright (C) 2014 - 2024 Micro Systems Marc Balmer, CH-5073 Gipf-Oberfrick
  * Copyright (c) 2014 Putilov Andrey
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -341,7 +340,7 @@ wsRead(char **dest, size_t *destlen, int(*readfunc)(void *, char *, size_t),
 		 */
 		do {
 			nread = readfunc(client_data, buf, 6);
-			if (nread == -1) {	/* remote closed */
+			if (nread <= 0) {	/* remote closed */
 				free(buf);
 				return -1;
 			}
@@ -368,6 +367,10 @@ wsRead(char **dest, size_t *destlen, int(*readfunc)(void *, char *, size_t),
 		do {
 			nread = readfunc(client_data, buf + len, payloadLength +
 			    payloadFieldExtraBytes);
+			if (nread <= 0) {
+				free(buf)
+				return -1;
+			}
 			len += nread;
 		} while (len < 6 + payloadFieldExtraBytes + payloadLength);
 
