@@ -27,6 +27,7 @@
 #include <openssl/ssl.h>
 
 #include <err.h>
+#include <errno.h>
 #include <pthread.h>
 #include <sched.h>
 #include <stdio.h>
@@ -191,9 +192,12 @@ websocket_handler(void *arg)
 
 	for (;;) {
 		/* buf will later be freed by the dispatcher */
-		if (wsRead(&buf, NULL, websocket_read, websocket_write, w))
+		if (wsRead(&buf, NULL, websocket_read, websocket_write, w)) {
+			if (verbose)
+				printf("websocket-handler: short read: %s\n",
+					strerror(errno));
 			pthread_exit(NULL);
-		else if (verbose)
+		} else if (verbose)
 			printf("websocket-handler: <- %s\n", buf);
 
 		d->data = buf;
