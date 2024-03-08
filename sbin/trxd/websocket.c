@@ -368,7 +368,7 @@ wsRead(char **dest, size_t *destlen, int(*readfunc)(void *, char *, size_t),
 			nread = readfunc(client_data, buf + len, payloadLength +
 			    payloadFieldExtraBytes);
 			if (nread <= 0) {
-				free(buf)
+				free(buf);
 				return -1;
 			}
 			len += nread;
