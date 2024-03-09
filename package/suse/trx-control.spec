@@ -8,11 +8,12 @@ Packager: https://msys.ch
 License: MIT
 Source: trx-control-%{version}.tar.gz
 Prefix: /usr
+BuildRequires: libavahi-devel
 BuildRequires: curl-devel libexpat-devel gcc libyaml-devel make motif-devel
 BuildRequires: openssl-devel postgresql%{pg_version}-devel readline-devel
 BuildRequires: sqlite-devel
 
-Requires: epel-release expat libcurl libyaml motif openssl postgresql16-libs
+Requires: expat libcurl libyaml motif openssl postgresql16-libs
 Requires: readline sqlite-libs
 
 Provides: trx-control
@@ -25,7 +26,7 @@ Summary: trx-control repository for OpenSUSE Leap and OpenSUSE Tumbleweed
 
 %description
 A modern and extensible software system to control transceivers and other
-devices over the network by exchaning JSON formatted data packesg over
+devices over the network by exchanging JSON formatted data packesg over
 plain TCP/IP sockets or WebSockets.
 
 %description repo
@@ -82,6 +83,32 @@ trx-control software repository
 /usr/share/trxd/trx/yaesu-ft-991a.lua
 /usr/share/trxd/trxd.yaml
 /usr/share/xqrg/xqrg.lua
+
+%pre
+if [ "$1" == "1" ]; then
+	groupadd -frg 100 trxd
+	useradd -c "trx-control trxd(8) daemon" -d /home/trxd -g trxd -m trxd
+fi
+
+%post
+systemctl daemon-reload
+if [ "$1" == "1" ]; then
+	systemctl enable pos-control
+else
+	systemctl -q is-enable pos-control && systemctl restart pos-control
+fi
+/usr/bin/pkill -USR1 xpos
+
+%preun
+if [ "$1" == "0" ]; then
+	systemctl disable --now pos-control
+fi
+
+%postun
+if [ "$1" == "0" ]; then
+	userdel -r trxd
+	groupdel trxd
+fi
 
 %files repo
 %config(noreplace) /etc/zypp/trx-control.repo
