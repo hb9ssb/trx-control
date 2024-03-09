@@ -75,29 +75,29 @@ extensions:
 
   logbook:
     script: logbook
-      configuration:
-        connStr: dbname=logbook
-        datestyle: German
+    configuration:
+      connStr: dbname=logbook
+      datestyle: German
 
   dxcluster:
-    script: dxcluster:
-      configuration:
-        host: wr3d.dxcluster.net
-        port: 7300
-        callsign: MYCALLSIGN
-        cacheTime: 3600
+    script: dxcluster
+    configuration:
+      host: wr3d.dxcluster.net
+      port: 7300
+      callsign: MYCALLSIGN
+      cacheTime: 3600
 
   sotacluster:
-    script: dxcluster:
-      configuration:
-        host: cluster.sota.org.uk
-        port: 7300
-        callsign: MYCALLSIGN
-        source: sotacluster
-        cacheTime: 3600
+    script: dxcluster
+    configuration:
+      host: cluster.sota.org.uk
+      port: 7300
+      callsign: MYCALLSIGN
+      source: sotacluster
+      cacheTime: 3600
 
   qrz:
-    script: qrz:
-      configuration:
-        username: MYCALLSIGN
-        passwort: sicrit
+    script: qrz
+    configuration:
+      username: MYCALLSIGN
+      passwort: sicrit
