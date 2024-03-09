@@ -102,6 +102,10 @@ rm -rf $RPM_BUILD_ROOT
 %{__make} clean
 
 %changelog
+* Sat Mar 9 2024 Marc Balmer HB9SSB <info@hb9ssb.ch>
+
+- Add service autodiscovery using Avahi
+
 * Mon Feb 19 2024 Marc Balmer HB9SSB <info@hb9ssb.ch>
 
 - Bug fixes in the WebSocket payload calculation.
