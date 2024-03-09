@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 - 2022 Micro Systems Marc Balmer, CH-5073 Gipf-Oberfrick.
+ * Copyright (C) 2018 - 2024 Micro Systems Marc Balmer, CH-5073 Gipf-Oberfrick.
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -65,6 +65,7 @@ static const char *events[] = {
 #define dprintf(level, fmt, ...)
 #endif
 
+static int perse_error(lua_State *, yaml_parser_t *);
 static int parse_mapping(lua_State *, yaml_parser_t *, int);
 static int parse_sequence(lua_State *, yaml_parser_t *, int);
 static int parse_node(lua_State *, yaml_parser_t *, yaml_event_t, int, int);
@@ -206,6 +207,13 @@ push_scalar(lua_State *L, char *value, int length, char *tag, int env)
 }
 
 static int
+parse_error(lua_State *L, yaml_parser_t *parser)
+{
+	return luaL_error(L, "line %d: %s", parser->problem_mark.line,
+	    parser->problem);
+}
+
+static int
 parse_node(lua_State *L, yaml_parser_t *parser, yaml_event_t event, int value,
     int env)
 {
@@ -240,8 +248,7 @@ parse_node(lua_State *L, yaml_parser_t *parser, yaml_event_t event, int value,
 		parse_mapping(L, parser, env);
 		break;
 	default:
-		return luaL_error(L, "parse_node: unexpected YAML event %d",
-			event.type);
+		return parse_error(L, parser);
 	}
 	return rv;
 }
@@ -345,8 +352,7 @@ parse_stream(lua_State *L, yaml_parser_t *parser, int env)
 			done = 1;
 			break;
 		default:
-			return luaL_error(L, "parse_stream: unexpected YAML "
-			    "event %d", event.type);
+			return parse_error(L, parser);
 		}
 		yaml_event_delete(&event);
 	}
@@ -372,8 +378,7 @@ parse(lua_State *L, yaml_parser_t *parser, int env)
 			done = 1;
 			break;
 		default:
-			return luaL_error(L, "parse: unexpected YAML event %d",
-				event.type);
+			return parse_error(L, parser);
 		}
 		yaml_event_delete(&event);
 	}
@@ -381,7 +386,7 @@ parse(lua_State *L, yaml_parser_t *parser, int env)
 }
 
 static int
-parseString(lua_State *L)
+parse_string(lua_State *L)
 {
 	yaml_parser_t parser;
 	const unsigned char *input;
@@ -403,7 +408,7 @@ parseString(lua_State *L)
 }
 
 static int
-parseFile(lua_State *L)
+parse_file(lua_State *L)
 {
 	yaml_parser_t parser;
 	const char *fnam;
@@ -444,22 +449,22 @@ int
 luaopen_yaml(lua_State *L)
 {
 	struct luaL_Reg luayaml[] = {
-		{ "parse",	parseString },
-		{ "parsefile",	parseFile },
+		{ "parse",	parse_string },
+		{ "parsefile",	parse_file },
 		{ "verbosity",	verbosity },
 		{ NULL, NULL }
 	};
 
 	luaL_newlib(L, luayaml);
 	lua_pushliteral(L, "_COPYRIGHT");
-	lua_pushliteral(L, "Copyright (C) 2018 - 2022 "
+	lua_pushliteral(L, "Copyright (C) 2018 - 2024 "
 	    "micro systems marc balmer");
 	lua_settable(L, -3);
 	lua_pushliteral(L, "_DESCRIPTION");
 	lua_pushliteral(L, "YAML for Lua");
 	lua_settable(L, -3);
 	lua_pushliteral(L, "_VERSION");
-	lua_pushliteral(L, "yaml 1.2.1");
+	lua_pushliteral(L, "yaml 1.2.2");
 	lua_settable(L, -3);
 	return 1;
 }

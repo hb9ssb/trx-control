@@ -287,8 +287,7 @@ main(int argc, char *argv[])
 		case LUA_ERRRUN:
 		case LUA_ERRMEM:
 		case LUA_ERRERR:
-			syslog(LOG_ERR, "Configuration error: %s",
-			    lua_tostring(L, -1));
+			errx(1, "%s: %s", cfg_file, lua_tostring(L, -1));
 			break;
 		}
 	} else {
