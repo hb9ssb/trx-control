@@ -79,7 +79,7 @@ trx_controller(void *arg)
 	if (pthread_detach(pthread_self()))
 		err(1, "trx-controller: pthread_detach");
 	if (verbose)
-		printf("trx-controller: initialising trx %s\n", t->name);
+		printf("trx-controller: initializing trx %s\n", t->name);
 
 	trx_controller_tag = t;
 
@@ -90,7 +90,7 @@ trx_controller(void *arg)
 
 	/*
 	 * Lock this transceivers mutex, so that no other thread accesses
-	 * while we are initialising.
+	 * while we are initializing.
 	 */
 	if (pthread_mutex_lock(&t->mutex))
 		err(1, "trx-controller: pthread_mutex_lock");

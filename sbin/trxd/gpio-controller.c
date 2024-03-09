@@ -78,7 +78,7 @@ gpio_controller(void *arg)
 	if (pthread_detach(pthread_self()))
 		err(1, "gpio-controller: pthread_detach");
 	if (verbose)
-		printf("gpio-controller: initialising gpio %s\n", t->name);
+		printf("gpio-controller: initializing gpio %s\n", t->name);
 
 	gpio_controller_tag = t;
 
@@ -89,7 +89,7 @@ gpio_controller(void *arg)
 
 	/*
 	 * Lock this gpios mutex, so that no other thread accesses
-	 * while we are initialising.
+	 * while we are initializing.
 	 */
 	if (pthread_mutex_lock(&t->mutex))
 		err(1, "gpio-controller: pthread_mutex_lock");

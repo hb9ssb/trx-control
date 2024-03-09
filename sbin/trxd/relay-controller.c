@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Marc Balmer HB9SSB
+ * Copyright (c) 2023 - 2024 Marc Balmer HB9SSB
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -84,7 +84,7 @@ relay_controller(void *arg)
 
 	/*
 	 * Lock this relays mutex, so that no other thread accesses
-	 * while we are initialising.
+	 * while we are initializing.
 	 */
 	if (pthread_mutex_lock(&t->mutex))
 		err(1, "relay-controller: pthread_mutex_lock");
