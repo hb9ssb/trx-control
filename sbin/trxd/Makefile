@@ -21,6 +21,7 @@ SRCS=		trxd.c \
 		buffer.c \
 		luajson.c \
 		websocket-listener.c \
+		avahi-handler.c \
 		websocket-handler.c \
 		websocket-sender.c \
 		websocket.c \
@@ -38,7 +39,8 @@ CFLAGS+=	-I../../lib/libtrx-control -I../../external/mit/lua/src \
 		-DTRXD_VERSION=\"${VERSION}\" \
 		-export-dynamic
 LDFLAGS+=	-L../../lib/libtrx-control -ltrx-control \
-		../../lib/liblua/liblua.a -ldl -lyaml -lm -lssl -lcrypto
+		../../lib/liblua/liblua.a -ldl -lyaml -lm -lssl -lcrypto \
+		-lavahi-client -lavahi-common
 VPATH=		../../external/mit/luayaml ../../external/mit/luajson \
 		../../lib/libtrx-control
 
@@ -73,8 +75,11 @@ trxd.yaml:
 
 # Dependencies
 dispatcher.o:		Makefile dispatcher.c trxd.h trx-control.h
+avahi-handler.o:	Makefile avahi-handler.c trxd.h
 socket-handler.o:	Makefile socket-handler.c trxd.h trx-control.h
 socket-sender.o:	Makefile socket-sender.c trxd.h trx-control.h
+websocket-listener.o:	Makefile websocket-listener.c trxd.h trx-control.h \
+			websocket.h
 websocket-sender.o:	Makefile websocket-sender.c trxd.h trx-control.h \
 			websocket.h
 websocket-handler.o:	Makefile websocket-handler.c trxd.h trx-control.h \

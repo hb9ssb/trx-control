@@ -58,6 +58,7 @@
 #define LISTEN_PORT	"14290"
 
 extern void *websocket_handler(void *);
+extern void *avahi_handler(void *);
 extern int log_connections;
 
 #define BUFSIZE		65535
@@ -187,6 +188,13 @@ websocket_listener(void *arg)
 		if (SSL_CTX_use_PrivateKey_file(t->ctx, t->certificate,
 		    SSL_FILETYPE_PEM) != 1)
 			err(1, "websocket-listener: error loading private key");
+	}
+
+	/* Announce the listener using mDNS if configured to do so*/
+
+	if (t->announce) {
+		/* Create the Avahi handler thread */
+		pthread_create(&t->announcer, NULL, avahi_handler, t);
 	}
 
 	/* Wait for connections as long as websocket_listener runs */

@@ -209,6 +209,7 @@ typedef struct websocket_listener {
 	char			*listen_port;
 	char			*path;
 	char			*certificate;
+	int			 announce;
 
 	int			 socket;
 
@@ -217,6 +218,7 @@ typedef struct websocket_listener {
 	SSL			*ssl;
 
 	pthread_t		 listener;
+	pthread_t		 announcer;
 } websocket_listener_t;
 
 typedef struct websocket {

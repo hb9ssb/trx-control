@@ -77,7 +77,7 @@ destination_t *destination = NULL;
 static void
 usage(void)
 {
-	(void)fprintf(stderr, "usage: trxd [-dlvV] [-b address] [-c path] "
+	(void)fprintf(stderr, "usage: trxd [-adlvV] [-b address] [-c path] "
 	    "[-g group] [-p port] [-u user] [-P path]\n");
 	exit(1);
 }
@@ -138,8 +138,8 @@ main(int argc, char *argv[])
 	struct addrinfo hints, *res, *res0;
 	lua_State *L;
 	pthread_t trx_control_thread, thread;
-	int fd, listen_fd[MAXLISTEN], i, ch, nodaemon = 0, error, val;
-	int top;
+	int fd, listen_fd[MAXLISTEN], i, ch, noannounce = 0, nodaemon = 0;
+	int error, val, top;
 	const char *bind_addr, *listen_port, *user, *group, *homedir, *pidfile;
 	const char *cfg_file;
 
@@ -150,6 +150,7 @@ main(int argc, char *argv[])
 		static struct option long_options[] = {
 			{ "config-file",	required_argument, 0, 'c' },
 			{ "no-daemon",		no_argument, 0, 'd' },
+			{ "no-announce",	no_argument, 0, 'a' },
 			{ "log-connections",	no_argument, 0, 'l' },
 			{ "group",		required_argument, 0, 'g' },
 			{ "bind-address",	required_argument, 0, 'b' },
@@ -161,7 +162,7 @@ main(int argc, char *argv[])
 			{ 0, 0, 0, 0 }
 		};
 
-		ch = getopt_long(argc, argv, "c:dlb:g:p:u:vVP:", long_options,
+		ch = getopt_long(argc, argv, "ac:dlb:g:p:u:vVP:", long_options,
 		    &option_index);
 
 		if (ch == -1)
@@ -169,6 +170,9 @@ main(int argc, char *argv[])
 
 		switch (ch) {
 		case 0:
+			break;
+		case 'a':
+			noannounce = 1;
 			break;
 		case 'c':
 			cfg_file = optarg;
@@ -661,6 +665,9 @@ main(int argc, char *argv[])
 			err(1, "trxd: malloc");
 		t->ssl = NULL;
 		t->ctx = NULL;
+		t->certificate = NULL;
+		t->announce = noannounce ? 0 : 1;
+
 		lua_getfield(L, -1, "bind-address");
 		if (!lua_isstring(L, -1))
 			errx(1, "missing websocket bind-address");
@@ -679,11 +686,16 @@ main(int argc, char *argv[])
 		t->path = strdup(lua_tostring(L, -1));
 		lua_pop(L, 1);
 
+		if (!noannounce) {
+			lua_getfield(L, -1, "announce");
+			if (lua_isboolean(L, -1))
+				t->announce = lua_toboolean(L, -1);
+			lua_pop(L, 1);
+		}
+
 		lua_getfield(L, -1, "certificate");
 		if (lua_isstring(L, -1))
 			t->certificate = strdup(lua_tostring(L, -1));
-		else
-			t->certificate = NULL;
 		lua_pop(L, 1);
 
 		/* Create the websocket-listener thread */

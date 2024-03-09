@@ -19,7 +19,10 @@ websocket:
 
   # If a certificate path is defined, wss is used instead of ws
   certificate: server.pem
-  path: /trx-control
+  path: trx-control
+
+  # If you don't want to announce trx-control over mDNS, set announce to false
+  announce: true
 
 nmea:
   device: /dev/ic-705-nmea
