@@ -1,4 +1,4 @@
--- Copyright (c) 2023 Marc Balmer HB9SSB
+-- Copyright (c) 2023 - 2024 Marc Balmer HB9SSB
 --
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to
@@ -42,7 +42,6 @@ local function setFrequency(driver, freq)
 end
 
 local function getFrequency(driver)
-	print (driver.name .. ': get frequency')
 	return frequency, mode
 end
 
