@@ -51,7 +51,6 @@ extern int verbose;
 static void
 call_trx_controller(dispatcher_tag_t *d, trx_controller_tag_t *t)
 {
-	printf("call trx controller\n");
 	if (pthread_mutex_lock(&t->mutex))
 		err(1, "dispatcher: pthread_mutex_lock");
 
