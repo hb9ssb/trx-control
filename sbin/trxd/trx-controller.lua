@@ -20,6 +20,7 @@
 
 -- Upper half of trx-control
 
+local name = ''
 local driver = {}
 local device = ''
 
@@ -27,7 +28,8 @@ local statusUpdates = false
 local lastFrequency = 0
 local lastMode = ''
 
-local function registerDriver(name, dev, newDriver)
+local function registerDriver(destination, dev, newDriver)
+	name = destination
 	driver = newDriver
 	device = dev
 
@@ -56,6 +58,7 @@ local function requestHandler(data, fd)
 
 	local reply = {
 		status = 'Ok',
+		from = name,
 		reply = request.request
 	}
 
@@ -100,6 +103,7 @@ local function pollHandler(data, fd)
 	if lastFrequency ~= frequency or lastMode ~= mode then
 		local status = {
 			request = 'status-update',
+			from = name,
 			status = {
 				frequency = frequency,
 				mode = mode
@@ -122,6 +126,7 @@ local function dataHandler(data)
 		if reply ~= nil then
 			local status = {
 				request = 'status-update',
+				from = name,
 				status = reply
 			}
 			local jsonData = json.encode(status)
