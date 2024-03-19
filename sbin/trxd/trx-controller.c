@@ -105,6 +105,8 @@ trx_controller(void *arg)
 	if (strchr(t->driver, '/'))
 		err(1, "trx-controller: driver name must not contain slashes");
 
+	printf("device: '%s', %d\n", t->device, strlen(t->device));
+
 	if (*t->device == '/') {	/* Assume device under /dev */
 		fd = open(t->device, O_RDWR);
 		if (fd == -1)
@@ -122,7 +124,7 @@ trx_controller(void *arg)
 					err(1, "trx-controller: tcsetattr");
 			}
 		}
-	} else if (strlen(t->device) == 13) {	/* Assume bluetooth */
+	} else if (strlen(t->device) == 17) {	/* Assume bluetooth */
 		struct sockaddr_rc addr = { 0 };
 
 		fd = socket(AF_BLUETOOTH, SOCK_STREAM, BTPROTO_RFCOMM);
