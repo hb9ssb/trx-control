@@ -105,8 +105,6 @@ trx_controller(void *arg)
 	if (strchr(t->driver, '/'))
 		err(1, "trx-controller: driver name must not contain slashes");
 
-	printf("device: '%s', %d\n", t->device, strlen(t->device));
-
 	if (*t->device == '/') {	/* Assume device under /dev */
 		fd = open(t->device, O_RDWR);
 		if (fd == -1)
