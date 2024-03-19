@@ -40,7 +40,7 @@ CFLAGS+=	-I../../lib/libtrx-control -I../../external/mit/lua/src \
 		-export-dynamic
 LDFLAGS+=	-L../../lib/libtrx-control -ltrx-control \
 		../../lib/liblua/liblua.a -ldl -lyaml -lm -lssl -lcrypto \
-		-lavahi-client -lavahi-common
+		-lavahi-client -lavahi-common -lbluetooth
 VPATH=		../../external/mit/luayaml ../../external/mit/luajson \
 		../../lib/libtrx-control
 

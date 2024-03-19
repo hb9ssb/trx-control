@@ -24,6 +24,7 @@
 
 #include <sys/ioctl.h>
 #include <sys/stat.h>
+#include <sys/socket.h>
 
 #include <err.h>
 #include <errno.h>
@@ -36,6 +37,9 @@
 #include <stdlib.h>
 #include <termios.h>
 #include <unistd.h>
+
+#include <bluetooth/bluetooth.h>
+#include <bluetooth/rfcomm.h>
 
 #include <lua.h>
 #include <lualib.h>
@@ -101,22 +105,37 @@ trx_controller(void *arg)
 	if (strchr(t->driver, '/'))
 		err(1, "trx-controller: driver name must not contain slashes");
 
-	fd = open(t->device, O_RDWR);
-	if (fd == -1)
-		err(1, "trx-controller: open");
+	if (*t->device == '/') {	/* Assume device under /dev */
+		fd = open(t->device, O_RDWR);
+		if (fd == -1)
+			err(1, "trx-controller: open");
 
-	if (isatty(fd)) {
-		if (tcgetattr(fd, &tty) < 0)
-			err(1, "trx-controller: tcgetattr");
-		else {
-			cfmakeraw(&tty);
-			tty.c_cflag |= CLOCAL;
-			cfsetspeed(&tty, t->speed);
+		if (isatty(fd)) {
+			if (tcgetattr(fd, &tty) < 0)
+				err(1, "trx-controller: tcgetattr");
+			else {
+				cfmakeraw(&tty);
+				tty.c_cflag |= CLOCAL;
+				cfsetspeed(&tty, t->speed);
 
-			if (tcsetattr(fd, TCSADRAIN, &tty) < 0)
-				err(1, "trx-controller: tcsetattr");
+				if (tcsetattr(fd, TCSADRAIN, &tty) < 0)
+					err(1, "trx-controller: tcsetattr");
+			}
 		}
-	}
+	} else if (strlen(t->device) == 13) {	/* Assume bluetooth */
+		struct sockaddr_rc addr = { 0 };
+
+		fd = socket(AF_BLUETOOTH, SOCK_STREAM, BTPROTO_RFCOMM);
+
+		addr.rc_family = AF_BLUETOOTH;
+		addr.rc_channel = (uint8_t) 1;
+		str2ba(t->device, &addr.rc_bdaddr);
+
+		if (connect(fd, (struct sockaddr *)&addr, sizeof(addr)))
+			err(1, "trx-controller: can't connect to %s",
+				t->device);
+	} else
+		errx(1, "trx-controller: unknown device %s", t->device);
 
 	cat_device = fd;
 	t->cat_device = fd;
