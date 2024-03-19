@@ -1,3 +1,15 @@
+trx-control (1.0.11-2) stable; urgency=low
+
+  * Bluetoot fix.
+
+ -- Marc Balmer HB9SSB (trx-control package signing) <info@hb9ssb.ch>  Tue, 19 Mar 2024 14:00:00 +0100
+
+trx-control (1.0.11-1) stable; urgency=low
+
+  * Add Bluetooth connectivity to transceivers.
+
+ -- Marc Balmer HB9SSB (trx-control package signing) <info@hb9ssb.ch>  Tue, 19 Mar 2024 14:00:00 +0100
+
 trx-control (1.0.10-1) stable; urgency=low
 
   * Bug fixes in the WebSocket payload calculation.
