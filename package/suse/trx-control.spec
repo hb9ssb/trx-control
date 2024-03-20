@@ -129,6 +129,10 @@ rm -rf $RPM_BUILD_ROOT
 %{__make} clean
 
 %changelog
+* Wed Mar 20 2024 Marc Balmer HB9SSB <info@hb9ssb.ch>
+
+- Make the Bluetooth RFCOMM channel configurable.
+
 * Tue Mar 19 2024 Marc Balmer HB9SSB <info@hb9ssb.ch
 
 - Add bluetooth connectivity.

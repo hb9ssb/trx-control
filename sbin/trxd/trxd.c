@@ -384,6 +384,7 @@ main(int argc, char *argv[])
 			t->handler = t->reply = NULL;
 			t->is_running = 0;
 			t->speed = 9600;
+			t->channel = 0;
 			t->poller_required = 0;
 			t->poller_running = 0;
 			t->handler_running = 0;
@@ -398,6 +399,11 @@ main(int argc, char *argv[])
 			lua_getfield(L, -1, "speed");
 			if (lua_isinteger(L, -1))
 				t->speed =lua_tointeger(L, -1);
+			lua_pop(L, 1);
+
+			lua_getfield(L, -1, "channel");
+			if (lua_isinteger(L, -1))
+				t->channel =lua_tointeger(L, -1);
 			lua_pop(L, 1);
 
 			lua_getfield(L, -1, "driver");

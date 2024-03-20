@@ -122,13 +122,13 @@ trx_controller(void *arg)
 					err(1, "trx-controller: tcsetattr");
 			}
 		}
-	} else if (strlen(t->device) == 17) {	/* Assume bluetooth */
+	} else if (strlen(t->device) == 17) {	/* Assume Bluetooth RFCOMM */
 		struct sockaddr_rc addr = { 0 };
 
 		fd = socket(AF_BLUETOOTH, SOCK_STREAM, BTPROTO_RFCOMM);
 
 		addr.rc_family = AF_BLUETOOTH;
-		addr.rc_channel = (uint8_t) 1;
+		addr.rc_channel = (uint8_t) t->channel;
 		str2ba(t->device, &addr.rc_bdaddr);
 
 		if (connect(fd, (struct sockaddr *)&addr, sizeof(addr)))
