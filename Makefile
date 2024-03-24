@@ -1,6 +1,5 @@
 # This Makefile is used on the target OS to build trx-control locally
 
--include /etc/os-release
 include Makefile.version
 
 build:
