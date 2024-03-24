@@ -93,15 +93,14 @@ fi
 %post
 systemctl daemon-reload
 if [ "$1" == "1" ]; then
-	systemctl enable pos-control
+	systemctl enable trx-control
 else
-	systemctl -q is-enable pos-control && systemctl restart pos-control
+	systemctl -q is-enabled trx-control && systemctl restart trx-control
 fi
-/usr/bin/pkill -USR1 xpos
 
 %preun
 if [ "$1" == "0" ]; then
-	systemctl disable --now pos-control
+	systemctl disable --now trx-control
 fi
 
 %postun
