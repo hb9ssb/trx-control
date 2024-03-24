@@ -141,8 +141,8 @@ DEBPATH=	/apt/dists/$(CODENAME)/stable/binary-amd64
 DEBARCH=	amd64
 endif
 ifeq ($(ARCH), aarch64)
-DEBPATH=	/apt/dists/$(CODENAME)/stable/binary-aarch64
-DEBARCH=	$(ARCH)
+DEBPATH=	/apt/dists/$(CODENAME)/stable/binary-arm64
+DEBARCH=	arm64
 endif
 
 prepare:
