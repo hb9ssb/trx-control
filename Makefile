@@ -155,7 +155,7 @@ redhat-packages: prepare
 	rm -f ~/rpmbuild/RPMS/*/trx-control-*
 	(cd /build && \
 		VERSION=$(VERSION) RELEASE=$(RELEASE) PG_VERSION=$(PG_VERSION) \
-		make -C package/redhat)
+		DISTRIBUTION=$@ make -C package/redhat)
 	cp -a ~/rpmbuild/RPMS/* /yum
 
 suse-packages: prepare

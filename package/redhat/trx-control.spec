@@ -13,8 +13,12 @@ BuildRequires: curl-devel expat-devel gcc libyaml-devel make motif-devel
 BuildRequires: openssl-devel postgresql%{pg_version}-devel readline-devel
 BuildRequires: sqlite-devel
 
-Requires: epel-release expat libcurl libyaml motif openssl postgresql16-libs
+Requires: expat libcurl libyaml motif openssl postgresql16-libs
 Requires: readline sqlite-libs
+
+%if 0%{?!fedora}
+Requires: epel-release
+%endif
 
 Provides: trx-control
 
