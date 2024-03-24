@@ -8,7 +8,8 @@ Homepage: https://trx-control.msys.ch/
 
 Package: trx-control
 Architecture: any
-Depends: ${misc:Depends}, postgresql-client (>=16), expat
+Depends: ${misc:Depends}, postgresql-client (>=16), expat, libavahi-client3,
+  libbluetooth3
 Description: trx-control
  A modern and extensible software system to control transceivers and other
  devices over the network by exchaning JSON formatted data packesg over
