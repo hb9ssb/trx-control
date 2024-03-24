@@ -52,7 +52,7 @@ end
 -- Functions used internally by the logbook extension
 local function connectDatabase()
 	connStr = config.connStr or
-	    'dbname=trx_control fallback_application_name=logbook'
+	    'dbname=trx-control fallback_application_name=logbook'
 
 	db = pgsql.connectdb(connStr)
 

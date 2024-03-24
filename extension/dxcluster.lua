@@ -39,7 +39,7 @@ local conn = socket.connect(config.host, config.port)
 
 trxd.signalInput(conn:socket(), 'dataReady')
 
-local login= 'login:'
+local login = 'login:'
 local deline = 'DX de ([%w/]+):%s+(%d+%p%d+)%s+([%w/]+) +([%w%s%p-]+)%s+(%d%d)(%d%d)Z'
 
 -- Keep a cache of spots received, invalid entries that are older than
