@@ -1,8 +1,5 @@
 ! The XQRG settings
 
-! Font settings (*xqrg*renderTable.variable.)
-*fontList: variable
-
 *xqrg*renderTable: variable
 *xqrg*fontName: Courier New
 *xqrg*fontSize: 24
