@@ -1,4 +1,4 @@
 #!/bin/sh
 
-systemctl disable --now trxd
+systemctl disable --now trx-control
 exit 0
