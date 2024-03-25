@@ -132,6 +132,10 @@ rm -rf $RPM_BUILD_ROOT
 %{__make} clean
 
 %changelog
+* Mon Mar 25 2024 Marc Balmer HB9SSB <info@hb9ssb.ch>
+
+- JSON protocol changes.
+
 * Wed Mar 20 2024 Marc Balmer HB9SSB <info@hb9ssb.ch>
 
 - Make the Bluetooth RFCOMM channel configurable.
