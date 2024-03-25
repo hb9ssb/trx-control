@@ -108,7 +108,7 @@ trx_controller(void *arg)
 	if (*t->device == '/') {	/* Assume device under /dev */
 		fd = open(t->device, O_RDWR);
 		if (fd == -1)
-			err(1, "trx-controller: open");
+			err(1, "trx-controller: %s", t->device);
 
 		if (isatty(fd)) {
 			if (tcgetattr(fd, &tty) < 0)

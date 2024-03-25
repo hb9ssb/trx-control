@@ -102,7 +102,7 @@ gpio_controller(void *arg)
 
 	fd = open(t->device, O_RDWR);
 	if (fd == -1)
-		err(1, "gpio-controller: open");
+		err(1, "gpio-controller: %s", t->device);
 
 	if (isatty(fd)) {
 		if (tcgetattr(fd, &tty) < 0)
