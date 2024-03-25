@@ -47,7 +47,7 @@ local timeout = config.timeout or 15
 
 -- local functions
 
-local function authCheck()
+local function apiAuth()
 	local c = curl.easy()
 
 	if trxd.verbose() > 0 then
@@ -74,13 +74,7 @@ local function authCheck()
 	return response, table.concat(t), status
 end
 
-local function radioApi(request)
-        local c = curl.easy()
-
-        if trxd.verbose() > 0 then
-                c:setopt(curl.OPT_VERBOSE, true)
-        end
-
+local function apiRadio(request)
 	if request.frequency == nil then
 		return false, "no frequency provided"
 	end
@@ -88,6 +82,12 @@ local function radioApi(request)
 	if request.mode == nil then
 		return false, "no mode provided"
 	end
+
+	local c = curl.easy()
+	
+	if trxd.verbose() > 0 then
+                c:setopt(curl.OPT_VERBOSE, true)
+        end
 
 	local radioname = request.radio or 'trx-control'
 
@@ -119,7 +119,7 @@ end
 -- public functions
 
 function auth(request)
-	local resp, data, status = authCheck()
+	local resp, data, status = apiAuth()
 	local authStatus = ''
 	local right = ''
 
@@ -157,7 +157,7 @@ function auth(request)
 end
 
 function radio(request)
-	resp, status = radioApi(request)
+	resp, status = apiRadio(request)
 
 	 if resp == true and status == 200 then
                 return {
