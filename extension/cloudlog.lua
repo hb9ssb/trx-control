@@ -21,6 +21,8 @@
 -- The trx-control cloudlog extension
 -- based on : https://github.com/hb9ssb/trx-control/blob/main/extension/qrz.lua
 
+-- implementing Cloudlog APIs: https://github.com/magicbug/Cloudlog/wiki/API
+
 local config = ...
 local curl = require 'curl'
 local expat = require 'expat'
@@ -95,9 +97,6 @@ local function apiRadio(request)
 
 	local headers = '{"Content-Type": "application/json", "Accept": "application/json"}'
 
-	print(payload)
-	print(headers)
-
         c:setopt(curl.OPT_SSL_VERIFYHOST, 0)
         c:setopt(curl.OPT_SSL_VERIFYPEER, false)
         c:setopt(curl.OPT_CONNECTTIMEOUT, connectTimeout)
@@ -112,7 +111,6 @@ local function apiRadio(request)
         c:cleanup()
 
         return response, status
-
 end
 
 
@@ -120,10 +118,6 @@ end
 
 function auth(request)
 	local resp, data, status = apiAuth()
-	local authStatus = ''
-	local right = ''
-
-	print(data)
 
 	if data ~= nil then
 		local t = expat.decode(data)
@@ -136,9 +130,6 @@ function auth(request)
 				reason = t.auth.message.xmltext
 			}
 		end
-		print(status)
-		print(rights)
-		
 	end
 	
 	if resp == true and status == 200 then
@@ -153,7 +144,6 @@ function auth(request)
 			reason = 'Unable to authenticate'
 		}
 	end
-	
 end
 
 function radio(request)
