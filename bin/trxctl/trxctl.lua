@@ -81,22 +81,22 @@ function call(to, command, param)
 	end
 
 	trxctl.writeln(json.encode(request))
-	local reply = json.decode(trxctl.readln())
+	local response = json.decode(trxctl.readln())
 
-	if reply.status == 'Ok' then
-		if reply.reply == 'list-destination' then
+	if response.status == 'Ok' then
+		if response.response == 'list-destination' then
 			print 'Destination list:\n'
 			print 'Name\t\tType'
 			print '----\t\t----'
-			for k, v in ipairs(reply.destination) do
+			for k, v in ipairs(response.destination) do
 				print(string.format('%-15s %s', v.name, v.type))
 			end
 		else
-			vardump(reply)
+			vardump(response)
 		end
 	else
 		print 'Error!'
-		vardump(reply)
+		vardump(response)
 	end
 end
 

@@ -64,10 +64,10 @@ end
 function power(request)
 	local state = string.lower(request.state or 'state')
 
-	local status, reply = requestState(state)
+	local status, response = requestState(state)
 
 	if status == true then
-		local data = json.decode(reply)
+		local data = json.decode(response)
 
 		if data ~= nil then
 			return {

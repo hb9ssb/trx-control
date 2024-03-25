@@ -56,46 +56,48 @@ local function requestHandler(data, fd)
 		})
 	end
 
-	local reply = {
+	local response = {
 		status = 'Ok',
 		from = name,
-		reply = request.request
+		response = request.request
 	}
 
 	if request.request == 'set-frequency' then
-		reply.frequency = driver:setFrequency(tonumber(request.frequency))
+		response.frequency =
+		    driver:setFrequency(tonumber(request.frequency))
 	elseif request.request == 'get-frequency' then
-		reply.frequency, reply.mode = driver:getFrequency()
+		response.frequency, response.mode = driver:getFrequency()
 	elseif request.request == 'set-mode' then
-		reply.band, reply.mode = driver:setMode(request.band, request.mode)
+		response.band, response.mode =
+		    driver:setMode(request.band, request.mode)
 	elseif request.request == 'get-mode' then
-		reply.mode = driver:getMode(request.band)
+		response.mode = driver:getMode(request.band)
 	elseif request.request == 'get-info' then
-		reply.name = driver.name or 'unspecified'
-		reply.frequencyRange = driver.frequencyRange or {
+		response.name = driver.name or 'unspecified'
+		response.frequencyRange = driver.frequencyRange or {
 			min = 0,
 			max = 0
 		}
 		if driver.validModes ~= nil then
-			reply.operatingModes = {}
+			response.operatingModes = {}
 			for k, v in pairs(driver.validModes) do
-				reply.operatingModes[#reply.operatingModes + 1]
+				response.operatingModes[#response.operatingModes + 1]
 				    = k
 			end
 		end
 		if driver.capabilities ~= nil then
-			reply.capabilities = driver.capabilities
+			response.capabilities = driver.capabilities
 		end
 	elseif request.request == 'lock-trx' then
 		driver:setLock()
 	elseif request.request == 'unlock-trx' then
 		driver:serUnlock()
 	else
-		reply.status = 'Error'
-		reply.reason = 'Unknown request'
+		response.status = 'Error'
+		response.reason = 'Unknown request'
 	end
 
-	return json.encode(reply)
+	return json.encode(response)
 end
 
 local function pollHandler(data, fd)
@@ -122,12 +124,12 @@ end
 -- Handle incoming data from the transceiver
 local function dataHandler(data)
 	if type(driver.handleStatusUpdates) == 'function' then
-		local reply = driver:handleStatusUpdates(data)
-		if reply ~= nil then
+		local response = driver:handleStatusUpdates(data)
+		if response ~= nil then
 			local status = {
 				request = 'status-update',
 				from = name,
-				status = reply
+				status = response
 			}
 			local jsonData = json.encode(status)
 			trxController.notifyListeners(jsonData)

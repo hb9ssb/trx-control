@@ -28,9 +28,10 @@ local function useTrx(trx)
 	}
 
 	xqrg.writeln(json.encode(d))
-	local reply = json.decode(xqrg.readln())
-	if reply.status ~= 'Ok' then
-		print(string.format('xqrg: %s: %s', reply.status, reply.reason))
+	local response = json.decode(xqrg.readln())
+	if response.status ~= 'Ok' then
+		print(string.format('xqrg: %s: %s', response.status,
+		    response.reason))
 		os.exit(1)
 	end
 end
@@ -41,8 +42,8 @@ local function getFrequency(freq)
 	}
 
 	xqrg.writeln(json.encode(request))
-	local reply = json.decode(xqrg.readln())
-	return reply.frequency
+	local response = json.decode(xqrg.readln())
+	return response.frequency
 end
 
 local function getMode()
@@ -51,8 +52,8 @@ local function getMode()
 	}
 
 	xqrg.writeln(json.encode(request))
-	local reply = json.decode(xqrg.readln())
-	return reply.mode
+	local response = json.decode(xqrg.readln())
+	return response.mode
 end
 
 local function startStatusUpdates()
@@ -60,7 +61,7 @@ local function startStatusUpdates()
 		request = 'start-status-updates'
 	}
 	xqrg.writeln(json.encode(request))
-	local reply = json.decode(xqrg.readln())
+	local response = json.decode(xqrg.readln())
 end
 
 local function ts(s)

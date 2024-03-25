@@ -58,7 +58,7 @@ call_trx_controller(dispatcher_tag_t *d, trx_controller_tag_t *t)
 		err(1, "dispatcher: pthread_mutex_lock");
 
 	t->handler = "requestHandler";
-	t->reply = NULL;
+	t->response = NULL;
 	t->data = d->data;
 
 	if (pthread_mutex_lock(&t->mutex2))
@@ -71,13 +71,13 @@ call_trx_controller(dispatcher_tag_t *d, trx_controller_tag_t *t)
 	if (pthread_mutex_unlock(&t->mutex2))
 		err(1, "dispatcher: pthread_mutex_unlock");
 
-	while (t->reply == NULL) {
+	while (t->response == NULL) {
 		if (pthread_cond_wait(&t->cond2, &t->mutex2))
 			err(1, "dispatcher: pthread_cond_wait");
 	}
 
-	if (strlen(t->reply) > 0) {
-		d->sender->data = t->reply;
+	if (strlen(t->response) > 0) {
+		d->sender->data = t->response;
 		if (pthread_cond_signal(&d->sender->cond))
 			err(1, "dispatcher: pthread_cond_signal");
 		pthread_mutex_unlock(&d->sender->mutex);
@@ -103,7 +103,7 @@ call_gpio_controller(dispatcher_tag_t *d, gpio_controller_tag_t *t)
 		err(1, "dispatcher: pthread_mutex_lock");
 
 	t->handler = "requestHandler";
-	t->reply = NULL;
+	t->response = NULL;
 	t->data = d->data;
 
 	if (pthread_mutex_lock(&t->mutex2))
@@ -116,13 +116,13 @@ call_gpio_controller(dispatcher_tag_t *d, gpio_controller_tag_t *t)
 	if (pthread_mutex_unlock(&t->mutex2))
 		err(1, "dispatcher: pthread_mutex_unlock");
 
-	while (t->reply == NULL) {
+	while (t->response == NULL) {
 		if (pthread_cond_wait(&t->cond2, &t->mutex2))
 			err(1, "dispatcher: pthread_cond_wait");
 	}
 
-	if (strlen(t->reply) > 0) {
-		d->sender->data = t->reply;
+	if (strlen(t->response) > 0) {
+		d->sender->data = t->response;
 		if (pthread_cond_signal(&d->sender->cond))
 			err(1, "dispatcher: pthread_cond_signal");
 		pthread_mutex_unlock(&d->sender->mutex);
@@ -215,7 +215,7 @@ static void
 request_ok(dispatcher_tag_t *d)
 {
 	/* The sender mutex is already locked */
-	d->sender->data = "{\"status\":\"Ok\",\"reply\":"
+	d->sender->data = "{\"status\":\"Ok\",\"response\":"
 	    "\"Request handled\"}";
 
 	if (pthread_cond_signal(&d->sender->cond))
@@ -524,7 +524,8 @@ list_destination(dispatcher_tag_t *d)
 		err(1, "dispatcher: pthread_mutex_lock");
 
 	buf_init(&buf);
-	buf_addstring(&buf, "{\"status\":\"Ok\",\"reply\":\"list-destination\","
+	buf_addstring(&buf,
+	    "{\"status\":\"Ok\",\"response\":\"list-destination\","
 	    "\"destination\":[");
 	for (dest = destination; dest != NULL; dest = dest->next) {
 		if (dest != destination)

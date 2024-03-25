@@ -52,16 +52,16 @@ local function requestHandler(data, fd)
 		})
 	end
 
-	local reply = {
+	local response = {
 		status = 'Ok',
-		reply = request.request
+		response = request.request
 	}
 
 	if request.request == 'get-info' then
-		reply.name = driver.name or 'unspecified'
-		reply.ioNum = driver.ioNum or 'unspecified'
+		response.name = driver.name or 'unspecified'
+		response.ioNum = driver.ioNum or 'unspecified'
 		if driver.ioGroups ~= nil then
-			reply.ioGroups = driver.ioGroups
+			response.ioGroups = driver.ioGroups
 		end
 	elseif request.request == 'set-output' then
 		print(request.io, request.value)
@@ -74,53 +74,54 @@ local function requestHandler(data, fd)
 	elseif request.request == 'get-output' then
 	elseif request.request == 'set-direction' then
 		if driver.setDirection == nil then
-			reply.status = 'Error'
-			reply.reason =
+			response.status = 'Error'
+			response.reason =
 			    'IO direction can not be programmed individually'
 		else
 		end
 	elseif request.request == 'get-direction' then
 		if driver.setDirection == nil then
-			reply.status = 'Error'
-			reply.reason =
+			response.status = 'Error'
+			response.reason =
 			    'IO direction can not be programmed individually'
 		else
 		end
 	elseif request.request == 'set-group-direction' then
 		if driver.setGroupDirection == nil then
-			reply.status = 'Error'
-			reply.reason = 'IO groups not supported by driver'
+			response.status = 'Error'
+			response.reason = 'IO groups not supported by driver'
 		else
 			if request.group == nil or request.direction == nil then
-				reply.status = 'Error'
-				reply.reason = 'No group or direction specified'
+				response.status = 'Error'
+				response.reason =
+				    'No group or direction specified'
 			else
-				reply.status = 'Ok'
-				reply.direction = driver.setGroupDirection(
+				response.status = 'Ok'
+				response.direction = driver.setGroupDirection(
 				    tonumber(request.group),
 				    request.direction)
 			end
 		end
 	elseif request.request == 'get-group-direction' then
 		if driver.setGroupDirection == nil then
-			reply.status = 'Error'
-			reply.reason = 'IO groups not supported by driver'
+			response.status = 'Error'
+			response.reason = 'IO groups not supported by driver'
 		else
 			if request.group == nil  then
-				reply.status = 'Error'
-				reply.reason = 'No group specified'
+				response.status = 'Error'
+				response.reason = 'No group specified'
 			else
-				reply.status = 'Ok'
-				reply.direction = driver.getGroupDirection(
+				response.status = 'Ok'
+				response.direction = driver.getGroupDirection(
 				    tonumber(request.group))
 			end
 		end
 	else
-		reply.status = 'Error'
-		reply.reason = 'Unknown request'
+		response.status = 'Error'
+		response.reason = 'Unknown request'
 	end
 
-	return json.encode(reply)
+	return json.encode(response)
 end
 
 local function pollHandler(data, fd)

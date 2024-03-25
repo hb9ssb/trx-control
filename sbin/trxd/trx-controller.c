@@ -225,25 +225,25 @@ trx_controller(void *arg)
 		lua_geti(t->L, LUA_REGISTRYINDEX, t->ref);
 		lua_getfield(t->L, -1, t->handler);
 		if (lua_type(t->L, -1) != LUA_TFUNCTION) {
-			t->reply = "command not supported, "
+			t->response = "command not supported, "
 			    "please submit a bug report";
 		} else {
 			lua_pushstring(t->L, t->data);
 			lua_pushinteger(t->L, t->client_fd);
-			t->reply = NULL;
+			t->response = NULL;
 
 			switch (lua_pcall(t->L, 2, 1, 0)) {
 			case LUA_OK:
 				if (lua_type(t->L, -1) == LUA_TSTRING)
-					t->reply =
+					t->response =
 					    (char *)lua_tostring(t->L, -1);
 				else
-					t->reply = "";
+					t->response = "";
 				break;
 			case LUA_ERRRUN:
 			case LUA_ERRMEM:
 			case LUA_ERRERR:
-				t->reply = "{\"status\":\"Error\","
+				t->response = "{\"status\":\"Error\","
 				    "\"reason\":\"Lua error\"}";
 
 				syslog(LOG_ERR, "Lua error: %s",

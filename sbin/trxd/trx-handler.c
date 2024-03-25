@@ -79,7 +79,7 @@ trx_handler(void *arg)
 			buf[++n] = '\0';
 
 			t->handler = "dataHandler";
-			t->reply = NULL;
+			t->response = NULL;
 			t->data = buf;
 			t->client_fd = 0;
 
@@ -92,7 +92,7 @@ trx_handler(void *arg)
 			if (pthread_mutex_unlock(&t->mutex2))
 				err(1, "trx-handler: pthread_mutex_unlock");
 
-			while (t->reply == NULL) {
+			while (t->response == NULL) {
 				if (pthread_cond_wait(&t->cond2, &t->mutex2))
 					err(1, "trx-handler: "
 					    "pthread_cond_wait");

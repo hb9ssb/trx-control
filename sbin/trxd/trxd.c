@@ -381,7 +381,7 @@ main(int argc, char *argv[])
 
 			t = malloc(sizeof(trx_controller_tag_t));
 			t->name = strdup(lua_tostring(L, -2));
-			t->handler = t->reply = NULL;
+			t->handler = t->response = NULL;
 			t->is_running = 0;
 			t->speed = 9600;
 			t->channel = 0;
@@ -450,7 +450,7 @@ main(int argc, char *argv[])
 
 			t = malloc(sizeof(gpio_controller_tag_t));
 			t->name = strdup(lua_tostring(L, -2));
-			t->handler = t->reply = NULL;
+			t->handler = t->response = NULL;
 			t->is_running = 0;
 			t->speed = 9600;
 			t->poller_required = 0;
@@ -508,7 +508,7 @@ main(int argc, char *argv[])
 
 			t = malloc(sizeof(relay_controller_tag_t));
 			t->name = strdup(lua_tostring(L, -2));
-			t->handler = t->reply = NULL;
+			t->handler = t->response = NULL;
 			t->is_running = 0;
 			t->poller_running = 0;
 

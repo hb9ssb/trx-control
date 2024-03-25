@@ -58,7 +58,7 @@ gpio_poller(void *arg)
 			err(1, "gpio-poller: pthread_mutex_lock");
 
 		t->handler = "pollHandler";
-		t->reply = NULL;
+		t->response = NULL;
 		t->data  = NULL;
 
 		if (pthread_mutex_lock(&t->mutex2))
@@ -70,14 +70,14 @@ gpio_poller(void *arg)
 		if (pthread_mutex_unlock(&t->mutex2))
 			err(1, "gpio-poller: pthread_mutex_unlock");
 
-		while (t->reply == NULL) {
+		while (t->response == NULL) {
 			if (pthread_cond_wait(&t->cond2, &t->mutex2))
 				err(1, "gpio-poller: pthread_cond_wait");
 		}
 
-		if (strlen(t->reply))
-			printf("gpio-poller: unexpected reply '%s'\n",
-			    t->reply);
+		if (strlen(t->response))
+			printf("gpio-poller: unexpected response '%s'\n",
+			    t->response);
 
 		if (pthread_mutex_unlock(&t->mutex2))
 			err(1, "gpio-poller: pthread_mutex_unlock");

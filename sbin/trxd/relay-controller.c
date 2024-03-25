@@ -137,9 +137,9 @@ relay_controller(void *arg)
 			break;
 		}
 		if (lua_type(L, -1) == LUA_TSTRING)
-			t->reply = (char *)lua_tostring(L, -1);
+			t->response = (char *)lua_tostring(L, -1);
 		else
-			t->reply = "";
+			t->response = "";
 
 		lua_pop(L, 2);
 		t->handler = NULL;

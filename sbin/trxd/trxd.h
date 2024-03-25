@@ -48,8 +48,8 @@ typedef struct trx_controller_tag {
 	pthread_cond_t		 cond1;	/* A handler is set */
 	const char		*handler;
 
-	pthread_cond_t		 cond2;	/* A reply is set */
-	char			*reply;
+	pthread_cond_t		 cond2;	/* A response is set */
+	char			*response;
 
 	char			*name;
 	const char		*device;
@@ -86,8 +86,8 @@ typedef struct nmea_tag {
 	pthread_cond_t		 cond1;	/* A handler is set */
 	const char		*handler;
 
-	pthread_cond_t		 cond2;	/* A reply is set */
-	char			*reply;
+	pthread_cond_t		 cond2;	/* A response is set */
+	char			*response;
 
 	int			 fd;
 	pthread_t		 nmea_handler;
@@ -103,8 +103,8 @@ typedef struct gpio_controller_tag {
 	pthread_cond_t		 cond1;	/* A handler is set */
 	const char		*handler;
 
-	pthread_cond_t		 cond2;	/* A reply is set */
-	char			*reply;
+	pthread_cond_t		 cond2;	/* A response is set */
+	char			*response;
 
 	char			*name;
 	const char		*device;
@@ -137,8 +137,8 @@ typedef struct relay_controller_tag {
 	pthread_cond_t		 cond1;	/* A handler is set */
 	const char		*handler;
 
-	pthread_cond_t		 cond2;	/* A reply is set */
-	char			*reply;
+	pthread_cond_t		 cond2;	/* A response is set */
+	char			*response;
 
 	char			*name;
 	const char		*device;
