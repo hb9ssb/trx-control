@@ -25,5 +25,11 @@ if trxd.verbose() > 0 then
 end
 
 function ping(request)
-	return { status = 'Ok', response = 'pong' }
+	return {
+		status = 'Ok',
+		response = 'pong',
+		trxd = {
+			version = trxd.version()
+		}
+	}
 end
