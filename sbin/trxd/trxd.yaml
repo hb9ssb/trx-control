@@ -8,17 +8,18 @@
 # Run in the background
 no-daemon: false
 
-# Listen on localhost:14285 for incoming connections
+# Listen on localhost for incoming plain socket connections
 bind-address: localhost
 listen-port: 14285
 
-# Optionally listen for WebSocket connections
+# Listen on all interfaces for incoming WebSocket connections
 websocket:
-  bind-address: localhost
+  bind-address: 0.0.0.0
   listen-port: 14290
+  path: trx-control
+
   # If a certificate path is defined, wss is used instead of ws
   # certificate: server.pem
-  path: trx-control
 
   # If you don't want to announce trx-control over mDNS, set announce to false
   announce: true
