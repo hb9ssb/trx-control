@@ -134,12 +134,14 @@ function auth(request)
 	
 	if resp == true and status == 200 then
 		return {
+			request = 'auth',
 			status = 'Ok',
 			auth = authStatus,
 			rights = rights
 		}
 	else
 		return {
+			request = 'auth',
 			status = 'Error',
 			reason = 'Unable to authenticate'
 		}
@@ -151,10 +153,13 @@ function radio(request)
 
 	 if resp == true and status == 200 then
                 return {
+			request = 'radio',
+			radio = request.radio,
                         status = 'Ok'
                 }
         else
                 return {
+			request = radio,
                         status = 'Error',
                         reason = status
                 }
