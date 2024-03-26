@@ -79,10 +79,16 @@ extensions:
   ping:
     script: ping
 
+  memory:
+    script: memory
+    configuration:
+      connStr: dbname=trx-control
+      datestyle: German
+
   logbook:
     script: logbook
     configuration:
-      connStr: dbname=logbook
+      connStr: dbname=trx-control
       datestyle: German
 
   dxcluster:
