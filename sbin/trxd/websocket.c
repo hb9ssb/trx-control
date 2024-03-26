@@ -314,8 +314,9 @@ wsParseInputFrame(uint8_t *inputFrame, size_t inputLength, uint8_t **dataPtr,
 }
 
 enum wsFrameType
-wsRead(char **dest, size_t *destlen, int(*readfunc)(void *, char *, size_t),
-    int(*writefunc)(void *, char *, size_t), void *client_data)
+wsRead(char **dest, size_t *destlen,
+    int(*readfunc)(void *, unsigned char *, size_t),
+    int(*writefunc)(void *, unsigned char *, size_t), void *client_data)
 {
 	unsigned char *data;
 	char *buf;
@@ -385,7 +386,8 @@ wsRead(char **dest, size_t *destlen, int(*readfunc)(void *, char *, size_t),
 			free(buf);
 			return -1;
 		case WS_PING_FRAME:
-			wsMakeFrame(NULL, 0, (unsigned char *)buf, &datasize,
+			data[datasize] = '\0';
+			wsMakeFrame(data, datasize, (unsigned char *)buf, &datasize,
 			    WS_PONG_FRAME);
 			writefunc(client_data, buf, datasize);
 			len = 0;

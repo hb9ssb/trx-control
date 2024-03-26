@@ -82,8 +82,8 @@ extern enum wsFrameType wsParseInputFrame(uint8_t *, size_t, uint8_t **,
     size_t *);
 
 extern enum wsFrameType wsRead(char **dest, size_t *,
-    int(*readfunc)(void *, char *, size_t),
-    int(*writefunc)(void *, char *, size_t), void *);
+    int(*readfunc)(void *, unsigned char *, size_t),
+    int(*writefunc)(void *, unsigned char *, size_t), void *);
 
 extern void nullHandshake(struct handshake *);
 extern void freeHandshake(struct handshake *);
