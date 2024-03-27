@@ -21,6 +21,7 @@
 -- The memory system for trx-control.
 
 local pgsql = require 'pgsql'
+local memorydb = require 'memory-db'
 
 -- The configuration is stored in trxd.yaml under the extension.  The following
 -- configuration parameters are used:
@@ -67,6 +68,7 @@ local function checkDatabase()
 end
 
 connectDatabase()
+memorydb.checkMemoryDatabase(db)
 
 -- Public functions
 
