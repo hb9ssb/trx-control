@@ -85,7 +85,7 @@ function getToplevel(request)
 	  select 'group' as entry, id, name, supplement, descr
 	    from memory.grp
 	   where id not in (select grp from memory.entry)
-	order by sort_order
+	order by sort_order, name, supplement
 	]])
 
 	if res:status() ~= pgsql.PGRES_TUPLES_OK then
@@ -104,7 +104,7 @@ function getToplevel(request)
 		 tx, rx, shift, mode
 	    from memory.mem
 	   where id not in (select mem from memory.entry)
-	order by sort_order
+	order by sort_order, name, supplement
 	]])
 
 	if res:status() ~= pgsql.PGRES_TUPLES_OK then
@@ -199,3 +199,119 @@ function getMemoryGroup(request)
 			entries = entries
 	}
 end
+
+function addMemoryGroup(request)
+	if checkDatabase() == false then
+		return {
+			status = 'Failure',
+			response = 'addMemoryGroup',
+			reason = 'Database not connected'
+		}
+	end
+
+	if request.name == nil or request.name == '' then
+		return {
+			status = 'Failure',
+			response = 'addMemoryGroup',
+			reason = 'Missing memory group name'
+		}
+	end
+
+	local name = request.name
+	local supplement = request.supplement
+	local descr = request.descr
+
+	if supplement ~= nil and supplement == '' then
+		supplement = nil
+	end
+
+	if descr ~= nil and descr == '' then
+		descr = nil
+	end
+
+	local res <close> = db:execParams([[
+	   insert
+	     into memory.grp (name, supplement, descr)
+	   values ($1, $2, $3)
+	returning id
+	]], name, supplement, descr)
+
+	if res:status() ~= pgsql.PGRES_TUPLES_OK then
+		return {
+			status = 'Failure',
+			response = 'addMemoryGroup',
+			reason = res:errorMessage()
+		}
+	end
+
+	return {
+		status = 'Ok',
+		response = 'addMemoryGroup',
+		id = res[1].id
+	}
+end
+
+function addMemory(request)
+	if checkDatabase() == false then
+		return {
+			status = 'Failure',
+			response = 'addMemory',
+			reason = 'Database not connected'
+		}
+	end
+
+	if request.name == nil or request.name == '' then
+		return {
+			status = 'Failure',
+			response = 'addMemory',
+			reason = 'Missing memory group name'
+		}
+	end
+
+	if request.rx == nil or request.rx == '' or request.rx == json.null() then
+		return {
+			status = 'Failure',
+			response = 'addMemory',
+			reason = 'Missing frequency'
+		}
+	end
+
+	local name = request.name
+	local supplement = request.supplement
+	local descr = request.descr
+	local rx = request.rx
+
+	if supplement ~= nil and supplement == '' then
+		supplement = nil
+	end
+
+	if descr ~= nil and descr == '' then
+		descr = nil
+	end
+
+	if descr ~= nil and descr == '' then
+		descr = nil
+	end
+
+	local res <close> = db:execParams([[
+	   insert
+	     into memory.mem (name, supplement, descr, rx)
+	   values ($1, $2, $3, $4::numeric)
+	returning id
+	]], name, supplement, descr, rx)
+
+	if res:status() ~= pgsql.PGRES_TUPLES_OK then
+		return {
+			status = 'Failure',
+			response = 'addMemory',
+			reason = res:errorMessage()
+		}
+	end
+
+	return {
+		status = 'Ok',
+		response = 'addMemory',
+		id = res[1].id
+	}
+end
+

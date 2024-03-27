@@ -133,6 +133,14 @@ rm -rf $RPM_BUILD_ROOT
 %{__make} clean
 
 %changelog
+* Wed Mar 27 2024 Marc Balmer HB9SSB <info@hb9ssb.ch>
+
+- Memory groups and memories can be added.
+
+* Tue Mar 26 2024 Marc Balmer HB9SSB <info@hb9ssb.ch>
+
+- Fix WebSocket ping frame handling.
+
 * Mon Mar 25 2024 Marc Balmer HB9SSB <info@hb9ssb.ch>
 
 - JSON protocol changes.
