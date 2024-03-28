@@ -18,10 +18,9 @@
 -- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 -- FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 -- IN THE SOFTWARE.
-
+--
 -- The trx-control cloudlog extension
--- based on : https://github.com/hb9ssb/trx-control/blob/main/extension/qrz.lua
-
+--
 -- implementing Cloudlog APIs: https://github.com/magicbug/Cloudlog/wiki/API
 -- implemented:
 --   * /api/auth/<apiKey>
@@ -32,6 +31,14 @@
 --   * /api/statistics
 --   * /api/logbook_check_callsign
 --   * /api/logbook_check_grid
+--
+-- Implement in /etc/trxd.yaml (or configuration file):
+-- extensions:
+--  cloudlog:
+--    script: cloudlog
+--    configuration:
+--      url: "https://cloudlog.xyz.com/index.php/api"
+--      apiKey: "xxxxxxxxxxxx"
 
 local config = ...
 local curl = require 'curl'
