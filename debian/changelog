@@ -1,6 +1,12 @@
+trx-control (1.1.4-1) stable; urgency=low
+
+  * Add a driver for the Yaesu FT-857 transceiver.
+
+ -- Marc Balmer HB9SSB (trx-control package signing) <info@hb9ssb.ch>  Thu, 28 Mar 2024 11:00:00 +0100
+
 trx-control (1.1.3-1) stable; urgency=low
 
-  * Added the hamqth extension to lookup callsigns in the HamQTH.com database
+  * Added the hamqth extension to lookup callsigns in the HamQTH.com database,
 
  -- Marc Balmer HB9SSB (trx-control package signing) <info@hb9ssb.ch>  Thu, 28 Mar 2024 11:00:00 +0100
 
