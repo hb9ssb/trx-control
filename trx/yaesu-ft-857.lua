@@ -30,6 +30,7 @@ ft857.validModes = {
 	am = 0x04,
 	wfm = 0x06,
 	fm = 0x08,
+	fmn = 0x88,
 	dig = 0x0a,
 	pkt = 0x0c
 }
