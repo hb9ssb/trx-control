@@ -134,7 +134,7 @@ local function lookupCallsign(callsign)
 		end
 
 		return {
-			callsign = get 'callsign',
+			callsign = string.upper(get 'callsign'),
 			nick = get 'nick',
 			qth = get 'qth',
 			country = get 'country',
