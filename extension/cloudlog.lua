@@ -103,15 +103,13 @@ local function apiRadio(request)
 
 	local radioname = request.radio or 'trx-control'
 
-	local payload = string.format('{"key":"%s", "radio":"%s", "frequency":"%s",\
-					"mode":"%s", "timestamp":"%s"}',
-			config.apiKey,
-			radioname,
-			request.frequency,
-			request.mode,
-			os.date('%Y/%m/%d %H:%M:%S'))
-
-	local headers = '{"Content-Type": "application/json", "Accept": "application/json"}'
+	local payload =	{
+				key = config.apiKey,
+				radio = radioname,
+				frequency = request.frequency,
+				mode = request.mode,
+				timestamp = os.date('%Y/%m/%d %H:%M:%S')
+			}
 
         c:setopt(curl.OPT_SSL_VERIFYHOST, 0)
         c:setopt(curl.OPT_SSL_VERIFYPEER, false)
@@ -120,7 +118,7 @@ local function apiRadio(request)
 
         c:setopt(curl.OPT_URL, string.format('%s/Radio', config.url))
 	c:setopt(curl.OPT_HTTPPOST, 1)
-	c:setopt(curl.OPT_POSTFIELDS, payload)
+	c:setopt(curl.OPT_POSTFIELDS, json.encode(payload))
 
         local response = c:perform()
         local status = c:getinfo(curl.INFO_RESPONSE_CODE)
