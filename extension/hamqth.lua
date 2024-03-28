@@ -127,29 +127,35 @@ local function lookupCallsign(callsign)
 			end
 		end
 		local callsign = t.HamQTH.search
+
+		local function get(index)
+			return callsign[index] ~= nil
+			    and callsign[index].xmltext or ''
+		end
+
 		return {
-			callsign = callsign.callsign.xmltext or '',
-			nick = callsign.nick.xmltext or '',
-			qth = callsign.qth.xmltext or '',
-			country = callsign.country.xmltext or '',
-			adif = callsign.adif.xmltext or '',
-			itu = callsign.itu.xmltext or '',
-			cq = callsign.cq.xmltext or '',
-			grid = callsign.grid.xmltext or '',
-			adr_city = callsign.adr_city.xmltext or '',
-			adr_zip = callsign.adr_zip.xmltext or '',
-			adr_country = callsign.adr_country.xmltext or '',
-			adr_adif = callsign.adr_adif.xmltext or '',
-			lotw = callsign.lotw.xmltext or '',
-			qsldirect = callsign.qsldirect.xmltext or '',
-			qsl = callsign.qsl.xmltext or '',
-			eqsl = callsign.eqsl.xmltext or '',
-			email = callsign.email.xmltext or '',
-			latitude = callsign.latitude.xmltext or '',
-			longitude = callsign.longitude.xmltext or '',
-			continent = callsign.continent.xmltext or '',
-			utc_offset = callsign.utc_offset.xmltext or '',
-			picture = callsign.picture.xmltext or ''
+			callsign = get 'callsign',
+			nick = get 'nick',
+			qth = get 'qth',
+			country = get 'country',
+			adif = get 'adif',
+			itu = get 'itu',
+			cq = get 'cq',
+			grid = get 'grid',
+			adr_city = get 'adr_city',
+			adr_zip = get 'adr_zip',
+			adr_country = get 'adr_country',
+			adr_adif = get 'adr_adif',
+			lotw = get 'lotw',
+			qsldirect = get 'qsldirect',
+			qsl = get 'qsl',
+			eqsl = get 'eqsl',
+			email = get 'email',
+			latitude = get 'latitude',
+			longitude = get 'longitude',
+			continent = get 'continent',
+			utc_offset = get 'utc_offset',
+			picture = get 'picture',
 		}, nil
 	end
 	return nil, status
