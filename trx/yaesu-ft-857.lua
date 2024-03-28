@@ -37,8 +37,11 @@ ft857.validModes = {
 
 ft857.ctcssModes = {
 	dcsOn = 0x0a,
+	dcsDecoderOn = 0x0b,
+	dcrEncoderOn = 0x0c,
 	ctcssOn = 0x2a,
-	encoderOn = 0x4a,
+	ctcssDecoderOn = 0x3a,
+	ctcssencoderOn = 0x4a,
 	off = 0x8a
 }
 
