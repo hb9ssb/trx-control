@@ -56,6 +56,7 @@ trx-control software repository
 /usr/share/trxd/extension/keepalive.lua
 /usr/share/trxd/extension/logbook.lua
 /usr/share/trxd/extension/memory.lua
+/usr/share/trxd/extension/memory-db.lua
 /usr/share/trxd/extension/ping.lua
 /usr/share/trxd/extension/qrz.lua
 /usr/share/trxd/extension/tasmota.lua
