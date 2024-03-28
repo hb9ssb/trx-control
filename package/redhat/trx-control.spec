@@ -135,6 +135,10 @@ rm -rf $RPM_BUILD_ROOT
 %{__make} clean
 
 %changelog
+* Thu Mar 28 2024 Marc Balmer HB9SSB <info@hb9ssb.ch>
+
+- Added the hamqth extension to lookup callsigns in the HamQTH.com database.
+
 * Wed Mar 27 2024 Marc Balmer HB9SSB <info@hb9ssb.ch>
 
 - Memory groups and memories can be added.
