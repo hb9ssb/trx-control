@@ -146,6 +146,8 @@ local function checkMemoryDatabase(db)
 				print('memory: database update failed')
 			end
 		end
+
+		local res <close> = db:exec('vacuum analyze')
 	end
 end
 
