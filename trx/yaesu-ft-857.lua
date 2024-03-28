@@ -18,7 +18,7 @@
 -- FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 -- IN THE SOFTWARE.
 
--- Yaesu FT-817 CAT driver
+-- Yaesu FT-857 CAT driver
 
 local ft857 = require 'cat-5-byte'
 
@@ -41,7 +41,7 @@ ft857.ctcssModes = {
 	off = 0x8a
 }
 
-ft857.name = 'Yaesu FT-817'
+ft857.name = 'Yaesu FT-857'
 
 ft857.frequencyRange = {
 	min = 100000,
