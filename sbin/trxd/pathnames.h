@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Marc Balmer HB9SSB
+ * Copyright (c) 2023 - 2024 Marc Balmer HB9SSB
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -26,7 +26,8 @@
 #define _PATH_TRX		"/usr/share/trxd/trx"
 #define _PATH_GPIO		"/usr/share/trxd/gpio"
 #define _PATH_EXTENSION		"/usr/share/trxd/extension"
-#define _PATH_LUA		"/usr/share/trxd/lua/?.so"
+#define _PATH_LUA_CPATH		"/usr/share/trxd/lua/?.so"
+#define _PATH_LUA_PATH		"/usr/share/trxd/extension/?.lua"
 #define _PATH_PROTOCOL		"/usr/share/trxd/protocol"
 #define _PATH_ROTATOR		"/usr/share/trxd/rotator"
 #define _PATH_RELAY		"/usr/share/trxd/relay"

@@ -575,9 +575,17 @@ main(int argc, char *argv[])
 			lua_getglobal(t->L, "package");
 			lua_getfield(t->L, -1, "cpath");
 			lua_pushstring(t->L, ";");
-			lua_pushstring(t->L, _PATH_LUA);
+			lua_pushstring(t->L, _PATH_LUA_CPATH);
 			lua_concat(t->L, 3);
 			lua_setfield(t->L, -2, "cpath");
+			lua_pop(t->L, 1);
+
+			lua_getglobal(t->L, "package");
+			lua_getfield(t->L, -1, "path");
+			lua_pushstring(t->L, ";");
+			lua_pushstring(t->L, _PATH_LUA_PATH);
+			lua_concat(t->L, 3);
+			lua_setfield(t->L, -2, "path");
 			lua_pop(t->L, 1);
 
 			lua_getfield(L, -1, "path");
