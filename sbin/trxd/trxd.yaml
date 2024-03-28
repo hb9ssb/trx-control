@@ -108,8 +108,14 @@ extensions:
       source: sotacluster
       cacheTime: 3600
 
+  hamqth:
+    script: hamqth
+    configuration:
+      username: MYCALLSIGN
+      password: sicrit
+
   qrz:
     script: qrz
     configuration:
       username: MYCALLSIGN
-      passwort: sicrit
+      password: sicrit
