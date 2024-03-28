@@ -143,6 +143,7 @@ function lookup(request)
 	if request.callsign == nil then
 		return {
 			status = 'Error',
+			response = 'lookup',
 			reason = 'No callsign'
 		}
 	end
@@ -154,6 +155,7 @@ function lookup(request)
 	if data ~= nil then
 		return {
 			status = 'Ok',
+			response = 'lookup',
 			source = 'cache',
 			data = data
 		}
@@ -165,6 +167,7 @@ function lookup(request)
 		if #sessionKey == 0 then
 			return {
 				status = 'Error',
+				response = 'lookup',
 				reason = 'Unable to get session key'
 			}
 		end
@@ -177,6 +180,7 @@ function lookup(request)
 		if #sessionKey == 0 then
 			return {
 				status = 'Error',
+				response = 'lookup',
 				reason = 'Unable to get session key'
 			}
 		end
@@ -188,12 +192,14 @@ function lookup(request)
 		callsignCache[callsign] = data
 		return {
 			status = 'Ok',
+			response = 'lookup',
 			source = 'qrz',
 			data = data
 		}
 	else
 		return {
 			status = 'Error',
+			response = 'lookup',
 			reason = 'Unable to lookup callsign: ' .. error
 		}
 	end
