@@ -1,5 +1,5 @@
--- Copyright (c) 2023 - 2024 Marc Balmer HB9SSB
 -- Copyright (c) 2024 Derek Rowland NZ0P
+-- Copyright (c) 2024 Marc Balmer HB9SSB
 --
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to
@@ -23,6 +23,15 @@
 -- based on : https://github.com/hb9ssb/trx-control/blob/main/extension/qrz.lua
 
 -- implementing Cloudlog APIs: https://github.com/magicbug/Cloudlog/wiki/API
+-- implemented:
+--   * /api/auth/<apiKey>
+--   * /api/Radio/
+-- not implemented (to-do):
+--   * /api/station_info
+--   * /api/QSO
+--   * /api/statistics
+--   * /api/logbook_check_callsign
+--   * /api/logbook_check_grid
 
 local config = ...
 local curl = require 'curl'
