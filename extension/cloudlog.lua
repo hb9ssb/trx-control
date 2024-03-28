@@ -103,7 +103,13 @@ local function apiRadio(request)
 
 	local radioname = request.radio or 'trx-control'
 
-	local payload = '{ "key": "' .. config.apiKey .. '", "radio": "' .. radioname .. '",  "frequency": ' .. request.frequency  .. ', "mode": "'  .. request.mode .. '", "timestamp": "' .. os.date('%Y/%m/%d %H:%M:%S') .. '"}'
+	local payload = string.format('{"key":"%s", "radio":"%s", "frequency":"%s",\
+					"mode":"%s", "timestamp":"%s"}',
+			config.apiKey,
+			radioname,
+			request.frequency,
+			request.mode,
+			os.date('%Y/%m/%d %H:%M:%S'))
 
 	local headers = '{"Content-Type": "application/json", "Accept": "application/json"}'
 
@@ -144,14 +150,16 @@ function auth(request)
 	
 	if resp == true and status == 200 then
 		return {
-			request = 'auth',
+			request = 'cloudlog',
+			api = 'auth',
 			status = 'Ok',
 			auth = authStatus,
 			rights = rights
 		}
 	else
 		return {
-			request = 'auth',
+			request = 'cloudlog',
+			api = 'auth',
 			status = 'Error',
 			reason = 'Unable to authenticate'
 		}
@@ -163,13 +171,15 @@ function radio(request)
 
 	 if resp == true and status == 200 then
                 return {
-			request = 'radio',
+			request = 'cloudlog',
+			api = 'radio',
 			radio = request.radio,
                         status = 'Ok'
                 }
         else
                 return {
-			request = radio,
+			request = 'cloudlog',
+			api = 'radio',
                         status = 'Error',
                         reason = status
                 }
