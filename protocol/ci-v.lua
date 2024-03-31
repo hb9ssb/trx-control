@@ -45,7 +45,7 @@ end
 local function recvReply()
         local reply = trx.read(6)
 
-        if string.byte(reply, 6) == 0xfd then
+        if string.byte(reply, 5) == 0xfb then
                 return true
         else
                 return false
