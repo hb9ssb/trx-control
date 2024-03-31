@@ -22,6 +22,7 @@
 -- ICOM IC-7300 CI-V driver
 
 local ic7300 = require 'ci-v'
+local config = ...
 
 ic7300.validModes = {
 	['lsb'] = 0x00,
@@ -46,5 +47,8 @@ ic7300.frequencyRange = {
 	min = 30000,
 	max = 74800000
 }
+
+ic7300.controllerAddress = tonumber(config.controllerAddress or 'e0', 16)
+ic7300.transceiverAddress = tonumber(config.transceiverAddress or 'a4', 16)
 
 return ic7300
