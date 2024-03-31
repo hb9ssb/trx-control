@@ -12,6 +12,6 @@ PG_VERSION=15
 endif
 endif
 
-ifeq ($(ID), "debian")
+ifeq ($(ID), debian)
 PG_CONFIG=/usr/bin/pg_config
 endif
