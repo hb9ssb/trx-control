@@ -103,9 +103,15 @@ end
 
 local function setMode(driver, mode)
 	if driver.validModes[mode] ~= nil then
-		return mode
+		return band, 'invalid mode' .. mode
+	end
+
+	local data = string.char(driver.validModes[mode])
+	sendMessage('\x01', nil, data)
+	if (recvReply == true) then
+		return band, 'mode set'
 	else
-		return 'invalid mode ' .. mode
+		return band, 'mode not set'
 	end
 end
 
