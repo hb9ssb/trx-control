@@ -23,9 +23,11 @@
 -- Internal functions
 
 local internalMode = {}
+local internalFilter = {}
 
 local function sendMessage(cn, sc, data)
-	local message = '\xfe\xfe\xa4\xe0' .. cn
+	local addr =  '\x94'
+	local message = '\xfe\xfe' .. addr .. '\xe0' .. cn
 
 	if sc ~= nil then
 		message = message .. sc
@@ -37,33 +39,17 @@ local function sendMessage(cn, sc, data)
 
 	message = message .. '\xfd'
 
-	--[[
-	print('write message of ' .. #message .. ' bytes to trx')
-
-	for n = 1, #message do
-		io.write(string.format('%02x ', string.byte(message, n)))
-	end
-	print('')
-	--]]
-
 	trx.write(message)
 end
 
 local function recvReply()
-	local reply = trx.read(6)
+        local reply = trx.read(6)
 
-	--[[
-	print('got reply: ')
-	for n = 1, #reply do
-		io.write(string.format('%02x ', string.byte(reply, n)))
-	end
-	print('')
-	--]]
-	if string.byte(reply, 5) == 0xfb then
-		return true
-	else
-		return false
-	end
+        if string.byte(reply, 6) == 0xfd then
+                return true
+        else
+                return false
+        end
 end
 
 -- Exported functions
@@ -72,6 +58,10 @@ local function initialize(driver)
 
 	for k, v in pairs(driver.validModes) do
 		internalMode[v] = k
+	end
+
+	for k, v in pairs(driver.filterSetting) do
+		internalFilter[v] = k
 	end
 end
 
@@ -99,29 +89,40 @@ end
 
 local function getFrequency(driver)
 	sendMessage('\x03')
-	local reply = trx.read(11)
-
+	recvReply()
+	local reply = trx.read(10)
 	local freq = trx.bcdToString(string.reverse(string.sub(reply, 6, -2)))
 
 	sendMessage('\x04')
-	reply = trx.read(8)
+	recvReply()
+	reply = trx.read(7)
 
 	local mode = string.byte(reply, 6)
+	--local fil = string.byte(reply, 7)
 
 	return tonumber(freq), internalMode[mode] or '??'
 end
 
-local function setMode(driver, mode)
+local function setMode(driver, band, mode)
 	if driver.validModes[mode] ~= nil then
-		return mode
+		local payload = string.char(driver.validModes[mode])
+		sendMessage('\x01', nil, payload)
+        	if recvReply() == true then
+                	print 'mode set'
+        	else
+                	print 'mode not set'
+        	end
+	
+		return band, mode
 	else
-		return 'invalid mode ' .. mode
+		return band, 'invalid mode ' .. mode
 	end
 end
 
 local function getMode(driver)
 	sendMessage('\x04')
-	local reply = trx.read(8)
+	recvReply()
+	local reply = trx.read(7)
 
 	local mode = string.byte(reply, 6)
 

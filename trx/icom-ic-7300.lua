@@ -1,5 +1,5 @@
 -- Copyright (c) 2024 Derek Rowland NZ0P
--- Copyright (c) 2024 Marc Balmer HB9SSB
+-- Copyright (c) 2023 Marc Balmer HB9SSB
 --
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to
@@ -21,7 +21,7 @@
 
 -- ICOM IC-7300 CI-V driver
 
-local ic7300 = require 'ci-v-7300'
+local ic7300 = require 'ci-v'
 
 ic7300.validModes = {
 	['lsb'] = 0x00,
