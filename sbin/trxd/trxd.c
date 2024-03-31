@@ -382,7 +382,6 @@ main(int argc, char *argv[])
 		while (lua_next(L, top)) {
 			trx_controller_tag_t *t;
 			char trx_driver[PATH_MAX];
-			int has_config = 0;
 
 			t = malloc(sizeof(trx_controller_tag_t));
 			t->name = strdup(lua_tostring(L, -2));
@@ -472,14 +471,13 @@ main(int argc, char *argv[])
 				    lua_tostring(t->L, -1));
 
 			lua_getfield(L, -1, "configuration");
-			if (lua_istable(L, -1)) {
-				printf("mapping configuration\n");
+			if (lua_istable(L, -1))
 				proxy_map(L, t->L, lua_gettop(t->L));
-				has_config = 1;
-			}
+			else
+				lua_newtable(t->L);
 			lua_pop(L, 1);
 
-			switch (lua_pcall(t->L, has_config ? 1 : 0, 1, 0)) {
+			switch (lua_pcall(t->L, 1, 1, 0)) {
 			case LUA_OK:
 				break;
 			case LUA_ERRRUN:

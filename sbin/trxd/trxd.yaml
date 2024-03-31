@@ -50,6 +50,12 @@ trx:
     device: 00:11:22:33:44:55
     channel: 3
     driver: icom-ic-705
+    # Optionally set the controller and transceiver address, use the !!str
+    # tag to make sure the hexadecimal value is not interpreted as a
+    # number by the yaml parser in case it only contains digits.
+    configuration:
+      controllerAddress: !!str e0
+      transceiverAddress: !!str a4
 
   simulator:
     device: /dev/null
