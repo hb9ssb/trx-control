@@ -76,10 +76,8 @@ trx_controller(void *arg)
 	struct termios tty;
 	int fd, n;
 	struct stat sb;
-	char trx_driver[PATH_MAX];
 	pthread_t trx_handler_thread;
 
-	t->L = NULL;
 	if (pthread_detach(pthread_self()))
 		err(1, "trx-controller: pthread_detach");
 	if (verbose)
@@ -140,63 +138,18 @@ trx_controller(void *arg)
 	cat_device = fd;
 	t->cat_device = fd;
 
-	/* Setup Lua */
-	t->L = luaL_newstate();
-	if (t->L == NULL)
-		err(1, "trx-controller: luaL_newstate");
-
-	luaL_openlibs(t->L);
-
-	luaopen_trx(t->L);
-	lua_setglobal(t->L, "trx");
-	luaopen_trx_controller(t->L);
-	lua_setglobal(t->L, "trxController");
-	luaopen_trxd(t->L);
-	lua_setglobal(t->L, "trxd");
-	luaopen_json(t->L);
-	lua_setglobal(t->L, "json");
-
-	lua_getglobal(t->L, "package");
-	lua_getfield(t->L, -1, "path");
-	lua_pushstring(t->L, ";" _PATH_PROTOCOL "/?.lua");
-	lua_concat(t->L, 2);
-	lua_setfield(t->L, -2, "path");
-	lua_pop(t->L, 1);
-
-	if (luaL_dofile(t->L, _PATH_TRX_CONTROLLER))
-		err(1, "trx-controller: %s", lua_tostring(t->L, -1));
-	if (lua_type(t->L, -1) != LUA_TTABLE)
-		err(1, "trx-controller: table expected");
-	else
-		t->ref = luaL_ref(t->L, LUA_REGISTRYINDEX);
-
-	snprintf(trx_driver, sizeof(trx_driver), "%s/%s.lua", _PATH_TRX,
-	    t->driver);
-
-	if (stat(trx_driver, &sb))
-		err(1, "trx-controller: %s", t->driver);
-
-	lua_geti(t->L, LUA_REGISTRYINDEX, t->ref);
-	lua_getfield(t->L, -1, "registerDriver");
-	lua_pushstring(t->L, t->name);
-	lua_pushstring(t->L, t->device);
-	if (luaL_dofile(t->L, trx_driver))
-		err(1, "trx-controller: %s", lua_tostring(t->L, -1));
-	if (lua_type(t->L, -1) != LUA_TTABLE)
-		err(1, "trx-controller: %s: table expected", t->driver);
-	else {
-		lua_getfield(t->L, -1, "statusUpdatesRequirePolling");
-		t->poller_required = lua_toboolean(t->L, -1);
-		lua_pop(t->L, 1);
-		switch (lua_pcall(t->L, 3, 0, 0)) {
-		case LUA_OK:
-			break;
-		case LUA_ERRRUN:
-		case LUA_ERRMEM:
-		case LUA_ERRERR:
-			err(1, "trx-controller: %s", lua_tostring(t->L, -1));
-			break;
-		}
+	/*
+	 * Call the registerDriver function which had been setup in the
+	 * main thread.
+	 */
+	switch (lua_pcall(t->L, 3, 0, 0)) {
+	case LUA_OK:
+		break;
+	case LUA_ERRRUN:
+	case LUA_ERRMEM:
+	case LUA_ERRERR:
+		errx(1, "trx-controller: reg driver %s", lua_tostring(t->L, -1));
+		break;
 	}
 	lua_pop(t->L, 1);
 

@@ -60,6 +60,9 @@ int log_connections = 0;
 extern int luaopen_yaml(lua_State *);
 extern int luaopen_trxd(lua_State *);
 extern int luaopen_json(lua_State *);
+extern int luaopen_trx(lua_State *);
+extern int luaopen_trxd(lua_State *);
+extern int luaopen_trx_controller(lua_State *);
 
 extern void proxy_map(lua_State *, lua_State *, int);
 extern void *nmea_handler(void *);
@@ -378,6 +381,8 @@ main(int argc, char *argv[])
 		lua_pushnil(L);
 		while (lua_next(L, top)) {
 			trx_controller_tag_t *t;
+			char trx_driver[PATH_MAX];
+			int has_config = 0;
 
 			t = malloc(sizeof(trx_controller_tag_t));
 			t->name = strdup(lua_tostring(L, -2));
@@ -415,6 +420,85 @@ main(int argc, char *argv[])
 			lua_getfield(L, -1, "default");
 			t->is_default = lua_toboolean(L, -1);
 			lua_pop(L, 1);
+
+			/* Setup Lua */
+			t->L = luaL_newstate();
+			if (t->L == NULL)
+				err(1, "luaL_newstate");
+
+			luaL_openlibs(t->L);
+
+			luaopen_trx(t->L);
+			lua_setglobal(t->L, "trx");
+			luaopen_trx_controller(t->L);
+			lua_setglobal(t->L, "trxController");
+			luaopen_trxd(t->L);
+			lua_setglobal(t->L, "trxd");
+			luaopen_json(t->L);
+			lua_setglobal(t->L, "json");
+
+			lua_getglobal(t->L, "package");
+			lua_getfield(t->L, -1, "path");
+			lua_pushstring(t->L, ";" _PATH_PROTOCOL "/?.lua");
+			lua_concat(t->L, 2);
+			lua_setfield(t->L, -2, "path");
+			lua_pop(t->L, 1);
+
+			if (luaL_dofile(t->L, _PATH_TRX_CONTROLLER))
+				errx(1, "%s", lua_tostring(t->L, -1));
+			if (lua_type(t->L, -1) != LUA_TTABLE)
+				errx(1, "table expected");
+			else
+				t->ref = luaL_ref(t->L, LUA_REGISTRYINDEX);
+
+			snprintf(trx_driver, sizeof(trx_driver), "%s/%s.lua",
+			    _PATH_TRX, t->driver);
+
+			if (stat(trx_driver, &sb))
+				err(1, "%s", t->driver);
+
+			/*
+			 * Setup the registerDriver function, but don't call
+			 * it yet as the CAT device is not yet open and it
+			 * might be needed by the initialize function.
+			 */
+			lua_geti(t->L, LUA_REGISTRYINDEX, t->ref);
+			lua_getfield(t->L, -1, "registerDriver");
+			lua_pushstring(t->L, t->name);
+			lua_pushstring(t->L, t->device);
+
+			if (luaL_loadfile(t->L, trx_driver))
+				err(1, "driver load: %s",
+				    lua_tostring(t->L, -1));
+
+			lua_getfield(L, -1, "configuration");
+			if (lua_istable(L, -1)) {
+				printf("mapping configuration\n");
+				proxy_map(L, t->L, lua_gettop(t->L));
+				has_config = 1;
+			}
+			lua_pop(L, 1);
+
+			switch (lua_pcall(t->L, has_config ? 1 : 0, 1, 0)) {
+			case LUA_OK:
+				break;
+			case LUA_ERRRUN:
+			case LUA_ERRMEM:
+			case LUA_ERRERR:
+				err(1, "trx-controller: %s",
+				    lua_tostring(t->L, -1));
+				break;
+			}
+
+			if (lua_type(t->L, -1) != LUA_TTABLE)
+				errx(1, "trx-controller: %s: table expected",
+				    t->driver);
+			else {
+				lua_getfield(t->L, -1,
+				    "statusUpdatesRequirePolling");
+				t->poller_required = lua_toboolean(t->L, -1);
+				lua_pop(t->L, 1);
+			}
 
 			if (add_destination(t->name, DEST_TRX, t))
 				errx(1, "names must be unique");
@@ -535,7 +619,8 @@ main(int argc, char *argv[])
 				goto terminate;
 
 			/* Create the relay-controller thread */
-			pthread_create(&t->relay_controller, NULL, relay_controller, t);
+			pthread_create(&t->relay_controller, NULL,
+			    relay_controller, t);
 			lua_pop(L, 1);
 		}
 	} else if (verbose)
