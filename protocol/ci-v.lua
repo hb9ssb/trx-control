@@ -26,7 +26,7 @@ local internalMode = {}
 local internalFilter = {}
 
 local function sendMessage(cn, sc, data)
-	local addr =  '\x94'
+	local addr =  '\xa4'
 	local message = '\xfe\xfe' .. addr .. '\xe0' .. cn
 
 	if sc ~= nil then
