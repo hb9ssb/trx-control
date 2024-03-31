@@ -48,7 +48,7 @@ ic7300.frequencyRange = {
 	max = 74800000
 }
 
-ic7300.controllerAddress = tonumber(config.controllerAddress or 'e0', 16)
-ic7300.transceiverAddress = tonumber(config.transceiverAddress or 'a4', 16)
+ic7300.controllerAddress = config.controllerAddress or 0xe0
+ic7300.transceiverAddress = config.transceiverAddress or 0xa4
 
 return ic7300

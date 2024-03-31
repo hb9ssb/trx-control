@@ -49,7 +49,7 @@ ic705.frequencyRange = {
 	max = 470000000
 }
 
-ic705.controllerAddress = tonumber(config.controllerAddress or 'e0', 16)
-ic705.transceiverAddress = tonumber(config.transceiverAddress or 'a4', 16)
+ic705.controllerAddress = config.controllerAddress or 0xe0
+ic705.transceiverAddress = config.transceiverAddress or 0xa4
 
 return ic705
