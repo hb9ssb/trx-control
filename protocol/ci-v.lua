@@ -23,9 +23,12 @@
 -- Internal functions
 
 local internalMode = {}
+local controllerAddress = 0xe0
+local transceiverAddress = 0xa4
 
 local function sendMessage(cn, sc, data)
-	local message = '\xfe\xfe\xa4\xe0' .. cn
+	local message = string.format('\xfe\xfe%c%c%s', transceiverAddress,
+	    controllerAddress, cn)
 
 	if sc ~= nil then
 		message = message .. sc
@@ -37,28 +40,12 @@ local function sendMessage(cn, sc, data)
 
 	message = message .. '\xfd'
 
-	--[[
-	print('write message of ' .. #message .. ' bytes to trx')
-
-	for n = 1, #message do
-		io.write(string.format('%02x ', string.byte(message, n)))
-	end
-	print('')
-	--]]
-
 	trx.write(message)
 end
 
 local function recvReply()
 	local reply = trx.read(6)
 
-	--[[
-	print('got reply: ')
-	for n = 1, #reply do
-		io.write(string.format('%02x ', string.byte(reply, n)))
-	end
-	print('')
-	--]]
 	if string.byte(reply, 5) == 0xfb then
 		return true
 	else
@@ -69,6 +56,9 @@ end
 -- Exported functions
 local function initialize(driver)
 	print (driver.name .. ': initialize')
+
+	controllerAddress = driver.controllerAddress
+	transceiverAddress = driver.transceiverAddress
 
 	for k, v in pairs(driver.validModes) do
 		internalMode[v] = k
@@ -130,6 +120,8 @@ end
 
 return {
 	name = 'ICOM CI-V',
+	controllerAddress = 0xe0,
+	transceiverAddress = 0xa4,
 	capabilities = {	-- driver specific
 		frequency = true,
 		mode = true,

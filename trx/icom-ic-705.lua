@@ -1,4 +1,4 @@
--- Copyright (c) 2023 Marc Balmer HB9SSB
+-- Copyright (c) 2023 - 2024 Marc Balmer HB9SSB
 --
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to
@@ -21,6 +21,7 @@
 -- ICOM IC-705 CI-V driver
 
 local ic705 = require 'ci-v'
+local config = ...
 
 ic705.validModes = {
 	['lsb'] = 0x00,
@@ -47,5 +48,8 @@ ic705.frequencyRange = {
 	min = 30000,
 	max = 470000000
 }
+
+ic705.controllerAddress = tonumber(config.controllerAddress or 'e0', 16)
+ic705.transceiverAddress = tonumber(config.transceiverAddress or 'a4', 16)
 
 return ic705
