@@ -35,7 +35,8 @@ build:		subdir
 subdir: $(SUBDIR)
 
 $(SUBDIR):
-	VERSION=$(VERSION) PG_VERSION=$(PG_VERSION) $(MAKE) -C $@ $(TARGET)
+	VERSION=$(VERSION) PG_CONFIG=$(PG_CONFIG) PG_VERSION=$(PG_VERSION) \
+	    $(MAKE) -C $@ $(TARGET)
 
 # Recursive targets
 .PHONY: clean
@@ -72,12 +73,6 @@ endif
 
 ifeq ($(ID), "almalinux")
 ID="rhel"
-endif
-
-ifeq ($ID), "centos")
-ifeq ($VERSION_ID), "7")
-PG_VERSION=15
-endif
 endif
 
 RELEASEVER=	$(shell echo $(VERSION_ID) | cut -d . -f 1)
