@@ -82,6 +82,7 @@ trx-control software repository
 /usr/share/trxd/protocol/simulated.lua
 /usr/share/trxd/trx-controller.lua
 /usr/share/trxd/trx/icom-ic-705.lua
+/usr/share/trxd/trx/icom-ic-7300.lua
 /usr/share/trxd/trx/simulator.lua
 /usr/share/trxd/trx/yaesu-ft-710.lua
 /usr/share/trxd/trx/yaesu-ft-817.lua
@@ -136,6 +137,10 @@ rm -rf $RPM_BUILD_ROOT
 %{__make} clean
 
 %changelog
+* Sun Mar 31 2024 Marc Balmer HB9SSB <info@hb9ssb.ch>
+
+- Add a driver for the ICOM IC-7300 transceiver.
+
 * Thu Mar 28 2024 Marc Balmer HB9SSB <info@hb9ssb.ch>
 
 - Add a driver for the Yaesu FT-857 transceiver.

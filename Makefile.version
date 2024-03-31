@@ -1,6 +1,6 @@
 -include /etc/os-release
 
-VERSION=	1.1.4
+VERSION=	1.1.5
 RELEASE=	1
 
 PG_VERSION?=	16

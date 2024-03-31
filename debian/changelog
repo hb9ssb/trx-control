@@ -1,3 +1,9 @@
+trx-control (1.1.5-1) stable; urgency=low
+
+  * Add a driver for the ICOM IC-7300 transceiver.
+
+ -- Marc Balmer HB9SSB (trx-control package signing) <info@hb9ssb.ch>  Sun, 31 Mar 2024 11:00:00 +0100
+
 trx-control (1.1.4-1) stable; urgency=low
 
   * Add a driver for the Yaesu FT-857 transceiver.
