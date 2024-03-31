@@ -78,7 +78,7 @@ cleanup_dispatcher(void *arg)
 }
 
 static int
-websocket_read(void *data, char *dest, size_t len)
+websocket_read(void *data, unsigned char *dest, size_t len)
 {
 	websocket_t *websock = (websocket_t *)data;
 
@@ -89,7 +89,7 @@ websocket_read(void *data, char *dest, size_t len)
 }
 
 static int
-websocket_write(void *data, char *dest, size_t len)
+websocket_write(void *data, unsigned char *dest, size_t len)
 {
 	websocket_t *websock = (websocket_t *)data;
 

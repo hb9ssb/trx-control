@@ -72,17 +72,20 @@ function power(request)
 		if data ~= nil then
 			return {
 				status = 'Ok',
+				response = 'power',
 				power = string.lower(data.POWER)
 			}
 		else
 			return {
 				status = 'Error',
+				response = 'power',
 				reason = 'Unable set or get power state'
 			}
 		end
 	else
 		return {
 			status = 'Error',
+			response = 'power',
 			reason = 'Unable to connect tasmota device'
 		}
 	end

@@ -49,8 +49,11 @@ trx-control software repository
 /usr/share/trxctl/trxctl.lua
 /usr/share/trxd/extension/config.lua
 /usr/share/trxd/extension/dxcluster.lua
+/usr/share/trxd/extension/hamqth.lua
 /usr/share/trxd/extension/keepalive.lua
 /usr/share/trxd/extension/logbook.lua
+/usr/share/trxd/extension/memory.lua
+/usr/share/trxd/extension/memory-db.lua
 /usr/share/trxd/extension/ping.lua
 /usr/share/trxd/extension/qrz.lua
 /usr/share/trxd/extension/tasmota.lua
@@ -78,6 +81,7 @@ trx-control software repository
 /usr/share/trxd/trx/simulator.lua
 /usr/share/trxd/trx/yaesu-ft-710.lua
 /usr/share/trxd/trx/yaesu-ft-817.lua
+/usr/share/trxd/trx/yaesu-ft-857.lua
 /usr/share/trxd/trx/yaesu-ft-891.lua
 /usr/share/trxd/trx/yaesu-ft-897.lua
 /usr/share/trxd/trx/yaesu-ft-991a.lua
@@ -128,6 +132,22 @@ rm -rf $RPM_BUILD_ROOT
 %{__make} clean
 
 %changelog
+* Thu Mar 28 2024 Marc Balmer HB9SSB <info@hb9ssb.ch>
+
+- Add a driver for the Yaesu FT-857 transceiver.
+
+* Thu Mar 28 2024 Marc Balmer HB9SSB <info@hb9ssb.ch>
+
+- Added the hamqth extension to lookup callsigns in the HamQTH.com database.
+
+* Wed Mar 27 2024 Marc Balmer HB9SSB <info@hb9ssb.ch>
+
+- Memory groups and memories can be added.
+
+* Tue Mar 26 2024 Marc Balmer HB9SSB <info@hb9ssb.ch>
+
+- Fix WebSocket ping frame handling.
+
 * Mon Mar 25 2024 Marc Balmer HB9SSB <info@hb9ssb.ch>
 
 - JSON protocol changes.

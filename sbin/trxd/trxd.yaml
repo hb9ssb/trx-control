@@ -79,10 +79,16 @@ extensions:
   ping:
     script: ping
 
+  memory:
+    script: memory
+    configuration:
+      connStr: dbname=trx-control
+      datestyle: German
+
   logbook:
     script: logbook
     configuration:
-      connStr: dbname=logbook
+      connStr: dbname=trx-control
       datestyle: German
 
   dxcluster:
@@ -102,8 +108,14 @@ extensions:
       source: sotacluster
       cacheTime: 3600
 
+  hamqth:
+    script: hamqth
+    configuration:
+      username: MYCALLSIGN
+      password: sicrit
+
   qrz:
     script: qrz
     configuration:
       username: MYCALLSIGN
-      passwort: sicrit
+      password: sicrit

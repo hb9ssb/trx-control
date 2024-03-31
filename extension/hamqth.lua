@@ -1,4 +1,4 @@
--- Copyright (c) 2023 - 2024 Marc Balmer HB9SSB
+-- Copyright (c) 2024 Marc Balmer HB9SSB
 --
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to
@@ -18,12 +18,10 @@
 -- FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 -- IN THE SOFTWARE.
 
--- The QRZ.com callsign lookup extension for trx-control.  NB: A QRZ.com
--- subscription is needed in order to use the full functionality of this
--- extension.
+-- The hamqth.com callsign lookup extension for trx-control.
 
--- The QRZ XML Interface Specification can be found at
--- https://www.qrz.com/XML/current_spec.html
+-- The HamQTH XML Interface Specification can be found at
+-- https://www.hamqth.com/developers.php
 
 local curl = require 'curl'
 local expat = require 'expat'
@@ -31,18 +29,18 @@ local expat = require 'expat'
 local config = ...
 
 if config.username == nil or config.password == nil then
-	print 'qrz: missing username and/or password'
+	print 'hamqth: missing username and/or password'
 	return
 end
 
 local connectTimeout = config.connectTimeout or 3
 local timeout = config.timeout or 15
-local url = config.url or 'https://xmldata.qrz.com'
-local sessionKey = {}
+local url = config.url or 'https://www.hamqth.com'
+local sessionId = {}
 local callsignCache = {}
 
--- Request a session key
-local function requestSessionKey()
+-- Request a session id
+local function requestSessionId()
 	local c = curl.easy()
 
 	if trxd.verbose() > 0 then
@@ -54,9 +52,8 @@ local function requestSessionKey()
 	c:setopt(curl.OPT_TIMEOUT, timeout)
 
 	c:setopt(curl.OPT_URL,
-	    string.format('%s/xml/current/?username=%s&password=%s&'
-	    .. 'agent=trx-control-%s', url, config.username, config.password,
-	    trxd.version()))
+	    string.format('%s/xml.php?u=%s&p=%s', url, config.username,
+	    config.password))
 	c:setopt(curl.OPT_HTTPGET, true)
 
 	local t = {}
@@ -84,8 +81,8 @@ local function requestCallsign(callsign)
 	c:setopt(curl.OPT_TIMEOUT, timeout)
 	c:setopt(curl.OPT_HTTPGET, true)
 	c:setopt(curl.OPT_URL,
-	    string.format('%s/xml/current/?s=%s&callsign=%s', url, sessionKey,
-	    callsign))
+	    string.format('%s/xml.php?id=%s&callsign=%s&prg=trxd-%s', url,
+	    sessionId, callsign, trxd.version()))
 
 	local t = {}
 	c:setopt(curl.OPT_WRITEFUNCTION, function (a, b)
@@ -100,20 +97,20 @@ local function requestCallsign(callsign)
 	return r, table.concat(t), status
 end
 
-local function getSessionKey()
-	local response, data, status = requestSessionKey()
+local function getSessionId()
+	local response, data, status = requestSessionId()
 	if trxd.verbose() > 0 then
 		print(data)
 	end
 
 	if response == true and status == 200 then
 		local t = expat.decode(data)
-		sessionKey = t.QRZDatabase.Session.Key.xmltext or {}
+		sessionId = t.HamQTH.session.session_id.xmltext or {}
 	else
-		sessionKey = {}
+		sessionId = {}
 	end
-	print(type(sessionKey))
-	print(sessionKey)
+	print(type(sessionId))
+	print(sessionId)
 end
 
 local function lookupCallsign(callsign)
@@ -123,17 +120,42 @@ local function lookupCallsign(callsign)
 	end
 	if response == true and status == 200 then
 		local t = expat.decode(data)
-		local error = t.QRZDatabase.Session.Error
-		if error ~= nil then
-			return nil, error.xmltext
+		if t.HamQTH.session ~= nil then
+			local error = t.HamQTH.session.error
+			if error ~= nil then
+				return nil, error.xmltext
+			end
 		end
-		local callsign = t.QRZDatabase.Callsign
+		local callsign = t.HamQTH.search
+
+		local function get(index)
+			return callsign[index] ~= nil
+			    and callsign[index].xmltext or ''
+		end
+
 		return {
-			call = callsign.call.xmltext or '',
-			name = callsign.name.xmltext or '',
-			fname = callsign.fname.xmltext or '',
-			addr2 = callsign.addr2.xmltext or '',
-			country = callsign.country.xmltext or ''
+			callsign = string.upper(get 'callsign'),
+			nick = get 'nick',
+			qth = get 'qth',
+			country = get 'country',
+			adif = get 'adif',
+			itu = get 'itu',
+			cq = get 'cq',
+			grid = get 'grid',
+			adr_city = get 'adr_city',
+			adr_zip = get 'adr_zip',
+			adr_country = get 'adr_country',
+			adr_adif = get 'adr_adif',
+			lotw = get 'lotw',
+			qsldirect = get 'qsldirect',
+			qsl = get 'qsl',
+			eqsl = get 'eqsl',
+			email = get 'email',
+			latitude = get 'latitude',
+			longitude = get 'longitude',
+			continent = get 'continent',
+			utc_offset = get 'utc_offset',
+			picture = get 'picture',
 		}, nil
 	end
 	return nil, status
@@ -161,27 +183,27 @@ function lookup(request)
 		}
 	end
 
-	if #sessionKey == 0 then
-		getSessionKey()
+	if #sessionId == 0 then
+		getSessionId()
 
-		if #sessionKey == 0 then
+		if #sessionId == 0 then
 			return {
 				status = 'Error',
 				response = 'lookup',
-				reason = 'Unable to get session key'
+				reason = 'Unable to get session id'
 			}
 		end
 	end
 
 	local data, error = lookupCallsign(callsign)
 	if data == nil and error ~= nil then
-		getSessionKey()
+		getSessionId()
 
-		if #sessionKey == 0 then
+		if #sessionId == 0 then
 			return {
 				status = 'Error',
 				response = 'lookup',
-				reason = 'Unable to get session key'
+				reason = 'Unable to get session id'
 			}
 		end
 
@@ -193,7 +215,7 @@ function lookup(request)
 		return {
 			status = 'Ok',
 			response = 'lookup',
-			source = 'qrz',
+			source = 'hamqth',
 			data = data
 		}
 	else
