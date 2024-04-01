@@ -796,7 +796,6 @@ main(int argc, char *argv[])
 
 		/* Create the websocket-listener thread */
 		pthread_create(&t->listener, NULL, websocket_listener, t);
-		lua_pop(L, 1);
 	}
 	lua_pop(L, 1);
 
@@ -840,6 +839,18 @@ main(int argc, char *argv[])
 					err(1, "nmea-handler: tcsetattr");
 			}
 		}
+
+		if (pthread_mutex_init(&t->mutex, NULL))
+			goto terminate;
+
+		if (pthread_mutex_init(&t->mutex2, NULL))
+			goto terminate;
+
+		if (pthread_cond_init(&t->cond1, NULL))
+			goto terminate;
+
+		if (pthread_cond_init(&t->cond2, NULL))
+			goto terminate;
 
 		/* Create the nmea-handler thread */
 		pthread_create(&t->nmea_handler, NULL, nmea_handler, t);
