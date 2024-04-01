@@ -84,15 +84,15 @@ static int	nmea_atoi(int64_t *dst, char *src);
 static void
 nmea_dump(struct nmea *np)
 {
-	printf("Date & time: %02d.%02d.%04d %02d:%02d:%02d\n",
+	printf("Date/time: %02d.%02d.%04d %02d:%02d:%02d\n",
 	    np->tm.tm_mday, np->tm.tm_mon, np->tm.tm_year + 1900,
 	    np->tm.tm_hour, np->tm.tm_min, np->tm.tm_sec);
-	printf("Status: %d\n", np->status);
-	printf("Latitude: %f\n", np->latitude);
-	printf("Longitude: %f\n", np->longitude);
-	printf("Altitude: %f\n", np->altitude);
-	printf("Speed: %f m/s\n", np->speed);
-	printf("GPS mode: %c\n", np->mode);
+	printf("Status   : %d\n", np->status);
+	printf("Latitude : %8.4f\n", np->latitude);
+	printf("Longitude: %8.4f\n", np->longitude);
+	printf("Altitude : %4.2f m\n", np->altitude);
+	printf("Speed    : %6.2f m/s\n", np->speed);
+	printf("GPS mode : %c\n", np->mode);
 	printf("\n");
 }
 
