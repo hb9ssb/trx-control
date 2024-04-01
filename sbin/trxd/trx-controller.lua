@@ -91,7 +91,7 @@ local function requestHandler(data, fd)
 	elseif request.request == 'lock-trx' then
 		driver:setLock()
 	elseif request.request == 'unlock-trx' then
-		driver:serUnlock()
+		driver:setUnlock()
 	else
 		response.status = 'Error'
 		response.reason = 'Unknown request'
