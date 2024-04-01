@@ -79,11 +79,13 @@ trx-control software repository
 /usr/share/trxd/protocol/cat-5-byte.lua
 /usr/share/trxd/protocol/cat-delimited.lua
 /usr/share/trxd/protocol/ci-v.lua
+/usr/share/trxd/protocol/kenwood-ts480.lua
 /usr/share/trxd/protocol/simulated.lua
 /usr/share/trxd/trx-controller.lua
 /usr/share/trxd/trx/icom-ic-705.lua
 /usr/share/trxd/trx/icom-ic-7300.lua
 /usr/share/trxd/trx/simulator.lua
+/usr/share/trxd/trx/trusdx.lua
 /usr/share/trxd/trx/yaesu-ft-710.lua
 /usr/share/trxd/trx/yaesu-ft-817.lua
 /usr/share/trxd/trx/yaesu-ft-857.lua
@@ -137,6 +139,12 @@ rm -rf $RPM_BUILD_ROOT
 %{__make} clean
 
 %changelog
+* Mon Apr 1 2024 Marc Balmer HB9SSB <info@hb9ssb.ch>
+
+- Decode NMEA sentences in the nmea-handler.
+- Add the Kenwood TS-480 protocol and trusdx driver.
+- Configurable transceiver and controller address of an ICOM transceiver.
+
 * Sun Mar 31 2024 Marc Balmer HB9SSB <info@hb9ssb.ch>
 
 - Add a driver for the ICOM IC-7300 transceiver.
