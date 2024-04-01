@@ -86,7 +86,7 @@ local function getMode(driver)
 end
 
 return {
-	name = 'trusdx',
+	name = 'Kenwood TS-480 CAT protocol',
 	capabilities = {	-- driver specific
 		frequency = true,
 		mode = true,
