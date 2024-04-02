@@ -46,6 +46,7 @@ int nmeadebug = 0;
 #define DPRINTF(x)	DPRINTFN(0, x)
 
 #define NMEAMAX		82
+#define LOCMAX		6
 #define MAXFLDS		32
 #define KNOTTOMS	(0.514444 )
 #ifdef NMEA_DEBUG
@@ -66,12 +67,16 @@ struct nmea {
 	int			sync;		/* if 1, waiting for '$' */
 	int			pos;		/* position in rcv buffer */
 	char			mode;		/* GPS mode */
+	char			locator[LOCMAX + 1];
 };
 
 /* NMEA decoding */
 static void	nmea_scan(struct nmea *);
 static void	nmea_gprmc(struct nmea *, char *fld[], int fldcnt);
 static void	nmea_decode_gga(struct nmea *, char *fld[], int fldcnt);
+
+/* Maidenhead Locator */
+static void	nmea_locator(struct nmea *);
 
 /* date and time conversion */
 static int	nmea_date(char *s, struct tm *tm);
@@ -93,6 +98,7 @@ nmea_dump(struct nmea *np)
 	printf("Altitude : %4.2f m\n", np->altitude);
 	printf("Speed    : %6.2f m/s\n", np->speed);
 	printf("GPS mode : %c\n", np->mode);
+	printf("Locator  : %s\n", np->locator);
 	printf("\n");
 }
 
@@ -124,6 +130,9 @@ nmea_scan(struct nmea *np)
 {
 	int fldcnt = 0, cksum = 0, msgcksum, n;
 	char *fld[MAXFLDS], *cs;
+
+	if (verbose)
+		printf("%s\n", np->cbuf);
 
 	/* split into fields and calculate the checksum */
 	fld[fldcnt++] = &np->cbuf[0];	/* message type */
@@ -198,6 +207,7 @@ nmea_scan(struct nmea *np)
 		nmea_gprmc(np, fld, fldcnt);
 	if (strncmp(fld[0] + 2, "GGA", 3) == 0)
 		nmea_decode_gga(np, fld, fldcnt);
+	nmea_locator(np);
 	if (verbose)
 		nmea_dump(np);
 }
@@ -223,8 +233,8 @@ nmea_gprmc(struct nmea *np, char *fld[], int fldcnt)
 		np->mode = *fld[12];
 
 	switch (*fld[2]) {
-	case 'A':	/* The GPS has a fix, (re)arm the timeout. */
-			/* XXX is 'D' also a valid state? */
+	case 'A':	/* The GPS has a fix */
+	case 'D':
 		np->status = 1;
 		break;
 	case 'V':	/*
@@ -258,6 +268,24 @@ nmea_decode_gga(struct nmea *np, char *fld[], int fldcnt)
 	}
 
 	np->altitude = atof(fld[9]);
+}
+
+static void
+nmea_locator(struct nmea *np)
+{
+	double lat, lon;
+
+	lon = np->longitude + 180.0;
+	lat = np->latitude + 90.0;
+
+	np->locator[0] = 'A' + lon / 20;
+	np->locator[1] = 'A' + lat / 10;
+	np->locator[2] = '0' + (int)lon % 20 / 2;
+	np->locator[3] = '0' + (int)lat % 10;
+	np->locator[4] = 'A' + (lon - (int)lon / 2 * 2 ) * 12;
+	np->locator[5] = 'A' + (lat - (int)lat) * 24;
+
+	np->locator[6] = '\0';
 }
 
 /*
@@ -406,6 +434,8 @@ nmea_handler(void *arg)
 	np = malloc(sizeof(struct nmea));
 	if (np == NULL)
 		err(1, "nmea-handler: malloc");
+	np->longitude = np->latitude = np->speed = np->altitude = 0;
+	np->locator[0] = '\0';
 	np->sync = 1;
 
 	pthread_cleanup_push(cleanup_nmea, np);
