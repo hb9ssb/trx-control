@@ -76,7 +76,7 @@ static void	nmea_gprmc(struct nmea *, char *fld[], int fldcnt);
 static void	nmea_decode_gga(struct nmea *, char *fld[], int fldcnt);
 
 /* Maidenhead Locator */
-static void	nmea_locator(struct nmea *);
+static int	nmea_locator(struct nmea *);
 
 /* date and time conversion */
 static int	nmea_date(char *s, struct tm *tm);
@@ -270,10 +270,16 @@ nmea_decode_gga(struct nmea *np, char *fld[], int fldcnt)
 	np->altitude = atof(fld[9]);
 }
 
-static void
+static int
 nmea_locator(struct nmea *np)
 {
 	double lat, lon;
+
+	if (np->longitude >= 180.0 || np->longitude <= -180.0)
+		return -1;
+
+	if (np->latitude >= 90.0 || np->latitude <= -90.0)
+		return -1;
 
 	lon = np->longitude + 180.0;
 	lat = np->latitude + 90.0;
@@ -286,6 +292,8 @@ nmea_locator(struct nmea *np)
 	np->locator[5] = 'A' + (lat - (int)lat) * 24;
 
 	np->locator[6] = '\0';
+
+	return 0;
 }
 
 /*
