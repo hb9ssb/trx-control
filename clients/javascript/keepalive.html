@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+
+	<title>trx-control keepalive test</title>
+
+	<script>
+
+	function connect()
+	{
+		if (typeof websocket != 'undefined') {
+			if (websocket && websocket.readyState == WebSocket.CONNECTING) {
+				return
+			}
+		}
+
+		console.log("connecting to trx-control")
+
+		<!-- Use wss:// for production code! -->
+		websocket = new WebSocket("wss://dev.arcapos.ch:14290/trx-control")
+
+		websocket.onopen = onOpen
+		websocket.onclose = onClose
+		websocket.onmessage = onMessage
+		websocket.onerror = onError
+	}
+
+
+	function onOpen(evt)
+	{
+		console.log("connection to trx-control established")
+
+		document.getElementById('status').innerHTML = 'Connected'
+
+		var request = {
+			request: "list-destination"
+		};
+
+		websocket.send(JSON.stringify(request))
+
+		var request = {
+			to: "keepalive",
+			request: "listen"
+		}
+
+		websocket.send(JSON.stringify(request))
+	}
+
+	function onClose(evt)
+	{
+		console.log("connection to trx-control closed")
+
+		document.getElementById('status').innerHTML = 'Disconnected'
+
+		setTimeout(connect, 1000)
+	}
+
+	function onMessage(evt)
+	{
+		console.log("received message from trx-control: ", evt.data)
+		var msg = JSON.parse(evt.data)
+	}
+
+	function onError(evt)
+	{
+		if (websocket.readyState == WebSocket.CLOSED)
+			setTimeout(connect, 1000)
+	}
+
+	window.addEventListener("load", connect, false)
+	</script>
+</head>
+
+<body>
+	<h1>trx-control keepalive status display</h1>
+
+	<table>
+		<thead>
+			<th>Status</th>
+		</thead>
+		<tbody>
+			<tr>
+				<td id="status">Disconnected</td>
+			</tr>
+		</tbody>
+	</table>
+
+</body>
+
+</html>
