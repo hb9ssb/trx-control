@@ -275,10 +275,10 @@ nmea_locator(struct nmea *np)
 {
 	double lat, lon;
 
-	if (np->longitude >= 180.0 || np->longitude <= -180.0)
+	if (np->longitude > 180.0 || np->longitude < -180.0)
 		return -1;
 
-	if (np->latitude >= 90.0 || np->latitude <= -90.0)
+	if (np->latitude > 90.0 || np->latitude < -90.0)
 		return -1;
 
 	lon = np->longitude + 180.0;
