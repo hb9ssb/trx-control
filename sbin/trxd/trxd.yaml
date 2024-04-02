@@ -38,6 +38,11 @@ group: trxd
 # Store the PID of the running trxd process in trxd.pid
 pid-file: trxd.pid
 
+# Decode NMEA sentences from a GPS/Glonass/Baidu etc. receiver
+nmea:
+  device: /dev/ic-705-nmea
+  speed: 9600
+
 # The list of transceivers we can control
 trx:
   ft-897:
