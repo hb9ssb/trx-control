@@ -21,11 +21,11 @@
 --
 -- The trx-control cloudlog extension
 --
--- implementing Cloudlog APIs: https://github.com/magicbug/Cloudlog/wiki/API
--- implemented:
+-- Implementing Cloudlog APIs: https://github.com/magicbug/Cloudlog/wiki/API
+-- Implemented:
 --   * /api/auth/<apiKey>
 --   * /api/Radio/
--- not implemented (to-do):
+-- Not Implemented (TODO):
 --   * /api/station_info
 --   * /api/QSO
 --   * /api/statistics
@@ -39,6 +39,10 @@
 --    configuration:
 --      url: "https://cloudlog.xyz.com/index.php/api"
 --      apiKey: "xxxxxxxxxxxx"
+--
+-- An example of this extension implemented in python can be used by a 
+-- custom trx-control client can be found at: 
+-- https://github.com/gx1400/python-trx-cloudlog
 
 local config = ...
 local curl = require 'curl'
