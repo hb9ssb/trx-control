@@ -40,8 +40,8 @@
 --      url: "https://cloudlog.xyz.com/index.php/api"
 --      apiKey: "xxxxxxxxxxxx"
 --
--- An example of this extension implemented in python can be used by a 
--- custom trx-control client can be found at: 
+-- An example of this extension implemented in python as a trx-control 
+-- websocket client can be found at: 
 -- https://github.com/gx1400/python-trx-cloudlog
 
 local config = ...
