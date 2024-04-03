@@ -21,7 +21,7 @@
 --
 -- The trx-control cloudlog extension
 --
--- Implementing Cloudlog APIs: https://github.com/magicbug/Cloudlog/wiki/API
+-- Implements Cloudlog APIs: https://github.com/magicbug/Cloudlog/wiki/API
 -- Implemented:
 --   * /api/auth/<apiKey>
 --   * /api/Radio/
