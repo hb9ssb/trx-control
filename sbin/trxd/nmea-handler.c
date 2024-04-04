@@ -48,7 +48,7 @@ int nmeadebug = 0;
 #define NMEAMAX		82
 #define LOCMAX		6
 #define MAXFLDS		32
-#define KNOTTOMS	(0.514444 )
+#define KNOTTOMS	(0.514444)
 #ifdef NMEA_DEBUG
 #define TRUSTTIME	30
 #else
@@ -275,8 +275,8 @@ nmea_locator(struct nmea *np)
 {
 	double lat, lon;
 
-	if (np->longitude > 180.0 || np->longitude < -180.0
-	   || np->latitude > 90.0 || np->latitude < -90.0)
+	if (np->longitude >= 180.0 || np->longitude < -180.0
+	   || np->latitude >= 90.0 || np->latitude < -90.0)
 		return -1;
 
 	lon = np->longitude + 180.0;
