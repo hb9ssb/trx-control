@@ -57,13 +57,15 @@ int nmeadebug = 0;
 
 struct nmea {
 	char			cbuf[NMEAMAX];	/* receive buffer */
-	struct tm		tm;
+	int			year, month, day, hour, minute, second;
+
 	int			status;		/* signal status */
 	double			latitude;
 	double			longitude;
 	double			altitude;
 	double			speed;
-
+	double			course;
+	double			variation;	/* Magnetic variation */
 	int			sync;		/* if 1, waiting for '$' */
 	int			pos;		/* position in rcv buffer */
 	char			mode;		/* GPS mode */
@@ -71,16 +73,16 @@ struct nmea {
 };
 
 /* NMEA decoding */
-static void	nmea_scan(struct nmea *);
-static void	nmea_gprmc(struct nmea *, char *fld[], int fldcnt);
-static void	nmea_decode_gga(struct nmea *, char *fld[], int fldcnt);
+static void	nmea_scan(nmea_tag_t *, struct nmea *);
+static int	nmea_gprmc(struct nmea *, char *fld[], int fldcnt);
+static int	nmea_gpgga(struct nmea *, char *fld[], int fldcnt);
 
 /* Maidenhead Locator */
 static int	nmea_locator(struct nmea *);
 
 /* date and time conversion */
-static int	nmea_date(char *s, struct tm *tm);
-static int	nmea_time(char *s, struct tm *tm);
+static int	nmea_date(struct nmea *, char *s);
+static int	nmea_time(struct nmea *, char *s);
 
 /* longitude and latitude conversion */
 static int	nmea_degrees(double *dst, char *src, int neg);
@@ -89,14 +91,16 @@ static int	nmea_atoi(int64_t *dst, char *src);
 static void
 nmea_dump(struct nmea *np)
 {
-	printf("Date/time: %02d.%02d.%04d %02d:%02d:%02d\n",
-	    np->tm.tm_mday, np->tm.tm_mon, np->tm.tm_year + 1900,
-	    np->tm.tm_hour, np->tm.tm_min, np->tm.tm_sec);
+	printf("Date/time: %02d.%02d.%04d %02d:%02d:%02d UTC\n",
+	    np->day, np->month, np->year > 0 ? np->year + 2000 : 0,
+	    np->hour, np->minute, np->second);
 	printf("Status   : %d\n", np->status);
 	printf("Latitude : %8.4f\n", np->latitude);
 	printf("Longitude: %8.4f\n", np->longitude);
 	printf("Altitude : %4.2f m\n", np->altitude);
+	printf("Variation: %8.4f\n", np->variation);
 	printf("Speed    : %6.2f m/s\n", np->speed);
+	printf("Course   : %8.4f\n", np->course);
 	printf("GPS mode : %c\n", np->mode);
 	printf("Locator  : %s\n", np->locator);
 	printf("\n");
@@ -104,7 +108,7 @@ nmea_dump(struct nmea *np)
 
 /* Collect NMEA sentences from the device. */
 static int
-nmea_input(int c, struct nmea *np)
+nmea_input(nmea_tag_t * t, int c, struct nmea *np)
 {	switch (c) {
 	case '$':
 		np->pos = np->sync = 0;
@@ -113,7 +117,7 @@ nmea_input(int c, struct nmea *np)
 	case '\n':
 		if (!np->sync) {
 			np->cbuf[np->pos] = '\0';
-			nmea_scan(np);
+			nmea_scan(t, np);
 			np->sync = 1;
 		}
 		break;
@@ -126,7 +130,7 @@ nmea_input(int c, struct nmea *np)
 
 /* Scan the NMEA sentence just received. */
 static void
-nmea_scan(struct nmea *np)
+nmea_scan(nmea_tag_t *t, struct nmea *np)
 {
 	int fldcnt = 0, cksum = 0, msgcksum, n;
 	char *fld[MAXFLDS], *cs;
@@ -203,30 +207,30 @@ nmea_scan(struct nmea *np)
 			return;
 		}
 	}
-	if (strncmp(fld[0] + 2, "RMC", 3) == 0)
+	if (!strncmp(fld[0] + 2, "RMC", 3))
 		nmea_gprmc(np, fld, fldcnt);
-	if (strncmp(fld[0] + 2, "GGA", 3) == 0)
-		nmea_decode_gga(np, fld, fldcnt);
+	else if (!strncmp(fld[0] + 2, "GGA", 3))
+		nmea_gpgga(np, fld, fldcnt);
 	nmea_locator(np);
 	if (verbose)
 		nmea_dump(np);
 }
 
 /* Decode the recommended minimum specific GPS/TRANSIT data. */
-static void
+static int
 nmea_gprmc(struct nmea *np, char *fld[], int fldcnt)
 {
 	if (fldcnt < 12 || fldcnt > 14) {
 		DPRINTF(("gprmc: field count mismatch, %d\n", fldcnt));
-		return;
+		return -1;
 	}
-	if (nmea_time(fld[1], &np->tm)) {
+	if (nmea_time(np, fld[1])) {
 		DPRINTF(("gprmc: illegal time, %s\n", fld[1]));
-		return;
+		return -1;
 	}
-	if (nmea_date(fld[9], &np->tm)) {
+	if (nmea_date(np, fld[9])) {
 		DPRINTF(("gprmc: illegal date, %s\n", fld[9]));
-		return;
+		return -1;
 	}
 
 	if (*fld[12] != np->mode)
@@ -247,27 +251,41 @@ nmea_gprmc(struct nmea *np, char *fld[], int fldcnt)
 		break;
 	}
 	if (nmea_degrees(&np->latitude, fld[3], *fld[4] == 'S' ? 1 : 0))
-		;
+		return -1;
 	if (nmea_degrees(&np->longitude, fld[5], *fld[6] == 'W' ? 1 : 0))
-		;
+		return -1;
+	np->variation = *fld[11] == 'E' ? atof(fld[10]) : -atof(fld[10]);
 
 	/* convert from knot to m/s */
 	np->speed = atof(fld[7]) * KNOTTOMS;
+	np->course = atof(fld[8]);
+	return 0;
 }
 
 /* Decode the GPS fix data for altitude.
  * - field 9 is the altitude in meters
  * $GNGGA,085901.00,1234.5678,N,00987.12345,E,1,12,0.84,1040.9,M,47.4,M,,*4B
  */
-static void
-nmea_decode_gga(struct nmea *np, char *fld[], int fldcnt)
+static int
+nmea_gpgga(struct nmea *np, char *fld[], int fldcnt)
 {
 	if (fldcnt != 15) {
 		DPRINTF(("GGA: field count mismatch, %d\n", fldcnt));
-		return;
+		return -1;
 	}
 
+	if (nmea_time(np, fld[1])) {
+		DPRINTF(("gpgga: illegal time, %s\n", fld[1]));
+		return -1;
+	}
+
+	if (nmea_degrees(&np->latitude, fld[2], *fld[3] == 'S' ? 1 : 0))
+		return -1;
+	if (nmea_degrees(&np->longitude, fld[4], *fld[5] == 'W' ? 1 : 0))
+		return -1;
+
 	np->altitude = atof(fld[9]);
+	return 0;
 }
 
 static int
@@ -369,7 +387,7 @@ nmea_degrees(double *dst, char *src, int neg)
  * Return 0 on success, -1 if illegal characters are encountered.
  */
 static int
-nmea_date(char *s, struct tm *tm)
+nmea_date(struct nmea *np, char * s)
 {
 	char *p;
 	int n;
@@ -380,10 +398,9 @@ nmea_date(char *s, struct tm *tm)
 	if (n != 6 || (*p != '\0'))
 		return -1;
 
-	tm->tm_year = 100 + (s[4] - '0') * 10 + (s[5] - '0');
-	tm->tm_mon = (s[2] - '0') * 10 + (s[3] - '0');
-	tm->tm_mday = (s[0] - '0') * 10 + (s[1] - '0');
-
+	np->year = (s[4] - '0') * 10 + (s[5] - '0');
+	np->month = (s[2] - '0') * 10 + (s[3] - '0');
+	np->day = (s[0] - '0') * 10 + (s[1] - '0');
 	return 0;
 }
 
@@ -393,11 +410,11 @@ nmea_date(char *s, struct tm *tm)
  * Return 0 on success, -1 if illegal characters are encountered.
  */
 static int
-nmea_time(char *s, struct tm *tm)
+nmea_time(struct nmea *np, char *s)
 {
-	tm->tm_hour = (s[0] - '0') * 10 + (s[1] - '0');
-	tm->tm_min = (s[2] - '0') * 10 + (s[3] - '0');
-	tm->tm_sec = (s[4] - '0') * 10 + (s[5] - '0');
+	np->hour = (s[0] - '0') * 10 + (s[1] - '0');
+	np->minute = (s[2] - '0') * 10 + (s[3] - '0');
+	np->second = (s[4] - '0') * 10 + (s[5] - '0');
 
 	/* Skip decimal fraction */
 	return 0;
@@ -441,6 +458,7 @@ nmea_handler(void *arg)
 	if (np == NULL)
 		err(1, "nmea-handler: malloc");
 	np->longitude = np->latitude = np->speed = np->altitude = 0;
+	np->year = np->month = np->day = np->hour = np->minute = np->second = 0;
 	np->locator[0] = '\0';
 	np->sync = 1;
 
@@ -456,7 +474,7 @@ nmea_handler(void *arg)
 
 		if (pfd.revents) {
 			read(t->fd, &data, 1);
-			nmea_input(data, np);
+			nmea_input(t, data, np);
 		}
 	};
 	pthread_cleanup_pop(0);
