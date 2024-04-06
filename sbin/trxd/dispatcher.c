@@ -138,6 +138,56 @@ call_gpio_controller(dispatcher_tag_t *d, gpio_controller_tag_t *t)
 }
 
 static void
+call_nmea(dispatcher_tag_t *d, nmea_tag_t *t)
+{
+	struct buffer buf;
+
+	buf_init(&buf);
+	buf_addstring(&buf,
+	    "{\"status\":\"Ok\",\"response\":\"get-fix\",\"from\":\"nmea\","
+	    "\"fix\":{");
+
+	if (pthread_mutex_lock(&t->mutex))
+		err(1, "dispatcher: pthread_mutex_lock");
+
+	buf_printf(&buf, "\"date\":\"%02d.%02d.%04d\",",
+	    t->day, t->month, t->year > 0 ? t->year + 2000 : 0);
+	buf_printf(&buf, "\"time\":\"%02d:%02d:%02d\",",
+	    t->hour, t->minute, t->second);
+	buf_printf(&buf, "\"status\":\"%d\",", t->status);
+	buf_printf(&buf, "\"latitude\":\"%.6f\",", t->latitude);
+	buf_printf(&buf, "\"longitude\":\"%.6f\",", t->longitude);
+	buf_printf(&buf, "\"altitude\":\"%.2f\",", t->altitude);
+	buf_printf(&buf, "\"variation\":\"%.4f\",", t->variation);
+	buf_printf(&buf, "\"speed\":\"%.2f\",", t->speed);
+	buf_printf(&buf, "\"course\":\"%.4f\",", t->course);
+	buf_printf(&buf, "\"mode\":\"%c\",", t->mode);
+	buf_printf(&buf, "\"locator\":\"%s\"", t->locator);
+
+	if (pthread_mutex_unlock(&t->mutex))
+		err(1, "dispatcher: pthread_mutex_unlock");
+
+	buf_addstring(&buf, "}}");
+
+	printf("send data\n");
+
+	if (pthread_mutex_lock(&d->sender->mutex))
+		err(1, "dispatcher: pthread_mutex_lock");
+
+	d->sender->data = buf.data;
+
+	if (pthread_cond_signal(&d->sender->cond))
+		err(1, "dispatcher: pthread_cond_signal");
+
+	while (d->sender->data != NULL) {
+		if (pthread_cond_wait(&d->sender->cond2, &d->sender->mutex))
+			err(1, "dispatcher: pthread_cond_wait");
+	}
+	pthread_mutex_unlock(&d->sender->mutex);
+	buf_free(&buf);
+}
+
+static void
 destination_not_found(dispatcher_tag_t *d)
 {
 	if (pthread_mutex_lock(&d->sender->mutex))
@@ -506,6 +556,15 @@ dispatch(lua_State *L, dispatcher_tag_t *d, destination_t *to, const char *req)
 	case DEST_GPIO:
 		call_gpio_controller(d, to->tag.gpio);
 		break;
+	case DEST_INTERNAL:
+		if (!strcmp(to->name, "nmea")) {
+			if (!strcmp(req, "get-fix"))
+				call_nmea(d, to->tag.nmea);
+			else
+				request_not_supported(d);
+		} else
+			destination_not_supported(d);
+		break;
 	case DEST_EXTENSION:
 		call_extension(L, d, to->tag.extension, req);
 		break;
@@ -547,6 +606,9 @@ list_destination(dispatcher_tag_t *d)
 			break;
 		case DEST_GPIO:
 			buf_addstring(&buf, "gpio");
+			break;
+		case DEST_INTERNAL:
+			buf_addstring(&buf, "internal");
 			break;
 		case DEST_EXTENSION:
 			buf_addstring(&buf, "extension");
@@ -693,6 +755,8 @@ dispatcher(void *arg)
 		lua_getfield(L, request, "request");
 		req = lua_tostring(L, -1);
 		lua_pop(L, 2);
+
+		printf("to %s, %s\n", to->name, req);
 
 		if (dst == NULL)
 			destination_not_found(d);

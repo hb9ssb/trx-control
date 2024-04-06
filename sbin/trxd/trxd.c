@@ -112,6 +112,12 @@ add_destination(const char *name, enum DestinationType type, void *arg)
 	case DEST_GPIO:
 		d->tag.gpio = arg;
 		break;
+	case DEST_INTERNAL:
+		if (!strcmp(name, "nmea"))
+			d->tag.nmea = arg;
+		else
+			errx(1, "unknown internal name '%s'\n", name);
+		break;
 	case DEST_EXTENSION:
 		d->tag.extension = arg;
 		break;
@@ -810,6 +816,13 @@ main(int argc, char *argv[])
 		t = malloc(sizeof(nmea_tag_t));
 		if (t == NULL)
 			err(1, "trxd: malloc");
+		t->year = t->month = t->day = 0;
+		t->hour = t->minute = t->second = 0;
+		t->status = 0;
+		t->latitude = t->longitude = t->altitude = 0.0;
+		t->speed = t->course = t->variation = 0.0;
+		t->mode = '\0';
+		t->locator[0] = '\0';
 
 		lua_getfield(L, -1, "device");
 		if (!lua_isstring(L, -1))
@@ -829,27 +842,21 @@ main(int argc, char *argv[])
 
 		if (isatty(t->fd)) {
 			if (tcgetattr(t->fd, &tty) < 0)
-				err(1, "nmea-handler: tcgetattr");
+				err(1, "trxd: tcgetattr");
 			else {
 				cfmakeraw(&tty);
 				tty.c_cflag |= CLOCAL;
 				cfsetspeed(&tty, speed);
 
 				if (tcsetattr(t->fd, TCSADRAIN, &tty) < 0)
-					err(1, "nmea-handler: tcsetattr");
+					err(1, "trxd: tcsetattr");
 			}
 		}
 
+		if (add_destination("nmea", DEST_INTERNAL, t))
+			errx(1, "names must be unique");
+
 		if (pthread_mutex_init(&t->mutex, NULL))
-			goto terminate;
-
-		if (pthread_mutex_init(&t->mutex2, NULL))
-			goto terminate;
-
-		if (pthread_cond_init(&t->cond1, NULL))
-			goto terminate;
-
-		if (pthread_cond_init(&t->cond2, NULL))
 			goto terminate;
 
 		/* Create the nmea-handler thread */

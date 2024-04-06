@@ -78,21 +78,25 @@ typedef struct trx_controller_tag {
 	sender_list_t		*senders;
 } trx_controller_tag_t;
 
+#define LOCATORMAX		6
+
 typedef struct nmea_tag {
-	/* The first mutex locks the trx-controller */
 	pthread_mutex_t		 mutex;
-
-	pthread_mutex_t		 mutex2;
-	pthread_cond_t		 cond1;	/* A handler is set */
-	const char		*handler;
-
-	pthread_cond_t		 cond2;	/* A response is set */
-	char			*response;
 
 	int			 fd;
 	pthread_t		 nmea_handler;
 
-	sender_list_t		*senders;
+	/* Fix data */
+	int			year, month, day, hour, minute, second;
+	int			status;		/* signal status */
+	double			latitude;
+	double			longitude;
+	double			altitude;
+	double			speed;
+	double			course;
+	double			variation;	/* Magnetic variation */
+	char			mode;		/* GPS mode */
+	char			locator[LOCATORMAX + 1];
 } nmea_tag_t;
 
 typedef struct gpio_controller_tag {
@@ -181,6 +185,7 @@ enum DestinationType {
 	DEST_ROTOR,
 	DEST_RELAY,
 	DEST_GPIO,
+	DEST_INTERNAL,
 	DEST_EXTENSION
 };
 
@@ -191,6 +196,7 @@ typedef struct destination {
 	union {
 		trx_controller_tag_t	*trx;
 		gpio_controller_tag_t	*gpio;
+		nmea_tag_t		*nmea;
 		relay_controller_tag_t	*relay;
 		extension_tag_t		*extension;
 	} tag;
