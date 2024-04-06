@@ -140,6 +140,11 @@ rm -rf $RPM_BUILD_ROOT
 %{__make} clean
 
 %changelog
+* Sat Apr 6 2024 Marc Balmer HB9SSB <info@hb9ssb.ch>
+
+- Make NMEA fix data available via the nmea internal destination.
+- Add the concept of internal destinations.
+
 * Mon Apr 1 2024 Marc Balmer HB9SSB <info@hb9ssb.ch>
 
 - Decode NMEA sentences in the nmea-handler.
