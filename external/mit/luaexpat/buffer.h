@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Micro Systems Marc Balmer, CH-5073 Gipf-Oberfrick
+ * Copyright (c) 2023 - 2024 Micro Systems Marc Balmer, CH-5073 Gipf-Oberfrick
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -36,6 +36,7 @@ struct buffer {
 extern int buf_init(struct buffer *);
 extern void buf_addstring(struct buffer *, const char *);
 extern void buf_addchar(struct buffer *, char);
+extern void buf_printf(struct buffer *, const char *, ...);
 extern void buf_push(struct buffer *, lua_State *);
 extern void buf_free(struct buffer *);
 

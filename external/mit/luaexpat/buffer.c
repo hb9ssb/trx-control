@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Micro Systems Marc Balmer, CH-5073 Gipf-Oberfrick
+ * Copyright (c) 2023 - 2024 Micro Systems Marc Balmer, CH-5073 Gipf-Oberfrick
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -65,6 +65,21 @@ buf_addchar(struct buffer *b, char c)
         if (b->size + 1 >= b->capacity)
                 buf_resize(b,  1);
         *(b->data + b->size++) = c;
+}
+
+void
+buf_printf(struct buffer *b, const char *fmt, ...)
+{
+	va_list ap;
+	int len;
+	char *s;
+
+	va_start(ap, fmt);
+	len = vasprintf(&s, fmt, ap);
+	va_end(ap);
+	if (len > 0)
+		buf_addstring(b, s);
+	free(s);
 }
 
 void
