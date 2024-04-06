@@ -7,7 +7,7 @@ LUADIR?=	/usr/share/trxd/lua
 
 OBJS=		${SRCS:.c=.o}
 
-CFLAGS+=	-I${VPATH}
+CFLAGS+=	-I${VPATH} -D_GNU_SOURCE
 LDADD+=		-lexpat
 
 all:		expat.so
