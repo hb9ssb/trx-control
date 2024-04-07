@@ -78,6 +78,41 @@ luatrxd_signal_input(lua_State *L)
 }
 
 static int
+luatrxd_locator(lua_State *L)
+{
+	double lat, lon;
+	char locator[6];
+
+	lat = luaL_checknumber(L, 1);
+	lon = luaL_checknumber(L, 2);
+
+	if (lat >= 90.0 || lat < -90.0) {
+		lua_pushnil(L);
+		lua_pushstring(L, "latitude out of range");
+		return 2;
+	}
+
+	if (lon >= 180.0 || lon < -180.0) {
+		lua_pushnil(L);
+		lua_pushstring(L, "longitude out of range");
+		return 2;
+	}
+
+	lon += 180.0;
+	lat += 90.0;
+
+	locator[0] = 'A' + lon / 20;
+	locator[1] = 'A' + lat / 10;
+	locator[2] = '0' + (int)lon % 20 / 2;
+	locator[3] = '0' + (int)lat % 10;
+	locator[4] = 'A' + (lon - (int)lon / 2 * 2 ) * 12;
+	locator[5] = 'A' + (lat - (int)lat) * 24;
+
+	lua_pushlstring(L, locator, sizeof(locator));
+	return 1;
+}
+
+static int
 luatrxd_verbose(lua_State *L)
 {
 	lua_pushinteger(L, verbose);
@@ -97,6 +132,7 @@ luaopen_trxd(lua_State *L)
 	struct luaL_Reg luatrxd[] = {
 		{ "notify",		luatrxd_notify },
 		{ "signalInput",	luatrxd_signal_input },
+		{ "locator",		luatrxd_locator },
 		{ "verbose",		luatrxd_verbose },
 		{ "version",		luatrxd_version },
 		{ NULL, NULL }
