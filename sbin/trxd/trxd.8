@@ -18,7 +18,7 @@
 .\" FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 .\" IN THE SOFTWARE.
 .\"
-.TH TRXD 8 "28 March 2024" "trx-control"
+.TH TRXD 8 "07 April 2024" "trx-control"
 .
 .SH NAME
 trxd
@@ -39,46 +39,55 @@ listens for incoming TCP/IP connections from trx-control compatible clients.
 .SH OPTIONS
 .
 .TP
--a
+.BR \-a \fR,\  \fB\-\-no\-announce
 Do not announce the trx-control service over mDNS (Avahi).
 .TP
--b <address>
+.BI \-b\  address \fR,\ \fB\-\-bind\-address= address
 Set the bind (listen) address.
-If unspecified, "localhost" is used.
+If unspecified,
+.I localhost
+is used.
 .TP
--c <path>
-Set the path name of a configuration file if the default /etc/trxd.yaml is
-not to be used.
+.BI \-c\  path \fR,\ \fB\-\-config\-file= path
+Set the
+.I
+path
+of a configuration file if the default
+.I
+/etc/trxd.yaml
+is not to be used.
 .TP
--g <group>
+.BI \-g\  group \fR,\ \fB\-\-group= group
 Set the group under which
 .IR trxd (8)
 is to be run.
 .TP
--u <user>
+.BI \-u\  user \fR,\ \fB\-\-user= user
 Set the user under which
 .IR trxd (8)
 is to be run.
 .TP
--d
+.BR \-d \fR,\ \fB\-\-no\-daemon
 Do not daemonize (run in foreground).
 .TP
--l
+.BR \-l \fR,\ \fB\-\-log\-connections
 Log connection attempts.
 .TP
--v
+.BR \-v \fR,\ \fB\-\-verbose
 Increase verbosity.
 .TP
--V
+.BR \-V \fR,\ \fB\-\-version
 Show the version number and exit.
 .TP
--p <port>
+.BI \-p\  port \fR,\ \fB\-\-listen\-port= port
 Set the listen port.
 If unspecified
 .IR trxd (8)
-uses port 14285.
+uses port
+.I
+14285
 .TP
--P <path>
+.BI \-P\  path \fR,\ \fB\-\-pid\-file= path
 Set the path name of a pid file.
 .
 .
@@ -94,6 +103,7 @@ Manufacturor	Model	Driver
 .T&
 l l l.
 _
+DL2MAN	(tr)uSDX	trusdx
 ICOM	IC-705	icom-ic-705
 Yaesu	FT-710	yaesu-ft-710
 Yaesu	FT-817	yaesu-ft-817
@@ -115,6 +125,11 @@ _
 bmcm	USB-PIO	bmcm-usb-pio
 bmcm	OR8	Attached to USB-PIO
 .TE
+.
+.
+.SH "SUPPORTED GPS RECEIVERS"
+.PP
+Any GPS/GLONASS/BeiDou or similar receiver that can output NMEA sentences.
 .
 .
 .SH FILES

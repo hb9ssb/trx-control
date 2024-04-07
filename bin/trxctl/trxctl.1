@@ -45,21 +45,26 @@ it will display status changes on the console.
 .SH OPTIONS
 .
 .TP
--i
+.BR \-i ", " \-\-interactive
 Enter interactive mode after executing "command".
--v
+.TP
+.BR \-v
 Run in verbose mode.
 .TP
--V
+.BR \-V ", " \-\-version
 Show the version number and exit.
 .TP
--h host
+.BI \-h\  host \fR,\ \fB\-\-host= host
 Set the hostname to connect to.
-Connects to "localhost" by default.
+Connects to
+.I localhost
+by default.
 .TP
--p port
+.BI \-p\  port \fR,\ \fB\-\-port= port
 Set the port to connect to connect to.
-Connects to "14285" by default.
+Connects to
+.I 14285
+by default.
 .
 .
 .SH COMMANDS
@@ -80,7 +85,7 @@ Specify a destination for this and subsequent commands.
 This can be used as a prefix to the commands listed below.
 Use a single space character between the prefix and the command.
 .TP
-? or @
+@ or ?
 List all destinations.
 .
 .SH COMMANDS TO CONTROL TRANSCEIVERS
@@ -114,6 +119,16 @@ Lock the transceiver.
 .TP
 unlock
 Unlock the transceiver.
+.
+.
+.SH COMMANDS TO QUERY GPS DATA
+.
+These commands must be sent to the internal "nmea" destination, i.e.
+prefix the command with @nmea.
+.
+.TP
+get-fix
+Get the latest fix from the GPS receiver
 .
 .
 .SH COMMANDS TO CONTROL EXTENSIONS
