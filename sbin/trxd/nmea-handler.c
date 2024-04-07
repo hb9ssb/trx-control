@@ -124,7 +124,7 @@ nmea_scan(nmea_tag_t *t, struct nmea *np)
 	int fldcnt = 0, cksum = 0, msgcksum, n;
 	char *fld[MAXFLDS], *cs;
 
-	if (verbose)
+	if (verbose > 2)
 		printf("%s\n", np->cbuf);
 
 	/* split into fields and calculate the checksum */
@@ -206,7 +206,7 @@ nmea_scan(nmea_tag_t *t, struct nmea *np)
 	else if (!strncmp(fld[0] + 2, "GGA", 3))
 		nmea_gpgga(t, fld, fldcnt);
 	nmea_locator(t);
-	if (verbose)
+	if (verbose > 1)
 		nmea_dump(t);
 
 	if (pthread_mutex_unlock(&t->mutex))
