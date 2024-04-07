@@ -143,7 +143,7 @@ rm -rf $RPM_BUILD_ROOT
 * Sun Apr 7 2024 Marc Balmer HB9SSB <info@hb9ssb.ch>
 
  - Document long options in the manual pages.
- - trxctl(1) can directly take commands passed as arguments on.
+ - trxctl(1) can directly take commands passed as arguments.
  - Use @ instead of ! to specify a destination in trxctl(1).
  - Fix a bug in the dispatcher thread.
 

@@ -1,7 +1,7 @@
 trx-control (1.1.9-1) stable; urgency=low
 
   * Document long options in the manual pages.
-  * trxctl(1) can directly take commands passed as arguments on.
+  * trxctl(1) can directly take commands passed as arguments.
   * Use @ instead of ! to specify a destination in trxctl(1).
   * Fix a bug in the dispatcher thread,.
 
