@@ -169,8 +169,6 @@ call_nmea(dispatcher_tag_t *d, nmea_tag_t *t)
 
 	buf_addstring(&buf, "}}");
 
-	printf("send data\n");
-
 	if (pthread_mutex_lock(&d->sender->mutex))
 		err(1, "dispatcher: pthread_mutex_lock");
 
@@ -713,7 +711,7 @@ dispatcher(void *arg)
 		err(1, "dispatcher: pthread_cond_signal");
 
 	for (;;) {
-		for (d->data = NULL; d->data == NULL; ) {
+		for (; d->data == NULL; ) {
 			if (pthread_cond_wait(&d->cond, &d->mutex))
 				err(1, "dispatcher: pthread_cond_wait");
 		}
