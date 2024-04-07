@@ -1,9 +1,16 @@
+trx-control (1.1.9-1) stable; urgency=low
+
+  * Document long options in the manual pages.
+  * Fix a bug in the dispatcher thread,.
+
+ -- Marc Balmer HB9SSB (trx-control package signing) <info@hb9ssb.ch>  Sun, 7 Apr 2024 17:00:00 +0100
+
 trx-control (1.1.8-1) stable; urgency=low
 
   * Make NMEA fix data available via the nmea internal destination.
   * Add the concept of internal destinations.
 
- -- Marc Balmer HB9SSB (trx-control package signing) <info@hb9ssb.ch>  Sat, 16 Apr 2024 12:00:00 +0100
+ -- Marc Balmer HB9SSB (trx-control package signing) <info@hb9ssb.ch>  Sat, 6 Apr 2024 12:00:00 +0100
 
 trx-control (1.1.7-1) stable; urgency=low
 

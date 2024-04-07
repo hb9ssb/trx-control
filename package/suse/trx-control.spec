@@ -136,6 +136,11 @@ rm -rf $RPM_BUILD_ROOT
 %{__make} clean
 
 %changelog
+* Sun Apr 7 2024 Marc Balmer HB9SSB <info@hb9ssb.ch>
+
+ - Document long options in the manual pages.
+ - Fix a bug in the dispatcher thread.
+
 * Sat Apr 6 2024 Marc Balmer HB9SSB <info@hb9ssb.ch>
 
 - Make NMEA fix data available via the nmea internal destination.
