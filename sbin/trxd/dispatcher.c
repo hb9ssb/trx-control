@@ -711,7 +711,7 @@ dispatcher(void *arg)
 		err(1, "dispatcher: pthread_cond_signal");
 
 	for (;;) {
-		for (; d->data == NULL; ) {
+		while (d->data == NULL) {
 			if (pthread_cond_wait(&d->cond, &d->mutex))
 				err(1, "dispatcher: pthread_cond_wait");
 		}
