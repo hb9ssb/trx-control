@@ -44,6 +44,8 @@
 #include <lualib.h>
 #include <lauxlib.h>
 
+#include <buffer.h>
+
 #include "trx-control.h"
 
 #define DEFAULT_HOST	"localhost"
@@ -62,7 +64,8 @@ wordexp_t p;
 static void
 usage(void)
 {
-	(void)fprintf(stderr, "usage: trxctl [-vV] [-h host] [-p port]\n");
+	(void)fprintf(stderr, "usage: trxctl [-ivV] [-h host] [-p port] "
+	    "[command]\n");
 	exit(1);
 }
 
@@ -134,24 +137,26 @@ rl_gets()
 int
 main(int argc, char *argv[])
 {
-	int c, n, terminate;
+	int c, n, terminate, interactive;
 	char *host, *port, buf[128], *line, *param, *to;
 
-	verbose = 0;
+	verbose = interactive = 0;
 	host = DEFAULT_HOST;
 	port = DEFAULT_PORT;
 
 	while (1) {
 		int option_index = 0;
 		static struct option long_options[] = {
+			{ "help",		no_argument, 0, '?' },
 			{ "host",		required_argument, 0, 'h' },
+			{ "interactive",	no_argument, 0, 'i' },
 			{ "verbose",		no_argument, 0, 'v' },
 			{ "version",		no_argument, 0, 'V' },
 			{ "port",		required_argument, 0, 'p' },
 			{ 0, 0, 0, 0 }
 		};
 
-		c = getopt_long(argc, argv, "h:vVp:", long_options,
+		c = getopt_long(argc, argv, "?h:ivVp:", long_options,
 		    &option_index);
 
 		if (c == -1)
@@ -163,6 +168,9 @@ main(int argc, char *argv[])
 		case 'h':
 			host = optarg;
 			break;
+		case 'i':
+			interactive = 1;
+			break;
 		case 'p':
 			port = optarg;
 			break;
@@ -172,6 +180,7 @@ main(int argc, char *argv[])
 		case 'V':
 			printf("trxctl %s\n", VERSION);
 			exit(0);
+		case '?':	/* FALLTHROUGH */
 		default:
 			usage();
 		}
@@ -179,8 +188,6 @@ main(int argc, char *argv[])
 	argc -= optind;
 	argv += optind;
 
-	if (argc > 0)
-		usage();
 
 	L = luaL_newstate();
 	if (L == NULL) {
@@ -203,6 +210,65 @@ main(int argc, char *argv[])
 		exit(1);
 	}
 
+	if (argc > 0) {	/* Assume command on the commandline */
+		struct buffer buf;
+
+		int n;
+		to = NULL;
+		line = NULL;
+
+		if (*argv[0] == '@' && strlen(argv[0]) > 1) {
+			to = ++argv[n];
+			if (argc > 1) {
+				line = argv[1];
+				n = 2;
+			}
+		} else {
+			line = argv[0];
+			n = 1;
+		}
+
+		lua_getglobal(L, "call");
+		if (lua_type(L, -1) != LUA_TFUNCTION)
+			errx(1, "call function not found");
+
+		if (to)
+			lua_pushstring(L, to);
+		else
+			lua_pushnil(L);
+		if (*line)
+			lua_pushstring(L, line);
+		else
+			lua_pushnil(L);
+
+		buf_init(&buf);
+		for (; n < argc; n++) {
+			if (buf.size > 0)
+				buf_addchar(&buf, ' ');
+			buf_addstring(&buf, argv[n]);
+		}
+
+		if (buf.size)
+			lua_pushlstring(L, buf.data, buf.size);
+		else
+			lua_pushnil(L);
+
+		switch (lua_pcall(L, 3, 1, 0)) {
+		case LUA_OK:
+			break;
+		case LUA_ERRRUN:
+		case LUA_ERRMEM:
+		case LUA_ERRERR:
+			syslog(LOG_ERR, "Lua error: %s",
+			    lua_tostring(L, -1));
+			break;
+		}
+		buf_free(&buf);
+
+		if (!interactive)
+			exit(0);
+	}
+
 	wordexp(HISTORY, &p, 0);
 	read_history(p.we_wordv[0]);
 	rl_event_hook = handle_status_updates;
@@ -217,7 +283,7 @@ main(int argc, char *argv[])
 			break;
 		}
 
-		if (*line == '!') {
+		if (*line == '@') {
 			char *p;
 
 			to = ++line;

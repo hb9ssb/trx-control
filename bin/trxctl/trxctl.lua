@@ -61,7 +61,7 @@ function call(to, command, param)
 	local request = {}
 
 	if command ~= nil then
-		if command == '?' then
+		if command == '?' or command == '@' then
 			request.request = 'list-destination'
 		else
 			request.request = command

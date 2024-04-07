@@ -10,6 +10,7 @@ BINDIR?=	/usr/bin
 TRXCTLDIR?=	/usr/share/trxctl
 
 CFLAGS+=	-I../../lib/libtrx-control -I../../external/mit/lua/src \
+		-I../../external/mit/luajson \
 		-D_GNU_SOURCE -DVERSION=\"${VERSION}\"
 LDFLAGS+=	-L../../lib/libtrx-control -ltrx-control \
 		../../lib/liblua/liblua.a -ldl -lm -lreadline

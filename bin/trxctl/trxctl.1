@@ -18,14 +18,14 @@
 .\" FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 .\" IN THE SOFTWARE.
 .\"
-.TH TRXCTL 1 "20 February 2024" "trx-control"
+.TH TRXCTL 1 "07 April 2024" "trx-control"
 .
 .SH NAME
 trxctl
 .
 .
 .SH SYNOPSIS
-trxctl [-vV] [-h host] [-p port]
+trxctl [-ivV] [-h host] [-p port] [command]
 .
 .
 .SH "DESCRIPTION"
@@ -45,6 +45,8 @@ it will display status changes on the console.
 .SH OPTIONS
 .
 .TP
+-i
+Enter interactive mode after executing "command".
 -v
 Run in verbose mode.
 .TP
@@ -68,17 +70,17 @@ Once a destination has been specified, it remains in place for subsequent
 commands until a new destination is specified.
 .
 .TP
-!<Destination>
+@<Destination>
 Specify a destination for subsequent commands.
 .
 
 .TP
-!<Destination> <command>
+@<Destination> <command>
 Specify a destination for this and subsequent commands.
 This can be used as a prefix to the commands listed below.
 Use a single space character between the prefix and the command.
 .TP
-?
+? or @
 List all destinations.
 .
 .SH COMMANDS TO CONTROL TRANSCEIVERS
