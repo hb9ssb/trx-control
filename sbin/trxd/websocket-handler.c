@@ -115,7 +115,6 @@ websocket_handler(void *arg)
 	if (pthread_setname_np(pthread_self(), "websocket"))
 		err(1, "websocket-handler: pthread_setname_np");
 
-	/* Create a websocket-sender thread to send data to the client */
 	s = malloc(sizeof(sender_tag_t));
 	if (s == NULL)
 		err(1, "websocket-handler: malloc");
@@ -171,7 +170,7 @@ websocket_handler(void *arg)
 		err(1, "websocket-handler: pthread_mutex_lock");
 
 	if (verbose)
-		printf("websocket-handler:  wait for dispatcher\n");
+		printf("websocket-handler: wait for dispatcher\n");
 
 	while (d->data != NULL)
 		if (pthread_cond_wait(&d->cond2, &d->mutex2))
@@ -181,14 +180,14 @@ websocket_handler(void *arg)
 		err(1, "websocket-handler: pthread_mutex_lock");
 
 	if (verbose)
-		printf("websocket-handler:  wait for sender\n");
+		printf("websocket-handler: wait for sender\n");
 
 	while (s->data != NULL)
 		if (pthread_cond_wait(&s->cond2, &s->mutex2))
 			err(1, "websocket-handler: pthread_cond_wait");
 
 	if (verbose)
-		printf("websocket-handler:  sender is ready\n");
+		printf("websocket-handler: sender is ready\n");
 
 	for (;;) {
 		/* buf will later be freed by the dispatcher */

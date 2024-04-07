@@ -821,7 +821,7 @@ main(int argc, char *argv[])
 		t->status = 0;
 		t->latitude = t->longitude = t->altitude = 0.0;
 		t->speed = t->course = t->variation = 0.0;
-		t->mode = '\0';
+		t->mode = 'I';
 		t->locator[0] = '\0';
 
 		lua_getfield(L, -1, "device");
