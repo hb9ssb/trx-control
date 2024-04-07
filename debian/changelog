@@ -1,6 +1,8 @@
 trx-control (1.1.9-1) stable; urgency=low
 
   * Document long options in the manual pages.
+  * trxctl(1) can directly take commands passed as arguments on.
+  * Use @ instead of ! to specify a destination in trxctl(1).
   * Fix a bug in the dispatcher thread,.
 
  -- Marc Balmer HB9SSB (trx-control package signing) <info@hb9ssb.ch>  Sun, 7 Apr 2024 17:00:00 +0100
