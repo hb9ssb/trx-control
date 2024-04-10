@@ -676,7 +676,7 @@ dispatcher(void *arg)
 	if (pthread_setname_np(pthread_self(), "dispatcher"))
 		err(1, "dispatcher: pthread_setname_np");
 
-	/* Check if have a default transceiver */
+	/* Check if we have a default transceiver */
 	for (to = destination; to != NULL; to = to->next)
 		if (to->type == DEST_TRX && to->tag.trx->is_default)
 			break;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Micro Systems Marc Balmer, CH-5073 Gipf-Oberfrick.
+ * Copyright (c) 2014 - 2024 Micro Systems Marc Balmer, CH-5073 Gipf-Oberfrick.
  * Copyright (c) 2014 Putilov Andrey
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy

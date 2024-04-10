@@ -115,6 +115,7 @@ websocket_handler(void *arg)
 	if (pthread_setname_np(pthread_self(), "websocket"))
 		err(1, "websocket-handler: pthread_setname_np");
 
+	/* Create a websocket-sender thread to send data to the client */
 	s = malloc(sizeof(sender_tag_t));
 	if (s == NULL)
 		err(1, "websocket-handler: malloc");
