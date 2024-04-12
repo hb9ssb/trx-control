@@ -119,7 +119,8 @@ REDHAT_BASED=	alma-9 \
 SUSE_BASED=	opensuse-leap-15.5 \
 		opensuse-tumbleweed
 
-DEBIAN_BASED=	ubuntu-22.04 \
+DEBIAN_BASED=	ubuntu-24.04 \
+		ubuntu-22.04 \
 		ubuntu-20.04 \
 		debian-13 \
 		debian-12 \
