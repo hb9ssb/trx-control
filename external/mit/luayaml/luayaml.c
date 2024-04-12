@@ -65,7 +65,7 @@ static const char *events[] = {
 #define dprintf(level, fmt, ...)
 #endif
 
-static int perse_error(lua_State *, yaml_parser_t *);
+static int parse_error(lua_State *, yaml_parser_t *);
 static int parse_mapping(lua_State *, yaml_parser_t *, int);
 static int parse_sequence(lua_State *, yaml_parser_t *, int);
 static int parse_node(lua_State *, yaml_parser_t *, yaml_event_t, int, int);

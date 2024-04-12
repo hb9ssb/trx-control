@@ -27,7 +27,7 @@ end
 function ping(request)
 	return {
 		status = 'Ok',
-		response = 'pong',
+		response = 'ping',
 		trxd = {
 			version = trxd.version()
 		}
