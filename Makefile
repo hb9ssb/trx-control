@@ -94,6 +94,7 @@ REDHAT_BASED=	alma-9 \
 		alma-8 \
 		rocky-9 \
 		rocky-8 \
+		fedora-40 \
 		fedora-39 \
 		fedora-38 \
 		centos-7
