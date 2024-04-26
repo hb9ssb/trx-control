@@ -105,6 +105,7 @@ DEBIAN_BASED=	ubuntu-24.04 \
 		ubuntu-23.10 \
 		ubuntu-23.04 \
 		ubuntu-22.04 \
+		ubuntu-20.04 \
 		debian-13 \
 		debian-12 \
 		debian-11 \
