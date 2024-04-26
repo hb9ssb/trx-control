@@ -204,7 +204,7 @@ UID=	$(shell id -u)
 SOCK=	/tmp/.trx-control.$(UID)
 
 repos:	connect fetch-debian packages redhat-repo suse-repo debian-repo \
-	pubkey fix-permissions disconnect
+	pubkey fix-permissions remove-old-packages disconnect
 
 repos-nb:	connect redhat-repo suse-repo debian-repo pubkey disconnect
 
@@ -223,6 +223,10 @@ pubkey:
 
 fix-permissions:
 	ssh -S $(SOCK) trx-control.msys.ch chmod -R g+r,a+r $(REPOBASE)
+
+remove-old-packages:
+	ssh -S $(SOCK) trx-control.msys.ch find $(REPOBASE) -type f -mtime +1 \
+		-exec rm {} " \;"
 
 disconnect:
 	ssh -S $(SOCK) -O exit trx-control.msys.ch
