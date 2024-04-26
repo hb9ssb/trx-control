@@ -225,7 +225,7 @@ fix-permissions:
 	ssh -S $(SOCK) trx-control.msys.ch chmod -R g+r,a+r $(REPOBASE)
 
 remove-old-packages:
-	ssh -S $(SOCK) trx-control.msys.ch find $(REPOBASE) -type f -mtime +1 \
+	ssh -S $(SOCK) trx-control.msys.ch find $(REPOBASE) -type f -mtime +7 \
 		-exec rm {} " \;"
 
 disconnect:
