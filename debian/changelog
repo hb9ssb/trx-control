@@ -1,3 +1,10 @@
+trx-control (1.1.10-1) stable; urgency=low
+
+  * trxd(8) marks the default default transceiver when sending the list of
+    destinations.
+
+ -- Marc Balmer HB9SSB (trx-control package signing) <info@hb9ssb.ch>  Sun, 28 Apr 2024 10:00:00 +0100
+
 trx-control (1.1.9-1) stable; urgency=low
 
   * Document long options in the manual pages.

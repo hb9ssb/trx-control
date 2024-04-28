@@ -612,7 +612,12 @@ list_destination(dispatcher_tag_t *d)
 			buf_addstring(&buf, "extension");
 			break;
 		}
-		buf_addstring(&buf, "\"}");
+		buf_addchar(&buf, '"');
+
+		if (dest->type == DEST_TRX && dest->tag.trx->is_default)
+			buf_addstring(&buf, ",\"default\":true");
+
+		buf_addchar(&buf, '}');
 	}
 	buf_addstring(&buf, "]}");
 
