@@ -89,7 +89,8 @@ function call(to, command, param)
 			print 'Name\t\tType'
 			print '----\t\t----'
 			for k, v in ipairs(response.destination) do
-				print(string.format('%-15s %s', v.name, v.type))
+				print(string.format('%-15s %s %s', v.name,
+				    v.type, v.default and '(default)' or ''))
 			end
 		else
 			vardump(response)

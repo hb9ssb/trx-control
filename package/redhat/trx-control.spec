@@ -140,6 +140,11 @@ rm -rf $RPM_BUILD_ROOT
 %{__make} clean
 
 %changelog
+* Sun Apr 28 2024 Marc Balmer HB9SSB <info@hb9ssb.ch>
+
+ - trxd(8) marks the default transceiver as such when sending the list of
+   destinations.
+
 * Sun Apr 7 2024 Marc Balmer HB9SSB <info@hb9ssb.ch>
 
  - Document long options in the manual pages.
