@@ -90,7 +90,6 @@ ZYPPDEST=	$(PKGDEST)/zypp
 REPOUSER=	root
 REPOPATH=	$(REPOBASE)/rhel-$(RELEASEVER)-$(ARCH)
 
-ifeq ($(ARCH), x86_64)
 REDHAT_BASED=	alma-9 \
 		alma-8 \
 		rocky-9 \
@@ -104,35 +103,16 @@ SUSE_BASED=	opensuse-leap-15.5 \
 		opensuse-tumbleweed
 
 DEBIAN_BASED=	ubuntu-24.04 \
-		ubuntu-23.10 \
-		ubuntu-23.04 \
 		ubuntu-22.04 \
 		ubuntu-20.04 \
 		debian-13 \
 		debian-12 \
 		debian-11 \
 		debian-10
-endif
 
-ifeq ($(ARCH), arm64)
-REDHAT_BASED=	alma-9 \
-		rocky-9 \
-		rocky-8 \
-		fedora-40 \
-		fedora-39 \
-		fedora-38 \
-		centos-7
-
-SUSE_BASED=	opensuse-leap-15.5 \
-		opensuse-tumbleweed
-
-DEBIAN_BASED=	ubuntu-24.04 \
-		ubuntu-22.04 \
-		ubuntu-20.04 \
-		debian-13 \
-		debian-12 \
-		debian-11 \
-		debian-10
+ifeq ($(ARCH), x86_64)
+DEBIAN_BASED+=	ubuntu-23.10 \
+		ubuntu-23.04
 endif
 
 # The following targets are used within the docker container
