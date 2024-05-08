@@ -10,13 +10,16 @@ Source: trx-control-%{version}.tar.gz
 Prefix: /usr
 BuildRequires: avahi-devel
 BuildRequires: curl-devel expat-devel gcc libyaml-devel make motif-devel
-BuildRequires: openssl-devel postgresql%{pg_version}-devel readline-devel
+BuildRequires: openssl-devel readline-devel
 BuildRequires: sqlite-devel
 
 Requires: expat libcurl libyaml motif openssl postgresql16-libs
 Requires: readline sqlite-libs
 
-%if 0%{?!fedora}
+%if %{?fedora:1}%{?!fedora:0}
+BuildRequires: postgresql-server-devel
+%else
+BuildRequires: postgresql%{pg_version}-devel
 Requires: epel-release
 %endif
 

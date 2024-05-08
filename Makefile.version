@@ -1,17 +1,2 @@
--include /etc/os-release
-
 VERSION=	1.1.10
 RELEASE=	1
-
-PG_VERSION?=	16
-PG_CONFIG?=	/usr/pgsql-${PG_VERSION}/bin/pg_config
-
-ifeq ($ID), "centos")
-ifeq ($VERSION_ID), "7")
-PG_VERSION=15
-endif
-endif
-
-ifeq ($(ID), debian)
-PG_CONFIG=/usr/bin/pg_config
-endif

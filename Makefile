@@ -1,5 +1,6 @@
 # This Makefile is used on the target OS to build trx-control locally
 
+include Makefile.postgresql
 include Makefile.version
 
 build:
@@ -117,6 +118,9 @@ ifeq ($(ARCH), arm64)
 REDHAT_BASED=	alma-9 \
 		rocky-9 \
 		rocky-8 \
+		fedora-40 \
+		fedora-39 \
+		fedora-38 \
 		centos-7
 
 SUSE_BASED=	opensuse-leap-15.5 \
