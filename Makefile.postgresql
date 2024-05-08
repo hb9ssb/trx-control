@@ -15,10 +15,7 @@ PG_CONFIG=/usr/bin/pg_config
 endif
 
 ifeq ($(ID), fedora)
-
-ifeq ($(ARCH), aarch64)
 PG_CONFIG=	/usr/bin/pg_config
-endif
 
 ifeq ($(VERSION_ID), "39")
 PG_VERSION=15
