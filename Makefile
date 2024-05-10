@@ -111,8 +111,7 @@ DEBIAN_BASED=	ubuntu-24.04 \
 		debian-10
 
 ifeq ($(ARCH), x86_64)
-DEBIAN_BASED+=	ubuntu-23.10 \
-		ubuntu-23.04
+DEBIAN_BASED+=	ubuntu-23.10
 endif
 
 # The following targets are used within the docker container
