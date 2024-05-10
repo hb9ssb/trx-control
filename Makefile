@@ -99,7 +99,8 @@ REDHAT_BASED=	alma-9 \
 		fedora-38 \
 		centos-7
 
-SUSE_BASED=	opensuse-leap-15.5 \
+SUSE_BASED=	opensuse-leap-15.6 \
+		opensuse-leap-15.5 \
 		opensuse-tumbleweed
 
 DEBIAN_BASED=	ubuntu-24.04 \
