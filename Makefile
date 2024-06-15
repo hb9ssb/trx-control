@@ -7,7 +7,6 @@ build:
 
 # Build instructions
 SUBDIR+=	bin/trxctl \
-		bin/xqrg \
 		gpio \
 		lib/liblua \
 		lib/libtrx-control \
