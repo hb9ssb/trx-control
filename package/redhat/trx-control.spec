@@ -9,11 +9,11 @@ License: MIT
 Source: trx-control-%{version}.tar.gz
 Prefix: /usr
 BuildRequires: avahi-devel
-BuildRequires: curl-devel expat-devel gcc libyaml-devel make motif-devel
+BuildRequires: curl-devel expat-devel gcc libyaml-devel make
 BuildRequires: openssl-devel readline-devel
 BuildRequires: sqlite-devel
 
-Requires: expat libcurl libyaml motif openssl postgresql16-libs
+Requires: expat libcurl libyaml openssl postgresql16-libs
 Requires: readline sqlite-libs
 
 %if %{?fedora:1}%{?!fedora:0}
@@ -41,9 +41,7 @@ trx-control software repository
 
 %files
 /etc/systemd/system/trx-control.service
-/etc/X11/app-defaults/XQRG
 /usr/bin/trxctl
-/usr/bin/xqrg
 /usr/lib/udev/rules.d/70-bmcm-usb-pio.rules
 /usr/lib/udev/rules.d/70-ft-710.rules
 /usr/lib/udev/rules.d/70-ic-705.rules
@@ -97,7 +95,6 @@ trx-control software repository
 /usr/share/trxd/trx/yaesu-ft-897.lua
 /usr/share/trxd/trx/yaesu-ft-991a.lua
 /usr/share/trxd/trxd.yaml
-/usr/share/xqrg/xqrg.lua
 
 %pre
 if [ "$1" == "1" ]; then

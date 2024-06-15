@@ -3,5 +3,4 @@
 .DS_Store
 
 bin/trxctl/trxctl
-bin/xqrg/xqrg
 sbin/trxd/trxd
