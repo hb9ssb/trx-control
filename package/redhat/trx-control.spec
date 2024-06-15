@@ -45,6 +45,7 @@ trx-control software repository
 /usr/lib/udev/rules.d/70-bmcm-usb-pio.rules
 /usr/lib/udev/rules.d/70-ft-710.rules
 /usr/lib/udev/rules.d/70-ic-705.rules
+/usr/lib/udev/rules.d/70-th-d75.rules
 /usr/lib/udev/rules.d/70-yaesu-cat.rules
 /usr/sbin/trxd
 /usr/share/man/man1/trxctl.1.gz
