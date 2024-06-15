@@ -49,7 +49,6 @@ trx-control software repository
 /usr/lib/udev/rules.d/70-yaesu-cat.rules
 /usr/sbin/trxd
 /usr/share/man/man1/trxctl.1.gz
-/usr/share/man/man1/xqrg.1.gz
 /usr/share/man/man7/trx-control.7.gz
 /usr/share/man/man8/trxd.8.gz
 /usr/share/trxctl/trxctl.lua
