@@ -95,8 +95,7 @@ REDHAT_BASED=	alma-9 \
 		rocky-8 \
 		fedora-40 \
 		fedora-39 \
-		fedora-38 \
-		centos-7
+		fedora-38
 
 SUSE_BASED=	opensuse-leap-15.6 \
 		opensuse-leap-15.5 \
@@ -107,8 +106,7 @@ DEBIAN_BASED=	ubuntu-24.04 \
 		ubuntu-20.04 \
 		debian-13 \
 		debian-12 \
-		debian-11 \
-		debian-10
+		debian-11
 
 ifeq ($(ARCH), x86_64)
 DEBIAN_BASED+=	ubuntu-23.10
