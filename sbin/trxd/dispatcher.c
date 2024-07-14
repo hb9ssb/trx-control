@@ -93,6 +93,50 @@ call_trx_controller(dispatcher_tag_t *d, trx_controller_tag_t *t)
 }
 
 static void
+call_sdr_controller(dispatcher_tag_t *d, sdr_controller_tag_t *t)
+{
+	if (pthread_mutex_lock(&t->mutex))
+		err(1, "dispatcher: pthread_mutex_lock");
+
+	if (pthread_mutex_lock(&d->sender->mutex))
+		err(1, "dispatcher: pthread_mutex_lock");
+
+	t->handler = "requestHandler";
+	t->response = NULL;
+	t->data = d->data;
+
+	if (pthread_mutex_lock(&t->mutex2))
+		err(1, "dispatcher: pthread_mutex_lock");
+
+	/* We signal cond, and mutex gets owned by trx-controller */
+	if (pthread_cond_signal(&t->cond1))
+		err(1, "dispatcher: pthread_cond_signal");
+
+	if (pthread_mutex_unlock(&t->mutex2))
+		err(1, "dispatcher: pthread_mutex_unlock");
+
+	while (t->response == NULL) {
+		if (pthread_cond_wait(&t->cond2, &t->mutex2))
+			err(1, "dispatcher: pthread_cond_wait");
+	}
+
+	if (strlen(t->response) > 0) {
+		d->sender->data = t->response;
+		if (pthread_cond_signal(&d->sender->cond))
+			err(1, "dispatcher: pthread_cond_signal");
+		pthread_mutex_unlock(&d->sender->mutex);
+	} else {
+		pthread_mutex_unlock(&d->sender->mutex);
+	}
+
+	if (pthread_mutex_unlock(&t->mutex2))
+		err(1, "dispatcher: pthread_mutex_unlock");
+
+	if (pthread_mutex_unlock(&t->mutex))
+		err(1, "dispatcher: pthread_mutex_unlock");
+}
+
+static void
 call_gpio_controller(dispatcher_tag_t *d, gpio_controller_tag_t *t)
 {
 	printf("call gpio controller\n");
@@ -551,6 +595,9 @@ dispatch(lua_State *L, dispatcher_tag_t *d, destination_t *to, const char *req)
 	case DEST_TRX:
 		call_trx_controller(d, to->tag.trx);
 		break;
+	case DEST_SDR:
+		call_sdr_controller(d, to->tag.sdr);
+		break;
 	case DEST_GPIO:
 		call_gpio_controller(d, to->tag.gpio);
 		break;
@@ -595,6 +642,9 @@ list_destination(dispatcher_tag_t *d)
 		switch (dest->type) {
 		case DEST_TRX:
 			buf_addstring(&buf, "transceiver");
+			break;
+		case DEST_SDR:
+			buf_addstring(&buf, "sdr");
 			break;
 		case DEST_ROTOR:
 			buf_addstring(&buf, "rotor");

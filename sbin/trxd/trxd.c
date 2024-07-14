@@ -68,6 +68,7 @@ extern void proxy_map(lua_State *, lua_State *, int);
 extern void *nmea_handler(void *);
 extern void *socket_handler(void *);
 extern void *trx_controller(void *);
+extern void *sdr_controller(void *);
 extern void *gpio_controller(void *);
 extern void *relay_controller(void *);
 extern void *websocket_listener(void *);
@@ -105,6 +106,9 @@ add_destination(const char *name, enum DestinationType type, void *arg)
 	switch (type) {
 	case DEST_TRX:
 		d->tag.trx = arg;
+		break;
+	case DEST_SDR:
+		d->tag.sdr = arg;
 		break;
 	case DEST_RELAY:
 		d->tag.relay = arg;

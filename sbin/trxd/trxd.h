@@ -78,6 +78,40 @@ typedef struct trx_controller_tag {
 	sender_list_t		*senders;
 } trx_controller_tag_t;
 
+typedef struct sdr_controller_tag {
+	/* The first mutex locks the sdr-controller */
+	pthread_mutex_t		 mutex;
+
+	pthread_mutex_t		 mutex2;
+	pthread_cond_t		 cond1;	/* A handler is set */
+	const char		*handler;
+
+	pthread_cond_t		 cond2;	/* A response is set */
+	char			*response;
+
+	char			*name;
+	const char		*device;
+	int			 speed;		/* For serial devices */
+	int			 channel;	/* For RFCOMM devices */
+	const char		*driver;
+	int			 is_default;
+
+	lua_State		*L;
+	int			 ref;
+
+	char			*data;
+
+	int			 client_fd;
+	int			 cat_device;
+	pthread_t		 sdr_controller;
+	pthread_t		 sdr_handler;
+	int			 is_running;
+	int			 handler_running;
+	int			 handler_eol;
+
+	sender_list_t		*senders;
+} sdr_controller_tag_t;
+
 #define LOCATORMAX		6
 
 typedef struct nmea_tag {
@@ -182,6 +216,7 @@ typedef struct extension_tag {
 
 enum DestinationType {
 	DEST_TRX,
+	DEST_SDR,
 	DEST_ROTOR,
 	DEST_RELAY,
 	DEST_GPIO,
@@ -195,6 +230,7 @@ typedef struct destination {
 
 	union {
 		trx_controller_tag_t	*trx;
+		sdr_controller_tag_t	*sdr;
 		gpio_controller_tag_t	*gpio;
 		nmea_tag_t		*nmea;
 		relay_controller_tag_t	*relay;
