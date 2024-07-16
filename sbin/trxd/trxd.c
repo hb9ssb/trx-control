@@ -399,6 +399,7 @@ main(int argc, char *argv[])
 			t->is_running = 0;
 			t->speed = 9600;
 			t->channel = 0;
+			t->audio_input = t->audio_output = NULL;
 			t->poller_required = 0;
 			t->poller_running = 0;
 			t->handler_running = 0;
@@ -418,6 +419,21 @@ main(int argc, char *argv[])
 			lua_getfield(L, -1, "channel");
 			if (lua_isinteger(L, -1))
 				t->channel =lua_tointeger(L, -1);
+			lua_pop(L, 1);
+
+			lua_getfield(L, -1, "audio");
+			if (lua_istable(L, -1)) {
+				lua_getfield(L, -1, "input");
+				if (lua_isstring(L, -1))
+					t->audio_input =
+					    strdup(lua_tostring(L, -1));
+				lua_pop(L, 1);
+				lua_getfield(L, -1, "output");
+				if (lua_isstring(L, -1))
+					t->audio_output =
+					    strdup(lua_tostring(L, -1));
+				lua_pop(L, 1);
+			}
 			lua_pop(L, 1);
 
 			lua_getfield(L, -1, "driver");

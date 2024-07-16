@@ -55,6 +55,8 @@ typedef struct trx_controller_tag {
 	const char		*device;
 	int			 speed;		/* For serial devices */
 	int			 channel;	/* For RFCOMM devices */
+	char			*audio_input;
+	char			*audio_output;
 	const char		*driver;
 	int			 is_default;
 
