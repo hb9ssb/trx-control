@@ -108,10 +108,6 @@ DEBIAN_BASED=	ubuntu-24.04 \
 		debian-12 \
 		debian-11
 
-ifeq ($(ARCH), x86_64)
-DEBIAN_BASED+=	ubuntu-23.10
-endif
-
 # The following targets are used within the docker container
 CODENAME?=	$(shell lsb_release -sc)
 DEBBASE=	/apt/dists/$(CODENAME)
