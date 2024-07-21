@@ -140,6 +140,10 @@ rm -rf $RPM_BUILD_ROOT
 %{__make} clean
 
 %changelog
+* Sun Jul 21 2024 Marc Balmer HB9SSB <info@hb9ssb.ch>
+
+ - Fix handling of ping frames without a payload in the WebSocket code.
+
 * Sun Apr 28 2024 Marc Balmer HB9SSB <info@hb9ssb.ch>
 
  - trxd(8) marks the default transceiver as such when sending the list of
