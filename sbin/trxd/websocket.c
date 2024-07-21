@@ -307,6 +307,9 @@ wsParseInputFrame(uint8_t *inputFrame, size_t inputLength, uint8_t **dataPtr,
 
 			for (i = 0; i < *dataLength; i++)
 				(*dataPtr)[i] = (*dataPtr)[i] ^ maskingKey[i%4];
+		} else {
+			*dataPtr = NULL;
+			*dataLength = 0;
 		}
 		return opcode;
 	}
@@ -357,23 +360,28 @@ wsRead(char **dest, size_t *destlen,
 		payloadLength = wsGetPayloadLength(buf, len,
 		    &payloadFieldExtraBytes, &frameType);
 
-		/* Ensure buf can hold the complete payload */
-		if (6 + payloadFieldExtraBytes + payloadLength > bufsize) {
-			bufsize = 6 + payloadFieldExtraBytes + payloadLength;
-			buf = realloc(buf, bufsize);
-			if (buf == NULL)
-				return -1;
-		}
-
-		do {
-			nread = readfunc(client_data, buf + len, payloadLength +
-			    payloadFieldExtraBytes);
-			if (nread <= 0) {
-				free(buf);
-				return -1;
+		if (payloadLength + payloadFieldExtraBytes > 0) {
+			/* Ensure buf can hold the complete payload */
+			if (6 + payloadFieldExtraBytes + payloadLength >
+			    bufsize) {
+				bufsize = 6 + payloadFieldExtraBytes +
+				    payloadLength;
+				buf = realloc(buf, bufsize);
+				if (buf == NULL)
+					return -1;
 			}
-			len += nread;
-		} while (len < 6 + payloadFieldExtraBytes + payloadLength);
+
+			do {
+				nread = readfunc(client_data, buf + len,
+				    payloadLength + payloadFieldExtraBytes);
+				if (nread <= 0) {
+					free(buf);
+					return -1;
+				}
+				len += nread;
+			} while (len < 6 + payloadFieldExtraBytes +
+			    payloadLength);
+		}
 
 		type = wsParseInputFrame((unsigned char *)buf, len, &data,
 			&datasize);
@@ -386,9 +394,10 @@ wsRead(char **dest, size_t *destlen,
 			free(buf);
 			return -1;
 		case WS_PING_FRAME:
-			data[datasize] = '\0';
-			wsMakeFrame(data, datasize, (unsigned char *)buf, &datasize,
-			    WS_PONG_FRAME);
+			if (data)
+				data[datasize] = '\0';
+			wsMakeFrame(data, datasize, (unsigned char *)buf,
+			    &datasize, WS_PONG_FRAME);
 			writefunc(client_data, buf, datasize);
 			len = 0;
 			type = WS_INCOMPLETE_FRAME;
