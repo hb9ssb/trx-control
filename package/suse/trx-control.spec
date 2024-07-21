@@ -49,7 +49,6 @@ trx-control software repository
 /usr/share/trxd/extension/config.lua
 /usr/share/trxd/extension/dxcluster.lua
 /usr/share/trxd/extension/hamqth.lua
-/usr/share/trxd/extension/keepalive.lua
 /usr/share/trxd/extension/logbook.lua
 /usr/share/trxd/extension/memory.lua
 /usr/share/trxd/extension/memory-db.lua
@@ -136,6 +135,7 @@ rm -rf $RPM_BUILD_ROOT
 * Sun Jul 21 2024 Marc Balmer HB9SSB <info@hb9ssb.ch>
 
  - Fix handling of ping frames without a payload in the WebSocket code.
+ - The keepalive extension has been removed.
 
 * Sun Apr 28 2024 Marc Balmer HB9SSB <info@hb9ssb.ch>
 
