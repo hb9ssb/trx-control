@@ -94,8 +94,7 @@ REDHAT_BASED=	alma-9 \
 		rocky-9 \
 		rocky-8 \
 		fedora-40 \
-		fedora-39 \
-		fedora-38
+		fedora-39
 
 SUSE_BASED=	opensuse-leap-15.6 \
 		opensuse-leap-15.5 \
