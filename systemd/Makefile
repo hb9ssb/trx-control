@@ -1,4 +1,4 @@
-UNITS=	trx-control.service
+UNITS=	trxd.service
 
 all:
 

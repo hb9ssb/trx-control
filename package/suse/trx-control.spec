@@ -33,7 +33,7 @@ plain TCP/IP sockets or WebSockets.
 trx-control software repository
 
 %files
-/etc/systemd/system/trx-control.service
+/etc/systemd/system/trxd.service
 /usr/bin/trxctl
 /usr/lib/udev/rules.d/70-bmcm-usb-pio.rules
 /usr/lib/udev/rules.d/70-ft-710.rules

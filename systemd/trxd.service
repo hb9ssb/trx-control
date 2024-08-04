@@ -1,5 +1,5 @@
 [Unit]
-Description=trx-control
+Description=trxd
 After=network.target
 
 [Service]
