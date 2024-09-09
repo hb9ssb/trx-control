@@ -1,4 +1,3 @@
--- Copyright (c) 2024 Derek Rowland NZ0P
 -- Copyright (c) 2023 - 2024 Marc Balmer HB9SSB
 --
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -58,7 +57,7 @@ local function getFrequency(driver)
 	sendMessage('FA')
 	local reply = trx.read(14)
 	local freq = string.sub(reply,3,13)
-	
+
 	sendMessage('MD')
         reply = trx.read(4)
         local mode = string.sub(reply,3,3)

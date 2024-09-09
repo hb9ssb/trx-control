@@ -1,4 +1,3 @@
--- Copyright (c) 2024 Derek Rowland NZ0P
 -- Copyright (c) 2023 Marc Balmer HB9SSB
 --
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
