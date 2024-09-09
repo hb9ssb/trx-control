@@ -45,7 +45,6 @@ trx-control software repository
 /usr/share/man/man7/trx-control.7.gz
 /usr/share/man/man8/trxd.8.gz
 /usr/share/trxctl/trxctl.lua
-/usr/share/trxd/extension/cloudlog.lua
 /usr/share/trxd/extension/config.lua
 /usr/share/trxd/extension/dxcluster.lua
 /usr/share/trxd/extension/hamqth.lua
@@ -79,7 +78,6 @@ trx-control software repository
 /usr/share/trxd/trx/icom-ic-705.lua
 /usr/share/trxd/trx/icom-ic-7300.lua
 /usr/share/trxd/trx/simulator.lua
-/usr/share/trxd/trx/trusdx.lua
 /usr/share/trxd/trx/yaesu-ft-710.lua
 /usr/share/trxd/trx/yaesu-ft-817.lua
 /usr/share/trxd/trx/yaesu-ft-857.lua
