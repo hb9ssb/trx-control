@@ -10,7 +10,7 @@
 <BODY>
 
 <H1>
-<A HREF="http://www.lua.org/"><IMG SRC="logo.gif" ALT="Lua"></A>
+<A HREF="https://www.lua.org/"><IMG SRC="logo.gif" ALT="Lua"></A>
 Lua 5.4 Reference Manual
 </H1>
 
@@ -19,9 +19,9 @@ by Roberto Ierusalimschy, Luiz Henrique de Figueiredo, Waldemar Celes
 
 <P>
 <SMALL>
-Copyright &copy; 2020&ndash;2023 Lua.org, PUC-Rio.
+Copyright &copy; 2020&ndash;2024 Lua.org, PUC-Rio.
 Freely available under the terms of the
-<a href="http://www.lua.org/license.html">Lua license</a>.
+<a href="https://www.lua.org/license.html">Lua license</a>.
 </SMALL>
 
 <DIV CLASS="menubar">
@@ -29,7 +29,7 @@ Freely available under the terms of the
 &middot;
 <A HREF="contents.html#index">index</A>
 &middot;
-<A HREF="http://www.lua.org/manual/">other versions</A>
+<A HREF="https://www.lua.org/manual/">other versions</A>
 </DIV>
 
 <!-- ====================================================================== -->
@@ -391,7 +391,7 @@ Whenever there is an error,
 an <em>error object</em>
 is propagated with information about the error.
 Lua itself only generates errors whose error object is a string,
-but programs may generate errors with
+but programs can generate errors with
 any value as the error object.
 It is up to the Lua program or its host to handle such error objects.
 For historical reasons,
@@ -401,7 +401,7 @@ even though it does not have to be a string.
 
 <p>
 When you use <a href="#pdf-xpcall"><code>xpcall</code></a> (or <a href="#lua_pcall"><code>lua_pcall</code></a>, in C)
-you may give a <em>message handler</em>
+you can give a <em>message handler</em>
 to be called in case of errors.
 This function is called with the original error object
 and returns a new error object.
@@ -453,7 +453,7 @@ which is then called a <em>metamethod</em>.
 In the previous example, the key is the string "<code>__add</code>"
 and the metamethod is the function that performs the addition.
 Unless stated otherwise,
-a metamethod may in fact be any callable value,
+a metamethod can in fact be any callable value,
 which is either a function or a value with a <code>__call</code> metamethod.
 
 
@@ -1145,7 +1145,7 @@ consider the following code:
        print("foo", a)
        return coroutine.yield(2*a)
      end
-
+     
      co = coroutine.create(function (a,b)
            print("co-body", a, b)
            local r = foo(a+1)
@@ -1154,7 +1154,7 @@ consider the following code:
            print("co-body", r, s)
            return b, "end"
      end)
-
+     
      print("main", coroutine.resume(co, 1, 10))
      print("main", coroutine.resume(co, "r"))
      print("main", coroutine.resume(co, "x", "y"))
@@ -1322,8 +1322,8 @@ enclosed by <em>long brackets</em>.
 We define an <em>opening long bracket of level <em>n</em></em> as an opening
 square bracket followed by <em>n</em> equal signs followed by another
 opening square bracket.
-So, an opening long bracket of level&nbsp;0 is written as <code>[[</code>,
-an opening long bracket of level&nbsp;1 is written as <code>[=[</code>,
+So, an opening long bracket of level&nbsp;0 is written as <code>[[</code>, 
+an opening long bracket of level&nbsp;1 is written as <code>[=[</code>, 
 and so on.
 A <em>closing long bracket</em> is defined similarly;
 for instance,
@@ -1530,7 +1530,7 @@ The grammar could see this fragment in two ways:
 
 <pre>
      a = b + c(print or io.write)('done')
-
+     
      a = b + c; (print or io.write)('done')
 </pre><p>
 The current parser always sees such constructions
@@ -1725,7 +1725,7 @@ labels in Lua are considered statements too:
 <p>
 A label is visible in the entire block where it is defined,
 except inside nested functions.
-A goto may jump to any visible label as long as it does not
+A goto can jump to any visible label as long as it does not
 enter into the scope of a local variable.
 A label should not be declared
 where a label with the same name is visible,
@@ -2696,13 +2696,13 @@ to the vararg expression:
 
 <pre>
      CALL             PARAMETERS
-
+     
      f(3)             a=3, b=nil
      f(3, 4)          a=3, b=4
      f(3, 4, 5)       a=3, b=4
      f(r(), 10)       a=1, b=10
      f(r())           a=1, b=2
-
+     
      g(3)             a=3, b=nil, ... --&gt;  (nothing)
      g(3, 4)          a=3, b=4,   ... --&gt;  (nothing)
      g(3, 4, 5, 8)    a=3, b=4,   ... --&gt;  5  8
@@ -3404,7 +3404,7 @@ First, we can rewrite our function like here:
      int k (lua_State *L, int status, lua_KContext ctx) {
        ...  /* code 2 */
      }
-
+     
      int original_function (lua_State *L) {
        ...     /* code 1 */
        return k(L, lua_pcall(L, n, m, h), ctx);
@@ -3841,6 +3841,35 @@ when called through this function.
 
 <p>
 (This function was introduced in release&nbsp;5.4.3.)
+
+
+
+
+
+<hr><h3><a name="lua_closethread"><code>lua_closethread</code></a></h3><p>
+<span class="apii">[-0, +?, &ndash;]</span>
+<pre>int lua_closethread (lua_State *L, lua_State *from);</pre>
+
+<p>
+Resets a thread, cleaning its call stack and closing all pending
+to-be-closed variables.
+Returns a status code:
+<a href="#pdf-LUA_OK"><code>LUA_OK</code></a> for no errors in the thread
+(either the original error that stopped the thread or
+errors in closing methods),
+or an error status otherwise.
+In case of error,
+leaves the error object on the top of the stack.
+
+
+<p>
+The parameter <code>from</code> represents the coroutine that is resetting <code>L</code>.
+If there is no such coroutine,
+this parameter can be <code>NULL</code>.
+
+
+<p>
+(This function was introduced in release&nbsp;5.4.6.)
 
 
 
@@ -5219,25 +5248,12 @@ and then pops the top element.
 
 <hr><h3><a name="lua_resetthread"><code>lua_resetthread</code></a></h3><p>
 <span class="apii">[-0, +?, &ndash;]</span>
-<pre>int lua_resetthread (lua_State *L, lua_State *from);</pre>
+<pre>int lua_resetthread (lua_State *L);</pre>
 
 <p>
-Resets a thread, cleaning its call stack and closing all pending
-to-be-closed variables.
-Returns a status code:
-<a href="#pdf-LUA_OK"><code>LUA_OK</code></a> for no errors in the thread
-(either the original error that stopped the thread or
-errors in closing methods),
-or an error status otherwise.
-In case of error,
-leaves the error object on the top of the stack.
-
-
-<p>
-The parameter <code>from</code> represents the coroutine that is resetting <code>L</code>.
-If there is no such coroutine,
-this parameter can be <code>NULL</code>.
-(This parameter was introduced in release&nbsp;5.4.5.)
+This function is deprecated;
+it is equivalent to <a href="#lua_closethread"><code>lua_closethread</code></a> with
+<code>from</code> being <code>NULL</code>.
 
 
 
@@ -5555,7 +5571,7 @@ otherwise, returns <code>NULL</code>.
 
 
 <hr><h3><a name="lua_toclose"><code>lua_toclose</code></a></h3><p>
-<span class="apii">[-0, +0, <em>m</em>]</span>
+<span class="apii">[-0, +0, <em>v</em>]</span>
 <pre>void lua_toclose (lua_State *L, int index);</pre>
 
 <p>
@@ -5573,6 +5589,11 @@ or there is a call to <a href="#lua_closeslot"><code>lua_closeslot</code></a>.
 A slot marked as to-be-closed should not be removed from the stack
 by any other function in the API except <a href="#lua_settop"><code>lua_settop</code></a> or <a href="#lua_pop"><code>lua_pop</code></a>,
 unless previously deactivated by <a href="#lua_closeslot"><code>lua_closeslot</code></a>.
+
+
+<p>
+This function raises an error if the value at the given slot
+neither has a <code>__close</code> metamethod nor is a false value.
 
 
 <p>
@@ -5646,6 +5667,12 @@ to a string inside the Lua state (see <a href="#4.1.3">&sect;4.1.3</a>).
 This string always has a zero ('<code>\0</code>')
 after its last character (as in&nbsp;C),
 but can contain other zeros in its body.
+
+
+<p>
+This function can raise memory errors only
+when converting a number to a string
+(as then it may create a new string).
 
 
 
@@ -9292,21 +9319,21 @@ Here are some examples:
 <pre>
      x = string.gsub("hello world", "(%w+)", "%1 %1")
      --&gt; x="hello hello world world"
-
+     
      x = string.gsub("hello world", "%w+", "%0 %0", 1)
      --&gt; x="hello hello world"
-
+     
      x = string.gsub("hello world from Lua", "(%w+)%s*(%w+)", "%2 %1")
      --&gt; x="world hello Lua from"
-
+     
      x = string.gsub("home = $HOME, user = $USER", "%$(%w+)", os.getenv)
      --&gt; x="home = /home/roberto, user = roberto"
-
+     
      x = string.gsub("4+5 = $return 4+5$", "%$(.-)%$", function (s)
            return load(s)()
          end)
      --&gt; x="4+5 = 9"
-
+     
      local t = {name="lua", version="5.4"}
      x = string.gsub("$name-$version.tar.gz", "%$(%w+)", t)
      --&gt; x="lua-5.4.tar.gz"
@@ -10156,7 +10183,7 @@ Returns the arc sine of <code>x</code> (in radians).
 
 
 <p>
-
+ 
 Returns the arc tangent of <code>y/x</code> (in radians),
 using the signs of both arguments to find the
 quadrant of the result.
@@ -10330,7 +10357,7 @@ Converts the angle <code>x</code> from degrees to radians.
 <p>
 When called without arguments,
 returns a pseudo-random float with uniform distribution
-in the range  <em>[0,1)</em>.
+in the range  <em>[0,1)</em>.  
 When called with two integers <code>m</code> and <code>n</code>,
 <code>math.random</code> returns a pseudo-random integer
 with uniform distribution in the range <em>[m, n]</em>.
@@ -11260,13 +11287,13 @@ The returned table can contain all the fields returned by <a href="#lua_getinfo"
 with the string <code>what</code> describing which fields to fill in.
 The default for <code>what</code> is to get all information available,
 except the table of valid lines.
-If present,
-the option '<code>f</code>'
+The option '<code>f</code>'
 adds a field named <code>func</code> with the function itself.
-If present,
-the option '<code>L</code>'
-adds a field named <code>activelines</code> with the table of
-valid lines.
+The option '<code>L</code>' adds a field named <code>activelines</code>
+with the table of valid lines,
+provided the function is a Lua function.
+If the function has no debug information,
+the table is empty.
 
 
 <p>
@@ -11307,7 +11334,7 @@ and raises an error when called with a level out of range.
 
 
 <p>
-Variable names starting with '<code>(</code>' (open parenthesis)
+Variable names starting with '<code>(</code>' (open parenthesis) 
 represent variables with no known names
 (internal variables such as loop control variables,
 and variables from chunks saved without debug information).
@@ -11603,6 +11630,10 @@ Lua does not consult any environment variables.
 In particular,
 the values of <a href="#pdf-package.path"><code>package.path</code></a> and <a href="#pdf-package.cpath"><code>package.cpath</code></a>
 are set with the default paths defined in <code>luaconf.h</code>.
+To signal to the libraries that this option is on,
+the stand-alone interpreter sets the field
+<code>"LUA_NOENV"</code> in the registry to a true value.
+Other libraries may consult this field for the same purpose.
 
 
 <p>
@@ -11944,21 +11975,21 @@ and LiteralString, see <a href="#3.1">&sect;3.1</a>.)
 
 	block ::= {stat} [retstat]
 
-	stat ::=  &lsquo;<b>;</b>&rsquo; |
-		 varlist &lsquo;<b>=</b>&rsquo; explist |
-		 functioncall |
-		 label |
-		 <b>break</b> |
-		 <b>goto</b> Name |
-		 <b>do</b> block <b>end</b> |
-		 <b>while</b> exp <b>do</b> block <b>end</b> |
-		 <b>repeat</b> block <b>until</b> exp |
-		 <b>if</b> exp <b>then</b> block {<b>elseif</b> exp <b>then</b> block} [<b>else</b> block] <b>end</b> |
-		 <b>for</b> Name &lsquo;<b>=</b>&rsquo; exp &lsquo;<b>,</b>&rsquo; exp [&lsquo;<b>,</b>&rsquo; exp] <b>do</b> block <b>end</b> |
-		 <b>for</b> namelist <b>in</b> explist <b>do</b> block <b>end</b> |
-		 <b>function</b> funcname funcbody |
-		 <b>local</b> <b>function</b> Name funcbody |
-		 <b>local</b> attnamelist [&lsquo;<b>=</b>&rsquo; explist]
+	stat ::=  &lsquo;<b>;</b>&rsquo; | 
+		 varlist &lsquo;<b>=</b>&rsquo; explist | 
+		 functioncall | 
+		 label | 
+		 <b>break</b> | 
+		 <b>goto</b> Name | 
+		 <b>do</b> block <b>end</b> | 
+		 <b>while</b> exp <b>do</b> block <b>end</b> | 
+		 <b>repeat</b> block <b>until</b> exp | 
+		 <b>if</b> exp <b>then</b> block {<b>elseif</b> exp <b>then</b> block} [<b>else</b> block] <b>end</b> | 
+		 <b>for</b> Name &lsquo;<b>=</b>&rsquo; exp &lsquo;<b>,</b>&rsquo; exp [&lsquo;<b>,</b>&rsquo; exp] <b>do</b> block <b>end</b> | 
+		 <b>for</b> namelist <b>in</b> explist <b>do</b> block <b>end</b> | 
+		 <b>function</b> funcname funcbody | 
+		 <b>local</b> <b>function</b> Name funcbody | 
+		 <b>local</b> attnamelist [&lsquo;<b>=</b>&rsquo; explist] 
 
 	attnamelist ::=  Name attrib {&lsquo;<b>,</b>&rsquo; Name attrib}
 
@@ -11972,20 +12003,20 @@ and LiteralString, see <a href="#3.1">&sect;3.1</a>.)
 
 	varlist ::= var {&lsquo;<b>,</b>&rsquo; var}
 
-	var ::=  Name | prefixexp &lsquo;<b>[</b>&rsquo; exp &lsquo;<b>]</b>&rsquo; | prefixexp &lsquo;<b>.</b>&rsquo; Name
+	var ::=  Name | prefixexp &lsquo;<b>[</b>&rsquo; exp &lsquo;<b>]</b>&rsquo; | prefixexp &lsquo;<b>.</b>&rsquo; Name 
 
 	namelist ::= Name {&lsquo;<b>,</b>&rsquo; Name}
 
 	explist ::= exp {&lsquo;<b>,</b>&rsquo; exp}
 
-	exp ::=  <b>nil</b> | <b>false</b> | <b>true</b> | Numeral | LiteralString | &lsquo;<b>...</b>&rsquo; | functiondef |
-		 prefixexp | tableconstructor | exp binop exp | unop exp
+	exp ::=  <b>nil</b> | <b>false</b> | <b>true</b> | Numeral | LiteralString | &lsquo;<b>...</b>&rsquo; | functiondef | 
+		 prefixexp | tableconstructor | exp binop exp | unop exp 
 
 	prefixexp ::= var | functioncall | &lsquo;<b>(</b>&rsquo; exp &lsquo;<b>)</b>&rsquo;
 
-	functioncall ::=  prefixexp args | prefixexp &lsquo;<b>:</b>&rsquo; Name args
+	functioncall ::=  prefixexp args | prefixexp &lsquo;<b>:</b>&rsquo; Name args 
 
-	args ::=  &lsquo;<b>(</b>&rsquo; [explist] &lsquo;<b>)</b>&rsquo; | tableconstructor | LiteralString
+	args ::=  &lsquo;<b>(</b>&rsquo; [explist] &lsquo;<b>)</b>&rsquo; | tableconstructor | LiteralString 
 
 	functiondef ::= <b>function</b> funcbody
 
@@ -12001,9 +12032,9 @@ and LiteralString, see <a href="#3.1">&sect;3.1</a>.)
 
 	fieldsep ::= &lsquo;<b>,</b>&rsquo; | &lsquo;<b>;</b>&rsquo;
 
-	binop ::=  &lsquo;<b>+</b>&rsquo; | &lsquo;<b>-</b>&rsquo; | &lsquo;<b>*</b>&rsquo; | &lsquo;<b>/</b>&rsquo; | &lsquo;<b>//</b>&rsquo; | &lsquo;<b>^</b>&rsquo; | &lsquo;<b>%</b>&rsquo; |
-		 &lsquo;<b>&amp;</b>&rsquo; | &lsquo;<b>~</b>&rsquo; | &lsquo;<b>|</b>&rsquo; | &lsquo;<b>&gt;&gt;</b>&rsquo; | &lsquo;<b>&lt;&lt;</b>&rsquo; | &lsquo;<b>..</b>&rsquo; |
-		 &lsquo;<b>&lt;</b>&rsquo; | &lsquo;<b>&lt;=</b>&rsquo; | &lsquo;<b>&gt;</b>&rsquo; | &lsquo;<b>&gt;=</b>&rsquo; | &lsquo;<b>==</b>&rsquo; | &lsquo;<b>~=</b>&rsquo; |
+	binop ::=  &lsquo;<b>+</b>&rsquo; | &lsquo;<b>-</b>&rsquo; | &lsquo;<b>*</b>&rsquo; | &lsquo;<b>/</b>&rsquo; | &lsquo;<b>//</b>&rsquo; | &lsquo;<b>^</b>&rsquo; | &lsquo;<b>%</b>&rsquo; | 
+		 &lsquo;<b>&amp;</b>&rsquo; | &lsquo;<b>~</b>&rsquo; | &lsquo;<b>|</b>&rsquo; | &lsquo;<b>&gt;&gt;</b>&rsquo; | &lsquo;<b>&lt;&lt;</b>&rsquo; | &lsquo;<b>..</b>&rsquo; | 
+		 &lsquo;<b>&lt;</b>&rsquo; | &lsquo;<b>&lt;=</b>&rsquo; | &lsquo;<b>&gt;</b>&rsquo; | &lsquo;<b>&gt;=</b>&rsquo; | &lsquo;<b>==</b>&rsquo; | &lsquo;<b>~=</b>&rsquo; | 
 		 <b>and</b> | <b>or</b>
 
 	unop ::= &lsquo;<b>-</b>&rsquo; | <b>not</b> | &lsquo;<b>#</b>&rsquo; | &lsquo;<b>~</b>&rsquo;
@@ -12017,13 +12048,12 @@ and LiteralString, see <a href="#3.1">&sect;3.1</a>.)
 
 
 
-
 <P CLASS="footer">
 Last update:
-Tue Apr 18 12:51:25 UTC 2023
+Thu Jun 13 22:15:52 UTC 2024
 </P>
 <!--
-Last change: revised for Lua 5.4.5
+Last change: revised for Lua 5.4.7
 -->
 
 </body></html>
