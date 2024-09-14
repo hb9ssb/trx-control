@@ -49,6 +49,40 @@ extern destination_t *destination;
 extern int verbose;
 
 static void
+get_trx_audio_info(dispatcher_tag_t *d, trx_controller_tag_t *t)
+{
+	struct buffer buf;
+
+	buf_init(&buf);
+	buf_addstring(&buf,
+	    "{\"status\":\"Ok\",\"response\":\"get-audio-info\","
+	    "\"audio\":{");
+
+	if (t->audio_input)
+		buf_printf(&buf, "\"input\":\"%s\"%s", t->audio_input,
+			t->audio_output ? "," : "");
+	if (t->audio_output)
+		buf_printf(&buf, "\"output\":\"%s\"", t->audio_output);
+
+	buf_addstring(&buf, "}}");
+
+	if (pthread_mutex_lock(&d->sender->mutex))
+		err(1, "dispatcher: pthread_mutex_lock");
+
+	d->sender->data = buf.data;
+
+	if (pthread_cond_signal(&d->sender->cond))
+		err(1, "dispatcher: pthread_cond_signal");
+
+	while (d->sender->data != NULL) {
+		if (pthread_cond_wait(&d->sender->cond2, &d->sender->mutex))
+			err(1, "dispatcher: pthread_cond_wait");
+	}
+	pthread_mutex_unlock(&d->sender->mutex);
+	buf_free(&buf);
+}
+
+static void
 call_trx_controller(dispatcher_tag_t *d, trx_controller_tag_t *t)
 {
 	if (pthread_mutex_lock(&t->mutex))
@@ -593,7 +627,10 @@ dispatch(lua_State *L, dispatcher_tag_t *d, destination_t *to, const char *req)
 {
 	switch (to->type) {
 	case DEST_TRX:
-		call_trx_controller(d, to->tag.trx);
+		if (!strcmp(req, "get-audio-info"))
+			get_trx_audio_info(d, to->tag.trx);
+		else
+			call_trx_controller(d, to->tag.trx);
 		break;
 	case DEST_SDR:
 		call_sdr_controller(d, to->tag.sdr);
