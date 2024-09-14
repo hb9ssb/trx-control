@@ -664,8 +664,16 @@ list_destination(dispatcher_tag_t *d)
 		}
 		buf_addchar(&buf, '"');
 
-		if (dest->type == DEST_TRX && dest->tag.trx->is_default)
-			buf_addstring(&buf, ",\"default\":true");
+		if (dest->type == DEST_TRX) {
+			if (dest->tag.trx->is_default)
+				buf_addstring(&buf, ",\"default\":true");
+			if (dest->tag.trx->audio_input)
+				buf_printf(&buf, ",\"audioIn\":\"%s\"",
+				    dest->tag.trx->audio_input);
+			if (dest->tag.trx->audio_output)
+				buf_printf(&buf, ",\"audioOut\":\"%s\"",
+				    dest->tag.trx->audio_output);
+		}
 
 		buf_addchar(&buf, '}');
 	}
