@@ -1,4 +1,4 @@
--- Copyright (c) 2023 Marc Balmer HB9SSB
+-- Copyright (c) 2023 - 2024 Marc Balmer HB9SSB
 --
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to
@@ -21,6 +21,7 @@
 -- Yaesu FT-710 CAT driver
 
 local ft710 = require 'cat-delimited'
+local config, audio = ...
 
 ft710.ID = '0800'
 
@@ -48,5 +49,7 @@ ft710.frequencyRange = {
 	min = 30000,
 	max = 75000000
 }
+
+f710.audio = audio
 
 return ft710

@@ -21,7 +21,7 @@
 -- ICOM IC-705 CI-V driver
 
 local ic705 = require 'ci-v'
-local config = ...
+local config, audio = ...
 
 ic705.validModes = {
 	['lsb'] = 0x00,
@@ -48,6 +48,8 @@ ic705.frequencyRange = {
 	min = 30000,
 	max = 470000000
 }
+
+ic705.audio = audio
 
 ic705.controllerAddress = config.controllerAddress or 0xe0
 ic705.transceiverAddress = config.transceiverAddress or 0xa4
