@@ -411,6 +411,15 @@ main(int argc, char *argv[])
 			t->device = strdup(lua_tostring(L, -1));
 			lua_pop(L, 1);
 
+			if (stat(t->device, &sb)) {
+				printf("file not found %s\n", t->device);
+				free((void *)t->device);
+				free(t->name);
+				free(t);
+				lua_pop(L, 1);
+				continue;
+			}
+
 			lua_getfield(L, -1, "speed");
 			if (lua_isinteger(L, -1))
 				t->speed =lua_tointeger(L, -1);
@@ -503,7 +512,14 @@ main(int argc, char *argv[])
 				lua_newtable(t->L);
 			lua_pop(L, 1);
 
-			switch (lua_pcall(t->L, 1, 1, 0)) {
+			lua_getfield(L, -1, "audio");
+			if (lua_istable(L, -1))
+				proxy_map(L, t->L, lua_gettop(t->L));
+			else
+				lua_newtable(t->L);
+			lua_pop(L, 1);
+
+			switch (lua_pcall(t->L, 2, 1, 0)) {
 			case LUA_OK:
 				break;
 			case LUA_ERRRUN:
@@ -854,7 +870,6 @@ main(int argc, char *argv[])
 		if (lua_isinteger(L, -1))
 			speed = lua_tointeger(L, -1);
 		lua_pop(L, 1);
-
 
 		t->fd = open(device, O_RDWR);
 		if (t->fd == -1)
