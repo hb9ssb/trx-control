@@ -422,7 +422,7 @@ main(int argc, char *argv[])
 
 			lua_getfield(L, -1, "speed");
 			if (lua_isinteger(L, -1))
-				t->speed =lua_tointeger(L, -1);
+				t->speed = lua_tointeger(L, -1);
 			lua_pop(L, 1);
 
 			lua_getfield(L, -1, "channel");
