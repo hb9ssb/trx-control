@@ -412,7 +412,7 @@ main(int argc, char *argv[])
 			lua_pop(L, 1);
 
 			if (stat(t->device, &sb)) {
-				printf("file not found %s\n", t->device);
+				printf("trxd: file not found %s\n", t->device);
 				free((void *)t->device);
 				free(t->name);
 				free(t);
@@ -800,7 +800,7 @@ main(int argc, char *argv[])
 
 		t = malloc(sizeof(websocket_listener_t));
 		if (t == NULL)
-			err(1, "trxd: malloc");
+			err(1, "malloc");
 		t->ssl = NULL;
 		t->ctx = NULL;
 		t->certificate = NULL;
@@ -851,7 +851,7 @@ main(int argc, char *argv[])
 
 		t = malloc(sizeof(nmea_tag_t));
 		if (t == NULL)
-			err(1, "trxd: malloc");
+			err(1, "malloc");
 		t->year = t->month = t->day = 0;
 		t->hour = t->minute = t->second = 0;
 		t->status = 0;
@@ -873,18 +873,18 @@ main(int argc, char *argv[])
 
 		t->fd = open(device, O_RDWR);
 		if (t->fd == -1)
-			err(1, "trxd: open");
+			err(1, "open");
 
 		if (isatty(t->fd)) {
 			if (tcgetattr(t->fd, &tty) < 0)
-				err(1, "trxd: tcgetattr");
+				err(1, "tcgetattr");
 			else {
 				cfmakeraw(&tty);
 				tty.c_cflag |= CLOCAL;
 				cfsetspeed(&tty, speed);
 
 				if (tcsetattr(t->fd, TCSADRAIN, &tty) < 0)
-					err(1, "trxd: tcsetattr");
+					err(1, "tcsetattr");
 			}
 		}
 
