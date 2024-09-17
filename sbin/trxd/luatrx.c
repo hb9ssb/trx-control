@@ -133,6 +133,7 @@ crc16(lua_State *L)
 	size_t len, i;
 	uint16_t x, crc;
 	const uint8_t *buf;
+	unsigned char crc_out[2];
 
 	x = crc = 0;
 	data = luaL_checklstring(L, 1, &len);
@@ -143,8 +144,9 @@ crc16(lua_State *L)
 		x ^= x >> 4;
 		crc = (crc << 8) ^ (x << 12) ^ (x << 5) ^ x;
 	}
-
-	lua_pushinteger(L, (int)crc);
+	crc_out[0] = crc & 0xff;
+	crc_out[1] = (crc >> 8) & 0xff;
+	lua_pushlstring(L, crc_out, 2);
 	return 1;
 }
 
