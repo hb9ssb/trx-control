@@ -116,9 +116,8 @@ string_to_bcd(lua_State *L)
 
 	string = (unsigned char *)luaL_checklstring(L, 1, &len);
 	bcd_string = p = malloc(len);
-	for (n = 0; n < len / 2; n++) {
+	for (n = 0; n < len / 2; n++)
 		*p++ = *string++ - '0' << 4 | *string++ & 0x0f;
-	}
 	*p = '\0';
 
 	lua_pushlstring(L, bcd_string, len / 2);
