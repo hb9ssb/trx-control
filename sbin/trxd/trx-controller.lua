@@ -88,6 +88,7 @@ local function requestHandler(data, fd)
 		if driver.capabilities ~= nil then
 			response.capabilities = driver.capabilities
 		end
+		response.audio = driver.audio
 	elseif request.request == 'lock-trx' then
 		driver:setLock()
 	elseif request.request == 'unlock-trx' then
