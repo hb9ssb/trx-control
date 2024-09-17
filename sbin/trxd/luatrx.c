@@ -126,6 +126,28 @@ string_to_bcd(lua_State *L)
 	return 1;
 }
 
+static int
+crc16(lua_State *L)
+{
+	void const *data;
+	size_t len, i;
+	uint16_t x, crc;
+	const uint8_t *buf;
+
+	x = crc = 0;
+	data = luaL_checklstring(L, 1, &len);
+	buf = ((const uint8_t *) data);
+
+	for(i = 0; i < len; i++) {
+		x = (crc >> 8) ^ buf[i];
+		x ^= x >> 4;
+		crc = (crc << 8) ^ (x << 12) ^ (x << 5) ^ x;
+	}
+
+	lua_pushinteger(L, (int)crc);
+	return 1;
+}
+
 int
 luaopen_trx(lua_State *L)
 {
@@ -135,6 +157,7 @@ luaopen_trx(lua_State *L)
 		{ "write",		luatrx_write },
 		{ "bcdToString",	bcd_to_string },
 		{ "stringToBcd",	string_to_bcd },
+		{ "crc16",		crc16 },
 		{ NULL, NULL }
 	};
 
