@@ -34,6 +34,7 @@
 #include "trxd.h"
 
 extern __thread int cat_device;
+extern int verbose;
 
 static int
 luatrx_version(lua_State *L)
@@ -55,16 +56,28 @@ luatrx_read(lua_State *L)
 	pfd.events = POLLIN;
 
 	nread = 0;
+	if (verbose > 1)
+		printf("<- (read %d bytes from %d)\n", len, cat_device);
 	while (nread < len) {
 		nfds = poll(&pfd, 1, 500);
 		if (nfds == -1)
 			return luaL_error(L, "poll error");
 		if (nfds == 1) {
 			nread += read(cat_device, &buf[nread], len - nread);
+			printf("nread: %d\n", nread);
 		} else {
-			nread = 0;
+			if (verbose > 1)
+				printf("timeout\n");
 			break;
 		}
+	}
+
+	if (nread > 0 && verbose > 1) {
+		int i;
+
+		for (i = 0; i < nread; i++)
+			printf("%02X ", buf[i]);
+		printf("\n");
 	}
 
 	if (nread > 0)
@@ -72,6 +85,8 @@ luatrx_read(lua_State *L)
 	else
 		lua_pushnil(L);
 
+	if (verbose > 1)
+		printf("\n");
 	return 1;
 }
 
@@ -83,6 +98,14 @@ luatrx_write(lua_State *L)
 
 	data = luaL_checklstring(L, 1, &len);
 	tcflush(cat_device, TCIFLUSH);
+	if (verbose > 1) {
+		int i;
+
+		printf("-> ");
+		for (i = 0; i < len; i++)
+			printf("%02X ", data[i]);
+		printf("\n");
+	}
 	write(cat_device, data, len);
 	tcdrain(cat_device);
 	return 0;
@@ -134,7 +157,8 @@ crc16(lua_State *L)
 	const uint8_t *buf;
 	unsigned char crc_out[2];
 
-	x = crc = 0;
+	x = 0;
+	crc = 0x1d0f;
 	data = luaL_checklstring(L, 1, &len);
 	buf = ((const uint8_t *) data);
 
