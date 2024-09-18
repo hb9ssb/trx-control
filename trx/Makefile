@@ -1,5 +1,6 @@
 TRX=		icom-ic-705.lua \
 		icom-ic-7300.lua \
+		openrtx.lua \
 		simulator.lua \
 		yaesu-ft-710.lua \
 		yaesu-ft-817.lua \
