@@ -74,9 +74,11 @@ trx-control software repository
 /usr/share/trxd/protocol/ci-v.lua
 /usr/share/trxd/protocol/kenwood-ts480.lua
 /usr/share/trxd/protocol/simulated.lua
+/usr/share/trxd/protocol/trxlink.lua
 /usr/share/trxd/trx-controller.lua
 /usr/share/trxd/trx/icom-ic-705.lua
 /usr/share/trxd/trx/icom-ic-7300.lua
+/usr/share/trxd/trx/openrtx.lua
 /usr/share/trxd/trx/simulator.lua
 /usr/share/trxd/trx/yaesu-ft-710.lua
 /usr/share/trxd/trx/yaesu-ft-817.lua
@@ -130,6 +132,10 @@ rm -rf $RPM_BUILD_ROOT
 %{__make} clean
 
 %changelog
+* Wed Sep 18 2024 Marc Balmer HB9SSB <info@hb9ssb.ch>
+
+ - Add experimental support for OpenRTX TRXLink
+
 * Sun Jul 21 2024 Marc Balmer HB9SSB <info@hb9ssb.ch>
 
  - Fix handling of ping frames without a payload in the WebSocket code.
