@@ -74,7 +74,7 @@ trx-control software repository
 /usr/share/trxd/protocol/ci-v.lua
 /usr/share/trxd/protocol/kenwood-ts480.lua
 /usr/share/trxd/protocol/simulated.lua
-/usr/share/trxd/protocol/trxlink.lua
+/usr/share/trxd/protocol/rtxlink.lua
 /usr/share/trxd/trx-controller.lua
 /usr/share/trxd/trx/icom-ic-705.lua
 /usr/share/trxd/trx/icom-ic-7300.lua
