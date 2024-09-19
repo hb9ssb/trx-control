@@ -88,7 +88,6 @@ luatrx_read(lua_State *L)
 			return luaL_error(L, "poll error");
 		if (nfds == 1) {
 			nread += read(cat_device, &buf[nread], len - nread);
-			printf("nread: %d\n", nread);
 		} else {
 			if (verbose > 1)
 				printf("timeout\n");
