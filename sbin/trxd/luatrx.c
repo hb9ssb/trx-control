@@ -44,6 +44,30 @@ luatrx_version(lua_State *L)
 }
 
 static int
+luatrx_wait_for_data(lua_State *L)
+{
+	struct pollfd pfd;
+	int timeout;
+	size_t nfds;
+
+	if (lua_gettop(L) == 1)
+		timeout = luaL_checkinteger(L, 1);
+	else
+		timeout = -1;	/* Infinite timeout */
+
+	pfd.fd = cat_device;
+	pfd.events = POLLIN;
+
+	nfds = poll(&pfd, 1, timeout);
+	if (nfds == -1)
+		return luaL_error(L, "poll error");
+
+	lua_pushboolean(L, nfds == 1 ? 1 : 0);
+
+	return 1;
+}
+
+static int
 luatrx_read(lua_State *L)
 {
 	struct pollfd pfd;
@@ -59,7 +83,7 @@ luatrx_read(lua_State *L)
 	if (verbose > 1)
 		printf("<- (read %d bytes from %d)\n", len, cat_device);
 	while (nread < len) {
-		nfds = poll(&pfd, 1, 500);
+		nfds = poll(&pfd, 1, 10);
 		if (nfds == -1)
 			return luaL_error(L, "poll error");
 		if (nfds == 1) {
@@ -180,6 +204,7 @@ luaopen_trx(lua_State *L)
 		{ "version",		luatrx_version },
 		{ "read",		luatrx_read },
 		{ "write",		luatrx_write },
+		{ "waitForData",	luatrx_wait_for_data },
 		{ "bcdToString",	bcd_to_string },
 		{ "stringToBcd",	string_to_bcd },
 		{ "crc16",		crc16 },

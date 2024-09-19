@@ -31,8 +31,10 @@ end
 local function initialize(driver)
 	local payload = '\x01GIN'
 	slipWrite(payload .. trx.crc16(payload))
-	local resp = trx.read(19)
-	print(resp:sub(4, -4))
+	if trx.waitForData(1000) then
+		local resp = trx.read(19)
+		print(resp:sub(4, -4))
+	end
 end
 
 local function setLock(driver)
@@ -66,20 +68,26 @@ local function setFrequency(driver, frequency)
 
 	slipWrite(payload .. trx.crc16(payload))
 
-	local ack = trx.read(8)
-
+	if trx.waitForData(1000) then
+		local ack = trx.read(8)
+	end
 	return frequency
 end
 
 local function getFrequency(driver)
 	local payload = '\x01GRF'
 	slipWrite(payload .. trx.crc16(payload))
-	local resp = trx.read(10)
+	if trx.waitForData(1000) then
+		local resp = trx.read(10)
 
-	local frequency = resp:byte(7) * 16777216 + resp:byte(6) * 65536 +
-	    resp:byte(5) * 256 + resp:byte(4)
+		local frequency = resp:byte(7) * 16777216 +
+		    resp:byte(6) * 65536 +
+		    resp:byte(5) * 256 + resp:byte(4)
 
-	return frequency, 'M17'
+		return frequency, 'M17'
+	else
+		return nil
+	end
 end
 
 local function setMode(driver, band, mode)
