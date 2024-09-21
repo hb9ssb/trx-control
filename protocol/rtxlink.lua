@@ -25,14 +25,29 @@ local function slipWrite(s)
 	    s:gsub('\xc0', '\xc0\xdc'):gsub('\xdb', '\xdb\xdd')))
 end
 
-local function slipRead()
+local function slipRead(nbytes)
+	local rawData = trx.read(nbytes)
+	local decodedData = ''
+
+	repeat
+		local data, n = rawData:gsub('\xc0\xdc', '\xc0')
+		local data, m = data:gsub('\xdb\xdd', '\xdb')
+		decodedData = decodedData .. data
+		local missingBytes = n + m
+
+		if missingBytes > 0 then
+			rawData = trx.read(missingBytes)
+		end
+	until missingBytes == 0
+
+	return decodedData
 end
 
 local function initialize(driver)
 	local payload = '\x01GIN'
 	slipWrite(payload .. trx.crc16(payload))
 	if trx.waitForData(1000) then
-		local resp = trx.read(19)
+		local resp = slipRead(19)
 		print(resp:sub(4, -4))
 	end
 end
@@ -69,7 +84,7 @@ local function setFrequency(driver, frequency)
 	slipWrite(payload .. trx.crc16(payload))
 
 	if trx.waitForData(1000) then
-		local ack = trx.read(8)
+		local ack = slipRead(8)
 	end
 	return frequency
 end
@@ -78,7 +93,7 @@ local function getFrequency(driver)
 	local payload = '\x01GRF'
 	slipWrite(payload .. trx.crc16(payload))
 	if trx.waitForData(1000) then
-		local resp = trx.read(10)
+		local resp = slipRead(10)
 
 		local frequency = resp:byte(7) * 16777216 +
 		    resp:byte(6) * 65536 +
