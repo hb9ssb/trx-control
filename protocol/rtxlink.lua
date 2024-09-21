@@ -119,10 +119,15 @@ return {
 	name = 'OpenRTX RTXLink protocol',
 	capabilities = {	-- driver specific
 		frequency = true,
-		mode = false,
+		mode = true,
 		lock = false
 	},
-	validModes = {},	-- trx specific
+	validModes = {
+		none = 0,
+		fm = 1,
+		dmr = 2,
+		m17 = 3
+	},
 	ctcssModes = {},	-- trx specific
 	statusUpdatesRequirePolling = true,
 	initialize = initialize,

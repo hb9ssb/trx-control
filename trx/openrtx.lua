@@ -23,10 +23,6 @@
 local openrtx = require 'rtxlink'
 local config, audio = ...
 
-openrtx.validModes = {
-	['m17'] = 0x00
-}
-
 openrtx.filterSetting = {
 	['fil1'] = 0x01,
 	['fil2'] = 0x02,
