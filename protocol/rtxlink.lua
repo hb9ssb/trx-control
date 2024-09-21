@@ -48,7 +48,9 @@ local function initialize(driver)
 	slipWrite(payload .. trx.crc16(payload))
 	if trx.waitForData(1000) then
 		local resp = slipRead(19)
-		print(resp:sub(4, -4))
+		print('OpenRTX device ID', resp:sub(4, -4))
+	else
+		print('Could not retrieve OpenRTX device ID')
 	end
 end
 
