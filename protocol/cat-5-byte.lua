@@ -1,4 +1,4 @@
--- Copyright (c) 2023 Marc Balmer HB9SSB
+-- Copyright (c) 2023 - 2024 Marc Balmer HB9SSB
 --
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to
@@ -19,9 +19,6 @@
 -- IN THE SOFTWARE.
 
 -- Yaesu 5-byte CAT protocol
-
-local function initialize(driver)
-end
 
 local function setLock(driver)
 	trx.write('\x00\x00\x00\x00\x00')
