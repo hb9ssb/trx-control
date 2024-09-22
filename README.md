@@ -16,7 +16,7 @@ both IPv4 and IPv6.
 
 The actual transceiver control is done using protocol drivers written in
 the Lua programming language.  Definitions for specific transceivers are
-writte in the YAML text format.
+written in the YAML text format.
 
 This way new transceivers can easily be supported by supplying a corresponding
 protocol driver and transceiver defintion.
