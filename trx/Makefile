@@ -1,9 +1,9 @@
-TRX=		icom-ic-705.lua \
-		openrtx.lua \
-		simulator.lua \
-		yaesu-ft-710.lua \
-		yaesu-ft-817.lua \
-		yaesu-ft-897.lua
+TRX=		icom-ic-705.yaml \
+		openrtx.yaml \
+		simulator.yaml \
+		yaesu-ft-710.yaml \
+		yaesu-ft-817.yaml \
+		yaesu-ft-897.yaml
 
 TRXDIR?=	/usr/share/trxd/trx
 

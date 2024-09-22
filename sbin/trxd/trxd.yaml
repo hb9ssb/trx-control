@@ -44,17 +44,17 @@ nmea:
   speed: 9600
 
 # The list of transceivers we can control
-trx:
+transceivers:
   ft-897:
     device: /dev/ttyUSB2
     speed: 38400
-    driver: yaesu-ft-897
+    trx: yaesu-ft-897
 
   # ICOM IC-705 connected using Bleutooth (must be paired first)
   ic-705:
     device: 00:11:22:33:44:55
     channel: 3
-    driver: icom-ic-705
+    trx: icom-ic-705
     # Optionally set the controller and transceiver address
     configuration:
       controllerAddress: 0xe0
@@ -62,12 +62,12 @@ trx:
 
   simulator:
     device: /dev/null
-    driver: simulator
+    trx: simulator
 
   ft-710:
     device: /dev/ttyUSB0
     speed: 38400
-    driver: yaesu-ft-710
+    trx: yaesu-ft-710
     default: true
 
 # The list of GPIO devices

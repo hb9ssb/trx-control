@@ -100,9 +100,6 @@ trx_controller(void *arg)
 	if (pthread_mutex_lock(&t->mutex2))
 		err(1, "trx-controller: pthread_mutex_lock");
 
-	if (strchr(t->driver, '/'))
-		err(1, "trx-controller: driver name must not contain slashes");
-
 	if (*t->device == '/') {	/* Assume device under /dev */
 		fd = open(t->device, O_RDWR);
 		if (fd == -1)
@@ -138,6 +135,9 @@ trx_controller(void *arg)
 	cat_device = fd;
 	t->cat_device = fd;
 
+	if (verbose)
+		printf("trx_controller: registering the driver\n");
+
 	/*
 	 * Call the registerDriver function which had been setup in the
 	 * main thread.
@@ -148,7 +148,8 @@ trx_controller(void *arg)
 	case LUA_ERRRUN:
 	case LUA_ERRMEM:
 	case LUA_ERRERR:
-		errx(1, "trx-controller: reg driver %s", lua_tostring(t->L, -1));
+		errx(1, "trx-controller: register driver %s",
+		    lua_tostring(t->L, -1));
 		break;
 	}
 	lua_pop(t->L, 1);

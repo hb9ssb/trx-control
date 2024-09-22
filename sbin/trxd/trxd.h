@@ -57,7 +57,7 @@ typedef struct trx_controller_tag {
 	int			 channel;	/* For RFCOMM devices */
 	char			*audio_input;
 	char			*audio_output;
-	const char		*driver;
+	const char		*trx;		/* trx description (YAML) */
 	int			 is_default;
 
 	lua_State		*L;

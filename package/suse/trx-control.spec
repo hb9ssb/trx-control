@@ -76,12 +76,12 @@ trx-control software repository
 /usr/share/trxd/protocol/simulated.lua
 /usr/share/trxd/protocol/rtxlink.lua
 /usr/share/trxd/trx-controller.lua
-/usr/share/trxd/trx/icom-ic-705.lua
-/usr/share/trxd/trx/openrtx.lua
-/usr/share/trxd/trx/simulator.lua
-/usr/share/trxd/trx/yaesu-ft-710.lua
-/usr/share/trxd/trx/yaesu-ft-817.lua
-/usr/share/trxd/trx/yaesu-ft-897.lua
+/usr/share/trxd/trx/icom-ic-705.yaml
+/usr/share/trxd/trx/openrtx.yaml
+/usr/share/trxd/trx/simulator.yaml
+/usr/share/trxd/trx/yaesu-ft-710.yaml
+/usr/share/trxd/trx/yaesu-ft-817.yaml
+/usr/share/trxd/trx/yaesu-ft-897.yaml
 /usr/share/trxd/trxd.yaml
 
 %pre

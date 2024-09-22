@@ -385,13 +385,15 @@ main(int argc, char *argv[])
 	}
 
 	/* Setup the trx-controllers */
-	lua_getfield(L, -1, "trx");
+	lua_getfield(L, -1, "transceivers");
 	if (lua_istable(L, -1)) {
 		top = lua_gettop(L);
 		lua_pushnil(L);
 		while (lua_next(L, top)) {
 			trx_controller_tag_t *t;
-			char trx_driver[PATH_MAX];
+			char trx_path[PATH_MAX];
+			char *protocol;
+			char proto_path[PATH_MAX];
 
 			t = malloc(sizeof(trx_controller_tag_t));
 			t->name = strdup(lua_tostring(L, -2));
@@ -445,10 +447,10 @@ main(int argc, char *argv[])
 			}
 			lua_pop(L, 1);
 
-			lua_getfield(L, -1, "driver");
+			lua_getfield(L, -1, "trx");
 			if (!lua_isstring(L, -1))
-				errx(1, "missing trx driver name");
-			t->driver = strdup(lua_tostring(L, -1));
+				errx(1, "missing trx name");
+			t->trx = strdup(lua_tostring(L, -1));
 			lua_pop(L, 1);
 
 			lua_getfield(L, -1, "default");
@@ -470,13 +472,58 @@ main(int argc, char *argv[])
 			lua_setglobal(t->L, "trxd");
 			luaopen_json(t->L);
 			lua_setglobal(t->L, "json");
+			luaopen_yaml(t->L);
+			lua_setglobal(t->L, "yaml");
 
-			lua_getglobal(t->L, "package");
-			lua_getfield(t->L, -1, "path");
-			lua_pushstring(t->L, ";" _PATH_PROTOCOL "/?.lua");
-			lua_concat(t->L, 2);
-			lua_setfield(t->L, -2, "path");
-			lua_pop(t->L, 1);
+			/* Load trx description and protocol driver */
+			snprintf(trx_path, sizeof(trx_path), "%s/%s.yaml",
+			    _PATH_TRX, t->trx);
+
+			if (stat(trx_path, &sb))
+				err(1, "%s", trx_path);
+
+			lua_getglobal(t->L, "yaml");
+			lua_getfield(t->L, -1, "parsefile");
+			lua_pushstring(t->L, trx_path);
+
+			switch (lua_pcall(t->L, 1, 1, 0)) {
+			case LUA_OK:
+				printf("driver loaded\n");
+				lua_getfield(t->L, -1, "protocol");
+				protocol = lua_tostring(t->L, -1);
+				if (protocol == NULL)
+					errx(1, "%s: no protocol specified",
+					    trx_path);
+				lua_pop(t->L, 1);
+				lua_setglobal(t->L, "_trx");
+				break;
+			case LUA_ERRRUN:
+			case LUA_ERRMEM:
+			case LUA_ERRERR:
+				errx(1, "%s: %s", trx_path,
+				    lua_tostring(t->L, -1));
+				break;
+			}
+
+			snprintf(proto_path, sizeof(proto_path), "%s/%s.lua",
+			    _PATH_PROTOCOL, protocol);
+
+			printf("protocol: %s\nproto_path: %s\n", protocol,
+			    proto_path);
+
+			if (stat(proto_path, &sb))
+				errx(1, "protocol not found: %s", protocol);
+
+			if (luaL_dofile(t->L, proto_path))
+				errx(1, "%s", lua_tostring(t->L, -1));
+
+			lua_setglobal(t->L, "_protocol");
+
+			printf("driver and protocol loaded\n");
+
+			if (luaL_dostring(t->L, "for k, v in pairs(_trx) do "
+			    "_protocol[k] = v end"))
+				errx(1, "%s", lua_tostring(t->L, -1));
 
 			if (luaL_dofile(t->L, _PATH_TRX_CONTROLLER))
 				errx(1, "%s", lua_tostring(t->L, -1));
@@ -484,12 +531,6 @@ main(int argc, char *argv[])
 				errx(1, "table expected");
 			else
 				t->ref = luaL_ref(t->L, LUA_REGISTRYINDEX);
-
-			snprintf(trx_driver, sizeof(trx_driver), "%s/%s.lua",
-			    _PATH_TRX, t->driver);
-
-			if (stat(trx_driver, &sb))
-				err(1, "%s", t->driver);
 
 			/*
 			 * Setup the registerDriver function, but don't call
@@ -501,15 +542,22 @@ main(int argc, char *argv[])
 			lua_pushstring(t->L, t->name);
 			lua_pushstring(t->L, t->device);
 
-			if (luaL_loadfile(t->L, trx_driver))
-				err(1, "driver load: %s",
-				    lua_tostring(t->L, -1));
+			lua_getglobal(t->L, "_protocol");
+			lua_getfield(t->L, -1,
+			    "statusUpdatesRequirePolling");
+			t->poller_required = lua_toboolean(t->L, -1);
+			printf("poller_required: %d\n", t->poller_required);
+			lua_pop(t->L, 1);
 
 			lua_getfield(L, -1, "configuration");
-			if (lua_istable(L, -1))
+			if (lua_istable(L, -1)) {
 				proxy_map(L, t->L, lua_gettop(t->L));
-			else
-				lua_newtable(t->L);
+				lua_setglobal(t->L, "_config");
+				if (luaL_dostring(t->L, "for k, v in "
+				    "pairs(_config) do _G[k] = v end "
+				    "_config = nil"))
+					errx(1, "%s", lua_tostring(t->L, -1));
+			}
 			lua_pop(L, 1);
 
 			lua_getfield(L, -1, "audio");
@@ -517,28 +565,8 @@ main(int argc, char *argv[])
 				proxy_map(L, t->L, lua_gettop(t->L));
 			else
 				lua_newtable(t->L);
+			lua_setfield(t->L, -2, "audio");
 			lua_pop(L, 1);
-
-			switch (lua_pcall(t->L, 2, 1, 0)) {
-			case LUA_OK:
-				break;
-			case LUA_ERRRUN:
-			case LUA_ERRMEM:
-			case LUA_ERRERR:
-				err(1, "trx-controller: %s",
-				    lua_tostring(t->L, -1));
-				break;
-			}
-
-			if (lua_type(t->L, -1) != LUA_TTABLE)
-				errx(1, "trx-controller: %s: table expected",
-				    t->driver);
-			else {
-				lua_getfield(t->L, -1,
-				    "statusUpdatesRequirePolling");
-				t->poller_required = lua_toboolean(t->L, -1);
-				lua_pop(t->L, 1);
-			}
 
 			if (add_destination(t->name, DEST_TRX, t))
 				errx(1, "names must be unique");
