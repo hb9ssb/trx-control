@@ -14,10 +14,14 @@ trxd(8) listens on port 14285 by default for incoming connections over
 plain sockets and can optionally listen for WebSocket connections. It supports
 both IPv4 and IPv6.
 
-The actual transceiver control is done using Lua modules, this way new
-transceivers can easily be supported by supplying a corresponding Lua driver
-module for a specific transceiver model. See https://lua.org and
-https://lua.msys.ch for more information on Lua.
+The actual transceiver control is done using protocol drivers written in
+the Lua programming language.  Definitions for specific transceivers are
+writte in the YAML text format.
+
+This way new transceivers can easily be supported by supplying a corresponding
+protocol driver and transceiver defintion.
+
+See https://lua.org and https://lua.msys.ch for more information on Lua.
 
 ## trx-control on Matrix
 
