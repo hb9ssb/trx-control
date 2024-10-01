@@ -414,7 +414,7 @@ main(int argc, char *argv[])
 			lua_pop(L, 1);
 
 			if (*t->device == '/' && stat(t->device, &sb)) {
-				printf("trxd: file not found %s\n", t->device);
+				warnx("trxd: file not found %s\n", t->device);
 				free((void *)t->device);
 				free(t->name);
 				free(t);
@@ -488,7 +488,6 @@ main(int argc, char *argv[])
 
 			switch (lua_pcall(t->L, 1, 1, 0)) {
 			case LUA_OK:
-				printf("driver loaded\n");
 				lua_getfield(t->L, -1, "protocol");
 				protocol = lua_tostring(t->L, -1);
 				if (protocol == NULL)
@@ -508,9 +507,6 @@ main(int argc, char *argv[])
 			snprintf(proto_path, sizeof(proto_path), "%s/%s.lua",
 			    _PATH_PROTOCOL, protocol);
 
-			printf("protocol: %s\nproto_path: %s\n", protocol,
-			    proto_path);
-
 			if (stat(proto_path, &sb))
 				errx(1, "protocol not found: %s", protocol);
 
@@ -518,8 +514,6 @@ main(int argc, char *argv[])
 				errx(1, "%s", lua_tostring(t->L, -1));
 
 			lua_setglobal(t->L, "_protocol");
-
-			printf("driver and protocol loaded\n");
 
 			if (luaL_dostring(t->L, "for k, v in pairs(_trx) do "
 			    "_protocol[k] = v end"))
