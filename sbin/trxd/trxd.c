@@ -413,7 +413,7 @@ main(int argc, char *argv[])
 			t->device = strdup(lua_tostring(L, -1));
 			lua_pop(L, 1);
 
-			if (stat(t->device, &sb)) {
+			if (*t->device == '/' && stat(t->device, &sb)) {
 				printf("trxd: file not found %s\n", t->device);
 				free((void *)t->device);
 				free(t->name);
