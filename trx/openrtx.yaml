@@ -3,10 +3,12 @@
 name: OpenRTX Linux Emulator
 protocol: rtxlink
 
-filterSetting:
-  fil1: 0x01
-  fil2: 0x02
-  fil3: 0x03
+validModes:
+  fm: fm
+  nfm: nfm
+  wfm: wfm
+  dmr: dmr
+  m17: m17
 
 frequencyRange:
   min: 430000000

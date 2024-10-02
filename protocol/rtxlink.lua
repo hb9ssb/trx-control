@@ -44,6 +44,7 @@ local function slipRead(nbytes)
 end
 
 local function initialize(driver)
+	print('initialize', driver.name)
 	local payload = '\x01GIN'
 	slipWrite(payload .. trx.crc16(payload))
 	if trx.waitForData(1000) then
@@ -52,16 +53,6 @@ local function initialize(driver)
 	else
 		print('Could not retrieve OpenRTX device ID')
 	end
-end
-
-local function setLock(driver)
-	trx.write('\x00\x00\x00\x00\x00')
-	return 'locked'
-end
-
-local function setUnlock(driver)
-	trx.write('\x00\x00\x00\x00\x80')
-	return 'unlocked'
 end
 
 local function setFrequency(driver, frequency)
@@ -107,12 +98,150 @@ local function getFrequency(driver)
 	end
 end
 
+local function setBandwidth(driver, bandwidth)
+	local payload = string.format('\x01SBW%c', bandwidth or 0)
+	slipWrite(payload .. trx.crc16(payload))
+	if trx.waitForData(1000) then
+		local resp = slipRead(6)
+	else
+		return nil
+	end
+
+	return mode
+end
+
+local function getBandwidth(driver)
+	local payload = '\x01GBW'
+	slipWrite(payload .. trx.crc16(payload))
+	if trx.waitForData(1000) then
+		local resp = slipRead(6)
+
+		return string.byte(resp, 4)
+	end
+
+	return nil
+end
+
+local modes = {
+	fm = { opmode = 0x01, bandwidth = 0x01 },
+	nfm = { opmode = 0x01, bandwidth = 0x00 },
+	wfm = { opmode = 0x01, bandwidth = 0x02 },
+	dmr = { opmode = 0x02 },
+	m17 = { opmode = 0x03 }
+}
+
 local function setMode(driver, band, mode)
-	return band, 'invalid mode ' .. mode
+	local newmode = modes[mode]
+
+	if newmode == nil then
+		return nil
+	end
+
+	local payload = string.format('\x01SOM%c', newmode.opmode or 0)
+	slipWrite(payload .. trx.crc16(payload))
+	if trx.waitForData(1000) then
+		local resp = slipRead(6)
+	else
+		return nil
+	end
+
+	if newmode.bandwidth ~= nil then
+		setBandwidth(driver, newmode.bandwidth)
+	end
+
+	return mode
 end
 
 local function getMode(driver)
-	return 'M17'
+	local payload = '\x01GOM'
+	slipWrite(payload .. trx.crc16(payload))
+	if trx.waitForData(1000) then
+		local name = 'unknown mode'
+		local resp = slipRead(6)
+
+		local operatingMode = 'none'
+		local opmode = tonumber(string.byte(resp, 4))
+
+		if opmode == 0x01 then	-- fm, get bandwidth
+			local bandwidth = getBandwidth(driver)
+			if bandwidth == 0x00 then
+				operatingMode = 'nfm'
+			elseif bandwidth == 0x01 then
+				operatingMode = 'fm'
+			elseif bandwidth == 0x02 then
+				operatingMode = 'wfm'
+			end
+		elseif opmode == 0x02 then
+			operatingMode = 'dmr'
+		elseif opmode == 0x03 then
+			operatingMode = 'm17'
+		end
+
+		return {
+			operatingMode = operatingMode
+		}
+	end
+
+	return  {
+		status = 'Error',
+		reason = 'No reply'
+	}
+end
+
+local function setCallsign(driver, callsign)
+	local payload = string.format('\x01SMC%-10s', callsign)
+	slipWrite(payload .. trx.crc16(payload))
+
+	if trx.waitForData(1000) then
+		local resp = slipRead(6)
+	else
+		return nil
+	end
+
+	return callsign
+end
+
+local function getCallsign(driver)
+	local payload = '\x01GMC'
+	slipWrite(payload .. trx.crc16(payload))
+
+	if trx.waitForData(1000) then
+		local resp = slipRead(16)
+		return resp:sub(4, -4)
+	else
+		return nil
+	end
+
+	return callsign
+
+end
+
+local function setDestination(driver, callsign)
+	local payload = string.format('\x01SMD%-10s', callsign)
+	slipWrite(payload .. trx.crc16(payload))
+
+	if trx.waitForData(1000) then
+		local resp = slipRead(6)
+	else
+		return nil
+	end
+
+	return callsign
+end
+
+local function getDestination(driver)
+	local payload = '\x01GMD'
+	slipWrite(payload .. trx.crc16(payload))
+
+	if trx.waitForData(1000) then
+		local resp = slipRead(16)
+		return resp:sub(4, -4)
+	else
+		return nil
+	end
+
+	return callsign
+
 end
 
 return {
@@ -134,10 +263,15 @@ return {
 	startStatusUpdates = nil,
 	stopStatusUpdates = nil,
 	handleStatusUpdates = nil,
-	setLock = setLock,
-	setUnlock = setUnlock,
+	setLock = nil,
+	setUnlock = nil,
 	setFrequency = setFrequency,
 	getFrequency = getFrequency,
 	getMode = getMode,
-	setMode = setMode
+	setMode = setMode,
+	getCallsign = getCallsign,
+	setCallsign = setCallsign,
+	getDestination = getDestination,
+	setDestination = setDestination
+
 }

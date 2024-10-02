@@ -72,6 +72,16 @@ local function requestHandler(data, fd)
 		    driver:setMode(request.band, request.mode)
 	elseif request.request == 'get-mode' then
 		response.mode = driver:getMode(request.band)
+	elseif request.request == 'set-callsign' then
+		response.callsign =
+		    driver:setCallsign(request.callsign)
+	elseif request.request == 'get-callsign' then
+		response.callsign = driver:getCallsign()
+	elseif request.request == 'set-destination' then
+		response.callsign =
+		    driver:setDestination(request.callsign)
+	elseif request.request == 'get-destination' then
+		response.callsign = driver:getDestination()
 	elseif request.request == 'get-info' then
 		response.name = driver.name or 'unspecified'
 		response.frequencyRange = driver.frequencyRange or {
