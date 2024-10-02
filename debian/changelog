@@ -1,3 +1,9 @@
+trx-control (1.2.1-1) stable; urgency=low
+
+  * Add the bluecat(1) command.
+
+ -- Marc Balmer HB9SSB (trx-control package signing) <info@hb9ssb.ch>  Wed, 2 Oct 2024 15:00:00 +0100
+
 trx-control (1.2.0-1) stable; urgency=low
 
   * Rework transceiver definitions.

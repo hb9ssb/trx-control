@@ -10,7 +10,8 @@ include Makefile.version
 build:
 
 # Build instructions
-SUBDIR+=	bin/trxctl \
+SUBDIR+=	bin/bluecat \
+		bin/trxctl \
 		gpio \
 		lib/liblua \
 		lib/libtrx-control \

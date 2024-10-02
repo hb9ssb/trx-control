@@ -34,6 +34,7 @@ trx-control software repository
 
 %files
 /etc/systemd/system/trxd.service
+/usr/bin/bluecat
 /usr/bin/trxctl
 /usr/lib/udev/rules.d/70-bmcm-usb-pio.rules
 /usr/lib/udev/rules.d/70-ft-710.rules
@@ -41,6 +42,7 @@ trx-control software repository
 /usr/lib/udev/rules.d/70-th-d75.rules
 /usr/lib/udev/rules.d/70-yaesu-cat.rules
 /usr/sbin/trxd
+/usr/share/man/man1/bluecat.1.gz
 /usr/share/man/man1/trxctl.1.gz
 /usr/share/man/man7/trx-control.7.gz
 /usr/share/man/man8/trxd.8.gz
@@ -128,6 +130,10 @@ rm -rf $RPM_BUILD_ROOT
 %{__make} clean
 
 %changelog
+* Wed Oct 2 2024 Marc Balmer  HB9SSB <info@hb9ssb.ch>
+
+ - Add the bluecat(1) command.
+
 * Wed Sep 18 2024 Marc Balmer HB9SSB <info@hb9ssb.ch>
 
  - Add experimental support for OpenRTX TRXLink
