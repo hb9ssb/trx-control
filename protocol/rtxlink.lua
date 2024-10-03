@@ -123,11 +123,11 @@ local function getBandwidth(driver)
 end
 
 local modes = {
-	fm = { opmode = 0x01, bandwidth = 0x01 },
-	nfm = { opmode = 0x01, bandwidth = 0x00 },
-	wfm = { opmode = 0x01, bandwidth = 0x02 },
-	dmr = { opmode = 0x02 },
-	m17 = { opmode = 0x03 }
+	fm = 0x01,
+	fm20 = 0x02,
+	nfm = 0x03,
+	dmr = 0x04,
+	m17 = 0x05
 }
 
 local function setMode(driver, band, mode)
@@ -145,10 +145,6 @@ local function setMode(driver, band, mode)
 		return nil
 	end
 
-	if newmode.bandwidth ~= nil then
-		setBandwidth(driver, newmode.bandwidth)
-	end
-
 	return mode
 end
 
@@ -162,19 +158,11 @@ local function getMode(driver)
 		local operatingMode = 'none'
 		local opmode = tonumber(string.byte(resp, 4))
 
-		if opmode == 0x01 then	-- fm, get bandwidth
-			local bandwidth = getBandwidth(driver)
-			if bandwidth == 0x00 then
-				operatingMode = 'nfm'
-			elseif bandwidth == 0x01 then
-				operatingMode = 'fm'
-			elseif bandwidth == 0x02 then
-				operatingMode = 'wfm'
+		for k, v in pairs(modes) do
+			if v == opmode then
+				operatingMode = k
+				break
 			end
-		elseif opmode == 0x02 then
-			operatingMode = 'dmr'
-		elseif opmode == 0x03 then
-			operatingMode = 'm17'
 		end
 
 		return {
