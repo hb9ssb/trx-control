@@ -540,7 +540,6 @@ main(int argc, char *argv[])
 			lua_getfield(t->L, -1,
 			    "statusUpdatesRequirePolling");
 			t->poller_required = lua_toboolean(t->L, -1);
-			printf("poller_required: %d\n", t->poller_required);
 			lua_pop(t->L, 1);
 
 			lua_getfield(L, -1, "configuration");
