@@ -176,6 +176,42 @@ local function getMode(driver)
 	}
 end
 
+local function setPtt(driver, ptt)
+
+	local opstatus = 0x01
+	if ptt == 'on' then
+		opstatus = 0x02
+	end
+
+	local payload = string.format('\x01SPT%c', opstatus)
+	slipWrite(payload .. trx.crc16(payload))
+	if trx.waitForData(1000) then
+		local resp = slipRead(6)
+	else
+		return nil
+	end
+
+	return ptt
+end
+
+local function getPtt(driver)
+	local payload = '\x01GPT'
+	slipWrite(payload .. trx.crc16(payload))
+	if trx.waitForData(1000) then
+		local resp = slipRead(6)
+
+		return {
+			ptt = tonumber(string.byte(resp, 4)) == 0x02
+			    and 'on' or 'off'
+		}
+	end
+
+	return  {
+		status = 'Error',
+		reason = 'No reply'
+	}
+end
+
 local function setCallsign(driver, callsign)
 	local payload = string.format('\x01SMC%-10s', callsign)
 	slipWrite(payload .. trx.crc16(payload))
@@ -237,13 +273,16 @@ return {
 	capabilities = {	-- driver specific
 		frequency = true,
 		mode = true,
-		lock = false
+		lock = false,
+		ptt = true
 	},
 	validModes = {
 		none = 0,
 		fm = 1,
-		dmr = 2,
-		m17 = 3
+		fm20 = 2,
+		nfm = 3,
+		dmr = 4,
+		m17 = 5
 	},
 	ctcssModes = {},	-- trx specific
 	statusUpdatesRequirePolling = true,
@@ -257,6 +296,8 @@ return {
 	getFrequency = getFrequency,
 	getMode = getMode,
 	setMode = setMode,
+	getPtt = getPtt,
+	setPtt = setPtt,
 	getCallsign = getCallsign,
 	setCallsign = setCallsign,
 	getDestination = getDestination,

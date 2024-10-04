@@ -5,7 +5,6 @@ protocol: rtxlink
 
 validModes:
   fm: fm
-  fm20: fm20
   nfm: nfm
   dmr: dmr
   m17: m17

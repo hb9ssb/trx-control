@@ -72,6 +72,10 @@ local function requestHandler(data, fd)
 		    driver:setMode(request.band, request.mode)
 	elseif request.request == 'get-mode' then
 		response.mode = driver:getMode(request.band)
+	elseif request.request == 'get-ptt' then
+		response.ptt = driver:getPtt()
+	elseif request.request == 'set-ptt' then
+		response.ptt = driver:setPtt(request.ptt)
 	elseif request.request == 'set-callsign' then
 		response.callsign =
 		    driver:setCallsign(request.callsign)
