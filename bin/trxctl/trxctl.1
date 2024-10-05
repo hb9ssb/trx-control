@@ -18,14 +18,14 @@
 .\" FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 .\" IN THE SOFTWARE.
 .\"
-.TH TRXCTL 1 15 September 2024" "trx-control"
+.TH TRXCTL 1 5 October 2024" "trx-control"
 .
 .SH NAME
 trxctl
 .
 .
 .SH SYNOPSIS
-trxctl [-ivV] [-h host] [-p port] [command]
+trxctl [-ivV] [-h host] [-p port] [command] [params]
 .
 .
 .SH "DESCRIPTION"
@@ -95,18 +95,24 @@ get-info
 Show information about the transceiver, i.e. the name, frequency range, and,
 a list of valid operating modes.
 .TP
-set-frequency <hz>
+set-frequency frequency=<hz>
 Set the working frequency in hertz.
 .TP
 get-frequency
 Get and display the current frequency in hertz.
 .TP
-set-mode <band> <mode>
+set-mode mode=<mode>
 Set the operational mode of <band> to <mode>.
 Not all transceivers support the <band> parameter.
 .TP
 get-mode
 Get and display the current operational mode.
+.TP
+set-ptt ptt=<on|off>
+Turn PTT on or off
+.TP
+get-ptt
+Retrieve the current PTT state.
 .TP
 start-status-updates
 Start receiving automatic status updates.

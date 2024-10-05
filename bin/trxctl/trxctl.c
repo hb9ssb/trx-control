@@ -65,7 +65,7 @@ static void
 usage(void)
 {
 	(void)fprintf(stderr, "usage: trxctl [-ivV] [-h host] [-p port] "
-	    "[command]\n");
+	    "[command] [params]\n");
 	exit(1);
 }
 
