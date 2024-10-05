@@ -137,7 +137,7 @@ local function setMode(driver, band, mode)
 		return nil
 	end
 
-	local payload = string.format('\x01SOM%c', newmode.opmode or 0)
+	local payload = string.format('\x01SOM%c', newmode)
 	slipWrite(payload .. trx.crc16(payload))
 	if trx.waitForData(1000) then
 		local resp = slipRead(6)
