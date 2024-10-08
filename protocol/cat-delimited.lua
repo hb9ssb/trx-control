@@ -163,7 +163,8 @@ local function setMode(driver, band, mode)
 	end
 
 	if validModes[mode] ~= nil then
-		trx.write(string.format('MD%s%s;', bcode, validModes[mode]))
+		trx.write(string.format('MD%s%s;', bcode,
+		    driver.validModes[mode]))
 		return band, mode
 	else
 		return nil, 'invalid mode'
@@ -180,7 +181,7 @@ local function getMode(driver, band)
 	local reply = trx.read(5)
 	local mode = string.sub(reply, 4, 4)
 
-	for k, v in pairs(validModes) do
+	for k, v in pairs(driver.validModes) do
 		if v == mode then
 			return k
 		end
