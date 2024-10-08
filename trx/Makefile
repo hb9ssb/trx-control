@@ -3,7 +3,8 @@ TRX=		icom-ic-705.yaml \
 		simulator.yaml \
 		yaesu-ft-710.yaml \
 		yaesu-ft-817.yaml \
-		yaesu-ft-897.yaml
+		yaesu-ft-897.yaml \
+		yaesu-ft-991.yaml
 
 TRXDIR?=	/usr/share/trxd/trx
 

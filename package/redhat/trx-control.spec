@@ -91,6 +91,7 @@ trx-control software repository
 /usr/share/trxd/trx/yaesu-ft-710.yaml
 /usr/share/trxd/trx/yaesu-ft-817.yaml
 /usr/share/trxd/trx/yaesu-ft-897.yaml
+/usr/share/trxd/trx/yaesu-ft-991.yaml
 /usr/share/trxd/trxd.yaml
 
 %pre
