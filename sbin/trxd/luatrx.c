@@ -196,6 +196,13 @@ crc16(lua_State *L)
 	return 1;
 }
 
+static int
+luatrx_verbose(lua_State *L)
+{
+	lua_pushinteger(L, verbose);
+	return 1;
+}
+
 int
 luaopen_trx(lua_State *L)
 {
@@ -207,6 +214,7 @@ luaopen_trx(lua_State *L)
 		{ "bcdToString",	bcd_to_string },
 		{ "stringToBcd",	string_to_bcd },
 		{ "crc16",		crc16 },
+		{ "verbose",		luatrx_verbose },
 		{ NULL, NULL }
 	};
 
