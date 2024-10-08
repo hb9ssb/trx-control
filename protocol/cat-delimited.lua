@@ -162,7 +162,7 @@ local function setMode(driver, band, mode)
 		return nil, 'invalid band'
 	end
 
-	if validModes[mode] ~= nil then
+	if driver.validModes[mode] ~= nil then
 		trx.write(string.format('MD%s%s;', bcode,
 		    driver.validModes[mode]))
 		return band, mode
