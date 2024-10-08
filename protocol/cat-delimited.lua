@@ -1,4 +1,4 @@
--- Copyright (c) 2023 Marc Balmer HB9SSB
+-- Copyright (c) 2023 - 2024 Marc Balmer HB9SSB
 --
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to
@@ -23,6 +23,11 @@
 local function initialize(driver)
 	trx.write('ID;')
 	local reply = trx.read(7)
+
+	if trx.verbose() > 0 then
+		print('transceiver ID:', reply.sub(3, -2))
+	end
+
 	if reply ~= 'ID' .. driver.ID .. ';' then
 		print ('this is not a ' .. driver.name .. ' transceiver')
 	else
