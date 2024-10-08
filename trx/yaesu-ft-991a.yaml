@@ -1,8 +1,8 @@
 # Yaesu FT-991 Transceiver Definitions
 
-name: Yaesu FT-991
+name: Yaesu FT-991a
 protocol: cat-delimited
-ID: "0670"
+ID: '0670'
 
 validModes:
   lsb: '1'
