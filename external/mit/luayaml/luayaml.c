@@ -131,7 +131,8 @@ push_hexadecimal(lua_State *L, char *v, int l)
 }
 
 static void
-push_scalar(lua_State *L, char *value, int length, char *tag, int env)
+push_scalar(lua_State *L, char *value, int style, int length, char *tag,
+    int env)
 {
 	if (tag != NULL) {
 		if (!strcmp(tag, YAML_BOOL_TAG)) {
@@ -194,15 +195,20 @@ push_scalar(lua_State *L, char *value, int length, char *tag, int env)
 		} else
 			lua_pushlstring(L, value, length);
 	} else {
-		if (!push_boolean(L, value, length))
-			return;
-		if (!push_null(L, value, length))
-			return;
-		if (!push_integer(L, value, length))
-			return;
-		if (!push_hexadecimal(L, value, length))
-			return;
-		lua_pushlstring(L, value, length);
+		if (style == YAML_SINGLE_QUOTED_SCALAR_STYLE ||
+		    style == YAML_DOUBLE_QUOTED_SCALAR_STYLE)
+			lua_pushlstring(L, value, length);
+		else {
+			if (!push_boolean(L, value, length))
+				return;
+			if (!push_null(L, value, length))
+				return;
+			if (!push_integer(L, value, length))
+				return;
+			if (!push_hexadecimal(L, value, length))
+				return;
+			lua_pushlstring(L, value, length);
+		}
 	}
 }
 
@@ -228,12 +234,13 @@ parse_node(lua_State *L, yaml_parser_t *parser, yaml_event_t event, int value,
 	case YAML_SCALAR_EVENT:
 		if (value)
 			push_scalar(L, (char *)event.data.scalar.value,
-				event.data.scalar.length,
-				(char *)event.data.scalar.tag, env);
+			    event.data.scalar.style,
+			    event.data.scalar.length,
+			    (char *)event.data.scalar.tag, env);
 		else
 			lua_pushlstring(L,
-				(char *)event.data.scalar.value,
-				event.data.scalar.length);
+			    (char *)event.data.scalar.value,
+			    event.data.scalar.length);
 		dprintf(1, "value: %s", event.data.scalar.value);
 		if (event.data.scalar.tag)
 			dprintf(1, "tag: %s\n", event.data.scalar.tag);
@@ -464,7 +471,7 @@ luaopen_yaml(lua_State *L)
 	lua_pushliteral(L, "YAML for Lua");
 	lua_settable(L, -3);
 	lua_pushliteral(L, "_VERSION");
-	lua_pushliteral(L, "yaml 1.2.2");
+	lua_pushliteral(L, "yaml 1.2.3");
 	lua_settable(L, -3);
 	return 1;
 }
