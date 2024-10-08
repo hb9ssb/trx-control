@@ -437,6 +437,7 @@ parse_file(lua_State *L)
 		lua_pushnil(L);
 
 	yaml_parser_delete(&parser);
+	fclose(input);
 	return 1;
 }
 
