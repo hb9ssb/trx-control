@@ -25,7 +25,7 @@ local function initialize(driver)
 	local reply = trx.read(7)
 
 	if trx.verbose() > 0 then
-		print('transceiver ID:', reply.sub(3, -2))
+		print('transceiver ID:', reply:sub(3, -2))
 	end
 
 	if reply ~= 'ID' .. driver.ID .. ';' then
