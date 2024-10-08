@@ -45,7 +45,7 @@ local function getFrequency(driver)
 	return frequency, mode
 end
 
-local function setMode(driver, newMode)
+local function setMode(driver, band, newMode)
 	print (string.format('%s: set mode to %s', driver.name, newMode))
 	if driver.validModes[newMode] ~= nil then
 		mode = newMode
@@ -55,7 +55,7 @@ local function setMode(driver, newMode)
 	end
 end
 
-local function getMode(driver)
+local function getMode(driver, band)
 	print (driver.name .. ': get mode')
 	return mode
 end
