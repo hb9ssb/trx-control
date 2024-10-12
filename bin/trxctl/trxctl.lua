@@ -106,6 +106,7 @@ function call(to, command, param)
 			print 'Error!'
 			vardump(response)
 		end
+	end
 end
 
 local function ts(s)
@@ -122,8 +123,6 @@ function handleStatusUpdate(jsonData)
 		if data == nil then
 			print ('received unparseable data', data)
 		end
-
 		vardump(data)
 	end
 end
-
