@@ -172,7 +172,7 @@ main(int argc, char *argv[])
 		case 'i':
 			interactive = 1;
 			break;
-		case 'i':
+		case 'j':
 			json = 1;
 			break;
 		case 'p':
@@ -208,7 +208,7 @@ main(int argc, char *argv[])
 		exit(1);
 	}
 
-	lua_psuhboolean(L, json);
+	lua_pushboolean(L, json);
 	lua_setglobal(L, "jsonOutput");
 
 	fd = trxd_connect(host, port);
