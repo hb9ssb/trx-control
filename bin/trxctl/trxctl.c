@@ -64,7 +64,7 @@ wordexp_t p;
 static void
 usage(void)
 {
-	(void)fprintf(stderr, "usage: trxctl [-ivV] [-h host] [-p port] "
+	(void)fprintf(stderr, "usage: trxctl [-ijvV] [-h host] [-p port] "
 	    "[command] [params]\n");
 	exit(1);
 }
@@ -137,10 +137,10 @@ rl_gets()
 int
 main(int argc, char *argv[])
 {
-	int c, n, terminate, interactive;
+	int c, n, terminate, interactive, json;
 	char *host, *port, buf[128], *line, *param, *to;
 
-	verbose = interactive = 0;
+	verbose = interactive = json = 0;
 	host = DEFAULT_HOST;
 	port = DEFAULT_PORT;
 
@@ -150,13 +150,14 @@ main(int argc, char *argv[])
 			{ "help",		no_argument, 0, '?' },
 			{ "host",		required_argument, 0, 'h' },
 			{ "interactive",	no_argument, 0, 'i' },
+			{ "json",		no_argument, 0, 'j' },
 			{ "verbose",		no_argument, 0, 'v' },
 			{ "version",		no_argument, 0, 'V' },
 			{ "port",		required_argument, 0, 'p' },
 			{ 0, 0, 0, 0 }
 		};
 
-		c = getopt_long(argc, argv, "?h:ivVp:", long_options,
+		c = getopt_long(argc, argv, "?h:ijvVp:", long_options,
 		    &option_index);
 
 		if (c == -1)
@@ -170,6 +171,9 @@ main(int argc, char *argv[])
 			break;
 		case 'i':
 			interactive = 1;
+			break;
+		case 'i':
+			json = 1;
 			break;
 		case 'p':
 			port = optarg;
@@ -203,6 +207,9 @@ main(int argc, char *argv[])
 		fprintf(stderr, "Lua error: %s\n", lua_tostring(L, -1));
 		exit(1);
 	}
+
+	lua_psuhboolean(L, json);
+	lua_setglobal(L, "jsonOutput");
 
 	fd = trxd_connect(host, port);
 	if (fd < 0) {

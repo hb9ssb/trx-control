@@ -81,24 +81,31 @@ function call(to, command, param)
 	end
 
 	trxctl.writeln(json.encode(request))
-	local response = json.decode(trxctl.readln())
+	local jsonData = trxctl.readln()
 
-	if response.status == 'Ok' then
-		if response.response == 'list-destination' then
-			print 'Destination list:\n'
-			print 'Name\t\tType'
-			print '----\t\t----'
-			for k, v in ipairs(response.destination) do
-				print(string.format('%-15s %s %s', v.name,
-				    v.type, v.default and '(default)' or ''))
+	if jsonOutput == true then
+		print(jsonData)
+	else
+		local response = json.decode(trxctl.readln())
+
+		if response.status == 'Ok' then
+			if response.response == 'list-destination' then
+				print 'Destination list:\n'
+				print 'Name\t\tType'
+				print '----\t\t----'
+				for k, v in ipairs(response.destination) do
+					print(string.format('%-15s %s %s',
+					    v.name,
+					    v.type, v.default and '(default)'
+					    or ''))
+				end
+			else
+				vardump(response)
 			end
 		else
+			print 'Error!'
 			vardump(response)
 		end
-	else
-		print 'Error!'
-		vardump(response)
-	end
 end
 
 local function ts(s)
@@ -107,12 +114,16 @@ local function ts(s)
 end
 
 function handleStatusUpdate(jsonData)
-	local data = json.decode(jsonData)
+	if jsonUutput == true then
+		print(jsonData)
+	else
+		local data = json.decode(jsonData)
 
-	if data == nil then
-		print ('received unparseable data', data)
+		if data == nil then
+			print ('received unparseable data', data)
+		end
+
+		vardump(data)
 	end
-
-	vardump(data)
 end
 

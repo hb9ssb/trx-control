@@ -18,14 +18,14 @@
 .\" FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 .\" IN THE SOFTWARE.
 .\"
-.TH TRXCTL 1 5 October 2024" "trx-control"
+.TH TRXCTL 1 12 October 2024" "trx-control"
 .
 .SH NAME
 trxctl
 .
 .
 .SH SYNOPSIS
-trxctl [-ivV] [-h host] [-p port] [command] [params]
+trxctl [-ijvV] [-h host] [-p port] [command] [params]
 .
 .
 .SH "DESCRIPTION"
@@ -47,6 +47,9 @@ it will display status changes on the console.
 .TP
 .BR \-i ", " \-\-interactive
 Enter interactive mode after executing "command".
+.TP
+.BR \-j ", " \-\-json
+Output received data in JSON format.
 .TP
 .BR \-v
 Run in verbose mode.
