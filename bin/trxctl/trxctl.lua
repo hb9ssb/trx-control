@@ -86,7 +86,7 @@ function call(to, command, param)
 	if jsonOutput == true then
 		print(jsonData)
 	else
-		local response = json.decode(trxctl.readln())
+		local response = json.decode(jsonData)
 
 		if response.status == 'Ok' then
 			if response.response == 'list-destination' then
