@@ -38,6 +38,12 @@ local function registerDriver(destination, dev, newDriver)
 	end
 end
 
+local function notImplemented(response)
+	response.status = 'Failure'
+	response.reason = 'Function not implemented'
+	return json.encode(response)
+end
+
 -- Handle request from a network client
 local function requestHandler(data, fd)
 	local request = json.decode(data)
@@ -63,29 +69,70 @@ local function requestHandler(data, fd)
 	}
 
 	if request.request == 'set-frequency' then
-		response.frequency =
-		    driver:setFrequency(tonumber(request.frequency))
+		if type(driver.setFrequency) == 'function' then
+			response.frequency =
+			    driver:setFrequency(tonumber(request.frequency))
+		else
+			return notImplemented(response)
+		end
 	elseif request.request == 'get-frequency' then
-		response.frequency, response.mode = driver:getFrequency()
+		if type(driver.getFrequency) == 'function' then
+			response.frequency, response.mode =
+			    driver:getFrequency()
+		else
+			return notImplemented(response)
+		end
 	elseif request.request == 'set-mode' then
-		response.band, response.mode =
-		    driver:setMode(request.band, request.mode)
+		if type(driver.setMode) == 'function' then
+			response.band, response.mode =
+			    driver:setMode(request.band, request.mode)
+		else
+			return notImplemented(response)
+		end
 	elseif request.request == 'get-mode' then
-		response.mode = driver:getMode(request.band)
+		if type(driver.getMode) == 'function' then
+			response.mode = driver:getMode(request.band)
+		else
+			return notImplemented(response)
+		end
 	elseif request.request == 'get-ptt' then
-		response.ptt = driver:getPtt()
+		if type(driver.getPtt) == 'function' then
+			response.ptt = driver:getPtt()
+		else
+			return notImplemented(response)
+		end
 	elseif request.request == 'set-ptt' then
-		response.ptt = driver:setPtt(request.ptt)
+		if type(driver.setPtt) == 'function' then
+			response.ptt = driver:setPtt(request.ptt)
+		else
+			return notImplemented(response)
+		end
 	elseif request.request == 'set-callsign' then
-		response.callsign =
-		    driver:setCallsign(request.callsign)
+		if type(driver.setCallsign) == 'function' then
+			response.callsign =
+			    driver:setCallsign(request.callsign)
+		else
+			return notImplemented(response)
+		end
 	elseif request.request == 'get-callsign' then
-		response.callsign = driver:getCallsign()
+		if type(driver.getCallsign) == 'function' then
+			response.callsign = driver:getCallsign()
+		else
+			return notImplemented(response)
+		end
 	elseif request.request == 'set-destination' then
-		response.callsign =
-		    driver:setDestination(request.callsign)
+		if type(driver.setDestination) == 'function' then
+			response.callsign =
+			    driver:setDestination(request.callsign)
+		else
+			return notImplemented(response)
+		end
 	elseif request.request == 'get-destination' then
-		response.callsign = driver:getDestination()
+		if type(driver.getDestination) == 'function' then
+			response.callsign = driver:getDestination()
+		else
+			return notImplemented(response)
+		end
 	elseif request.request == 'get-info' then
 		response.name = driver.name or 'unspecified'
 		response.frequencyRange = driver.frequencyRange or {
@@ -104,9 +151,17 @@ local function requestHandler(data, fd)
 		end
 		response.audio = driver.audio
 	elseif request.request == 'lock-trx' then
-		driver:setLock()
+		if type(driver.setLock) == 'function' then
+			driver:setLock()
+		else
+			return notImplemented(response)
+		end
 	elseif request.request == 'unlock-trx' then
-		driver:setUnlock()
+		if type(driver.setUnlock) == 'function' then
+			driver:setUnlock()
+		else
+			return notImplemented(response)
+		end
 	else
 		response.status = 'Error'
 		response.reason = 'Unknown request'
