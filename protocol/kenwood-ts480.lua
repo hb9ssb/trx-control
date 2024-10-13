@@ -29,7 +29,6 @@ local function sendMessage(data)
 	trx.write(message)
 end
 
-
 -- Exported functions
 local function initialize(driver)
 	print (driver.name .. ': initialize')
@@ -39,49 +38,57 @@ local function initialize(driver)
 	end
 end
 
-local function setLock(driver)
+local function setLock(driver, request, response)
 	print (driver.name .. ': locked')
+	response.state = 'unlocked'
 end
 
-local function setUnlock(driver)
+local function setUnlock(driver, request, response)
 	print (driver.name .. ': unlocked')
+	response.state = 'unlocked'
 end
 
-local function setFrequency(driver, frequency)
-	local data = string.format('FA%011d', frequency)
+local function setFrequency(driver, request, response)
+	response.frequency = request.frequency
+
+	local data = string.format('FA%011d', request.frequency)
 	sendMessage(data)
-	return frequency
 end
 
-local function getFrequency(driver)
+local function getFrequency(driver, request, response)
 	sendMessage('FA')
 	local reply = trx.read(14)
-	local freq = string.sub(reply,3,13)
+	local freq = string.sub(reply, 3, 13)
 
 	sendMessage('MD')
         reply = trx.read(4)
-        local mode = string.sub(reply,3,3)
+        local mode = string.sub(reply, 3,3 )
 
-	return tonumber(freq), internalMode[tonumber(mode)] or '??'
+	response.frequency = tonumber(freq)
+	response.mode = internalMode[tonumber(mode)] or '??'
 end
 
 
-local function setMode(driver, band, mode)
+local function setMode(driver, request, response, band, mode)
+
+	response.mode = request
+
 	if driver.validModes[mode] == nil then
-		return band, 'invalid mode' .. mode
+		response.status = 'Failure'
+		response.reason = 'Invalid mode'
+		return
 	end
 
 	local data = string.format('MD%d', driver.validModes[mode])
 	sendMessage(data)
-
-	return band, mode
 end
 
-local function getMode(driver)
+local function getMode(driver, request, response)
 	sendMessage('MD')
 	local reply = trx.read(4)
         local mode = string.sub(reply,3,3)
-	return internalMode[tonumber(mode)]
+
+	response.mode = internalMode[tonumber(mode)]
 end
 
 return {

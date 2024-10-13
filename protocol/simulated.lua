@@ -22,42 +22,51 @@
 
 local frequency = 14285000
 local mode = 'usb'
+local lockMode = false
 
 local function initialize(driver)
 	print (driver.name .. ': initialize')
 end
 
-local function setLock(driver)
+local function setLock(driver, request, response)
+	response.state = 'locked'
+	lockMode = true
 	print (driver.name .. ': locked')
 end
 
-local function setUnlock(driver)
+local function setUnlock(driver, request, response)
+	response.state = 'unlocked'
+	lockMode = false
 	print (driver.name .. ': unlocked')
 end
 
-local function setFrequency(driver, freq)
-	print (string.format('%s: set fequency to %s', driver.name, freq))
-	frequency = freq
-	return frequency
+local function setFrequency(driver, request, response)
+	print (string.format('%s: set fequency to %s', driver.name,
+	    request.frequency))
+	frequency = request.frequency
 end
 
-local function getFrequency(driver)
-	return frequency, mode
+local function getFrequency(driver, request, response)
+	response.frequency = frequency
 end
 
-local function setMode(driver, band, newMode)
+local function setMode(driver, request, response)
+	local newMode = request.mode
 	print (string.format('%s: set mode to %s', driver.name, newMode))
+
+	response.mode = newMode
+
 	if driver.validModes[newMode] ~= nil then
 		mode = newMode
-		return mode
 	else
-		return 'invalid mode ' .. newMode
+		response.status = 'Failure'
+		response.reason = 'Invalid mode'
 	end
 end
 
-local function getMode(driver, band)
+local function getMode(driver, request, response, band)
 	print (driver.name .. ': get mode')
-	return mode
+	reponse.mode = mode
 end
 
 return {

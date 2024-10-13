@@ -65,63 +65,76 @@ local function initialize(driver)
 	end
 end
 
-local function setLock(driver)
+local function setLock(driver, request, response)
 	print (driver.name .. ': locked')
+	response.state = 'unlocked' -- Not yet implemented
 end
 
-local function setUnlock(driver)
+local function setUnlock(driver, request, response)
 	print (driver.name .. ': unlocked')
+	response.state = 'unlocked'
 end
 
-local function setFrequency(driver, frequency)
+local function setFrequency(driver, request, response)
 
-	local freq = string.sub(string.format('%010d', frequency), 1, -1)
+	response.frequency = request.frequency
+
+	local freq = string.sub(string.format('%010d', request.frequency), 1, -1)
 	local bcd = string.reverse(trx.stringToBcd(freq))
 
 	sendMessage('\x05', nil, bcd)
-	if recvReply() == true then
-		print 'frequency set'
+	if recvReply() ~= true then
+		response.status = 'Failure'
+		response.reason = 'No reply from trx'
+		response.state = 'Frequency not set'
 	else
-		print 'frequency not set'
+		response.state = 'Frequency set'
 	end
-	return frequency
 end
 
-local function getFrequency(driver)
+local function getFrequency(driver, request, response)
 	sendMessage('\x03')
 	local reply = trx.read(11)
 
-	local freq = trx.bcdToString(string.reverse(string.sub(reply, 6, -2)))
+	response.frequency =
+	    tonumber(trx.bcdToString(string.reverse(string.sub(reply, 6, -2))))
 
 	sendMessage('\x04')
 	reply = trx.read(8)
 
 	local mode = string.byte(reply, 6)
-
-	return tonumber(freq), internalMode[mode] or '??'
+	response.mode = internalMode[mode] or '??'
 end
 
-local function setMode(driver, mode)
-	if driver.validModes[mode] ~= nil then
-		return band, 'invalid mode' .. mode
+local function setMode(driver, request, response)
+	local mode = request.mode
+
+	response.mode = request.mode
+	response.band = request.band
+
+	if driver.validModes[mode] == nil then
+		response.status = 'Failure'
+		response.reason = 'Unknown mode'
 	end
 
 	local data = string.char(driver.validModes[mode])
 	sendMessage('\x01', nil, data)
 	if (recvReply == true) then
-		return band, 'mode set'
+		response.state = 'mode set'
 	else
-		return band, 'mode not set'
+		response.status = 'Failure'
+		response.reason = 'No reply from trx'
+		response.state = 'mode not set'
 	end
 end
 
-local function getMode(driver)
+local function getMode(driver, request, response)
 	sendMessage('\x04')
 	local reply = trx.read(8)
 
 	local mode = string.byte(reply, 6)
 
-	return internalMode[mode] or '??'
+	response.mode = internalMode[mode] or '??'
 end
 
 return {

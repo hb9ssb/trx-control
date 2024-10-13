@@ -55,9 +55,10 @@ local function initialize(driver)
 	end
 end
 
-local function setFrequency(driver, frequency)
-	local freq = frequency
-	print('set frequency to ' .. frequency)
+local function setFrequency(driver, request, response)
+	response.frequency = request.frequency
+
+	local freq = request.frequency
 
 	local byte4 = freq // 16777216
 	freq = freq - byte4 * 16777216
@@ -79,10 +80,9 @@ local function setFrequency(driver, frequency)
 	if trx.waitForData(1000) then
 		local ack = slipRead(8)
 	end
-	return frequency
 end
 
-local function getFrequency(driver)
+local function getFrequency(driver, request, response)
 	local payload = '\x01GRF'
 	slipWrite(payload .. trx.crc16(payload))
 	if trx.waitForData(1000) then
@@ -92,34 +92,11 @@ local function getFrequency(driver)
 		    resp:byte(6) * 65536 +
 		    resp:byte(5) * 256 + resp:byte(4)
 
-		return frequency, 'M17'
+		response.frequency = frequency
 	else
-		return nil
+		response.status = 'Failure'
+		response.reason = 'No answer from trx'
 	end
-end
-
-local function setBandwidth(driver, bandwidth)
-	local payload = string.format('\x01SBW%c', bandwidth or 0)
-	slipWrite(payload .. trx.crc16(payload))
-	if trx.waitForData(1000) then
-		local resp = slipRead(6)
-	else
-		return nil
-	end
-
-	return mode
-end
-
-local function getBandwidth(driver)
-	local payload = '\x01GBW'
-	slipWrite(payload .. trx.crc16(payload))
-	if trx.waitForData(1000) then
-		local resp = slipRead(6)
-
-		return string.byte(resp, 4)
-	end
-
-	return nil
 end
 
 local modes = {
@@ -130,11 +107,16 @@ local modes = {
 	m17 = 0x05
 }
 
-local function setMode(driver, band, mode)
-	local newmode = modes[mode]
+local function setMode(driver, request, response)
+
+	response.mode = request.mode
+
+	local newmode = modes[request.mode]
 
 	if newmode == nil then
-		return nil
+		response.status = 'Failure'
+		response.reason = 'Unknown mode'
+		return
 	end
 
 	local payload = string.format('\x01SOM%c', newmode)
@@ -142,13 +124,13 @@ local function setMode(driver, band, mode)
 	if trx.waitForData(1000) then
 		local resp = slipRead(6)
 	else
-		return nil
+		response.status = 'Failure'
+		response.reason = 'No response from trx'
 	end
 
-	return mode
 end
 
-local function getMode(driver)
+local function getMode(driver, request, response)
 	local payload = '\x01GOM'
 	slipWrite(payload .. trx.crc16(payload))
 	if trx.waitForData(1000) then
@@ -164,22 +146,18 @@ local function getMode(driver)
 				break
 			end
 		end
-
-		return {
-			operatingMode = operatingMode
-		}
+			response.mode = operatingMode
+	else
+		response.status = 'Failure'
+		response.reason = 'No reply from trx'
 	end
-
-	return  {
-		status = 'Error',
-		reason = 'No reply'
-	}
 end
 
-local function setPtt(driver, ptt)
+local function setPtt(driver, request, response)
 
+	response.ptt = request.ptt
 	local opstatus = 0x01
-	if ptt == 'on' then
+	if request.ptt == 'on' then
 		opstatus = 0x02
 	end
 
@@ -188,84 +166,83 @@ local function setPtt(driver, ptt)
 	if trx.waitForData(1000) then
 		local resp = slipRead(6)
 	else
-		return nil
+		response.status = 'Failure'
+		response.reason = 'No answer from trx'
 	end
-
-	return ptt
 end
 
-local function getPtt(driver)
+local function getPtt(driver, request, response)
 	local payload = '\x01GPT'
 	slipWrite(payload .. trx.crc16(payload))
 	if trx.waitForData(1000) then
 		local resp = slipRead(6)
 
-		return {
-			ptt = tonumber(string.byte(resp, 4)) == 0x02
-			    and 'on' or 'off'
-		}
+		response.ptt = tonumber(string.byte(resp, 4)) == 0x02
+		    and 'on' or 'off'
+	else
+		response.status = 'Failure'
+		response.reason = 'No reply from trx'
 	end
-
-	return  {
-		status = 'Error',
-		reason = 'No reply'
-	}
 end
 
-local function setCallsign(driver, callsign)
-	local payload = string.format('\x01SMC%-10s', callsign)
+local function setCallsign(driver, request, response)
+	response.callsign = request.callsign
+
+	local payload = string.format('\x01SMC%-10s', request.callsign)
 	slipWrite(payload .. trx.crc16(payload))
 
 	if trx.waitForData(1000) then
 		local resp = slipRead(6)
 	else
-		return nil
+		response.status = 'Failure'
+		response.reason = 'No answer from trx'
 	end
 
 	return callsign
 end
 
-local function getCallsign(driver)
+local function getCallsign(driver, request, response)
+	response.callsign = request.callsign
+
 	local payload = '\x01GMC'
 	slipWrite(payload .. trx.crc16(payload))
 
 	if trx.waitForData(1000) then
 		local resp = slipRead(16)
-		return resp:sub(4, -4)
+		response.callsign = resp:sub(4, -4)
 	else
-		return nil
+		response.status = 'Failure'
+		response.reason = 'No answer from trx'
 	end
 
 	return callsign
 
 end
 
-local function setDestination(driver, callsign)
-	local payload = string.format('\x01SMD%-10s', callsign)
+local function setDestination(driver, request, response)
+	response.callsign = request.callsign
+	local payload = string.format('\x01SMD%-10s', request.callsign)
 	slipWrite(payload .. trx.crc16(payload))
 
 	if trx.waitForData(1000) then
 		local resp = slipRead(6)
 	else
-		return nil
+		response.status = 'Failure'
+		response.reason = 'No answer from trx'
 	end
-
-	return callsign
 end
 
-local function getDestination(driver)
+local function getDestination(driver, request, response)
 	local payload = '\x01GMD'
 	slipWrite(payload .. trx.crc16(payload))
 
 	if trx.waitForData(1000) then
 		local resp = slipRead(16)
-		return resp:sub(4, -4)
+		response.callsign = resp:sub(4, -4)
 	else
-		return nil
+		response.status = 'Failure'
+		response.reason = 'No answer from trx'
 	end
-
-	return callsign
-
 end
 
 return {

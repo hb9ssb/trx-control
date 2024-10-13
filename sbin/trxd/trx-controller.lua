@@ -22,6 +22,8 @@
 
 local name = ''
 local driver = {}
+local functions = {}
+
 local device = ''
 
 local statusUpdates = false
@@ -33,14 +35,61 @@ local function registerDriver(destination, dev, newDriver)
 	driver = newDriver
 	device = dev
 
+	functions = {
+		['set-frequency'] = type(driver.setFrequency) == 'function'
+		    and driver.setFrequency or nil,
+		['get-frequency'] = type(driver.getFrequency) == 'function'
+		    and driver.getFrequency or nil,
+		['set-mode'] = type(driver.setMode) == 'function'
+		    and driver.setMode or nil,
+		['get-mode'] = type(driver.getMode) == 'function'
+		    and driver.getMode or nil,
+		['set-ptt'] = type(driver.setPtt) == 'function'
+		    and driver.setPtt or nil,
+		['get-ptt'] = type(driver.getPtt) == 'function'
+		    and driver.getPtt or nil,
+		['set-callsign'] = type(driver.setCallsign) == 'function'
+		    and driver.setCallsign or nil,
+		['get-callsign'] = type(driver.getCallsign) == 'function'
+		    and driver.getCallsign or nil,
+		['set-destination'] = type(driver.setDestination) == 'function'
+		    and driver.setDestination or nil,
+		['get-destination'] = type(driver.getDestination) == 'function'
+		    and driver.getDestination or nil,
+		['get-info'] = getInfo,
+		['lock-trx'] = type(driver.setLock) == 'function'
+		    and driver.setLock or nil,
+		['unlock-trx'] = type(driver.setUnlock) == 'function'
+		    and driver.setUnlock or nil,
+	}
+
 	if type(driver.initialize) == 'function' then
 		driver:initialize()
 	end
 end
 
+local function getInfo(driver, request, response)
+	response.name = driver.name or 'unspecified'
+	response.frequencyRange = driver.frequencyRange or {
+		min = 0,
+		max = 0
+	}
+	if driver.validModes ~= nil then
+		response.operatingModes = {}
+		for k, v in pairs(driver.validModes) do
+			response.operatingModes[#response.operatingModes + 1]
+			    = k
+		end
+	end
+	if driver.capabilities ~= nil then
+		response.capabilities = driver.capabilities
+	end
+	response.audio = driver.audio
+end
+
 local function notImplemented(response)
 	response.status = 'Failure'
-	response.reason = 'Function not implemented'
+	response.reason = 'Function unknown or not implemented'
 	return json.encode(response)
 end
 
@@ -68,105 +117,13 @@ local function requestHandler(data, fd)
 		response = request.request
 	}
 
-	if request.request == 'set-frequency' then
-		if type(driver.setFrequency) == 'function' then
-			response.frequency =
-			    driver:setFrequency(tonumber(request.frequency))
-		else
-			return notImplemented(response)
-		end
-	elseif request.request == 'get-frequency' then
-		if type(driver.getFrequency) == 'function' then
-			response.frequency, response.mode =
-			    driver:getFrequency()
-		else
-			return notImplemented(response)
-		end
-	elseif request.request == 'set-mode' then
-		if type(driver.setMode) == 'function' then
-			response.band, response.mode =
-			    driver:setMode(request.band, request.mode)
-		else
-			return notImplemented(response)
-		end
-	elseif request.request == 'get-mode' then
-		if type(driver.getMode) == 'function' then
-			response.mode = driver:getMode(request.band)
-		else
-			return notImplemented(response)
-		end
-	elseif request.request == 'get-ptt' then
-		if type(driver.getPtt) == 'function' then
-			response.ptt = driver:getPtt()
-		else
-			return notImplemented(response)
-		end
-	elseif request.request == 'set-ptt' then
-		if type(driver.setPtt) == 'function' then
-			response.ptt = driver:setPtt(request.ptt)
-		else
-			return notImplemented(response)
-		end
-	elseif request.request == 'set-callsign' then
-		if type(driver.setCallsign) == 'function' then
-			response.callsign =
-			    driver:setCallsign(request.callsign)
-		else
-			return notImplemented(response)
-		end
-	elseif request.request == 'get-callsign' then
-		if type(driver.getCallsign) == 'function' then
-			response.callsign = driver:getCallsign()
-		else
-			return notImplemented(response)
-		end
-	elseif request.request == 'set-destination' then
-		if type(driver.setDestination) == 'function' then
-			response.callsign =
-			    driver:setDestination(request.callsign)
-		else
-			return notImplemented(response)
-		end
-	elseif request.request == 'get-destination' then
-		if type(driver.getDestination) == 'function' then
-			response.callsign = driver:getDestination()
-		else
-			return notImplemented(response)
-		end
-	elseif request.request == 'get-info' then
-		response.name = driver.name or 'unspecified'
-		response.frequencyRange = driver.frequencyRange or {
-			min = 0,
-			max = 0
-		}
-		if driver.validModes ~= nil then
-			response.operatingModes = {}
-			for k, v in pairs(driver.validModes) do
-				response.operatingModes[#response.operatingModes + 1]
-				    = k
-			end
-		end
-		if driver.capabilities ~= nil then
-			response.capabilities = driver.capabilities
-		end
-		response.audio = driver.audio
-	elseif request.request == 'lock-trx' then
-		if type(driver.setLock) == 'function' then
-			driver:setLock()
-		else
-			return notImplemented(response)
-		end
-	elseif request.request == 'unlock-trx' then
-		if type(driver.setUnlock) == 'function' then
-			driver:setUnlock()
-		else
-			return notImplemented(response)
-		end
-	else
-		response.status = 'Error'
-		response.reason = 'Unknown request'
+	local handler = functions[request.request]
+
+	if handler == nil then
+		return notImplemented(response)
 	end
 
+	handler(driver, request, response)
 	return json.encode(response)
 end
 

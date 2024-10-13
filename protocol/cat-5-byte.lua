@@ -20,24 +20,24 @@
 
 -- Yaesu 5-byte CAT protocol
 
-local function setLock(driver)
+local function setLock(driver, request, response)
 	trx.write('\x00\x00\x00\x00\x00')
-	return 'locked'
+	response.state = 'locked'
 end
 
-local function setUnlock(driver)
+local function setUnlock(driver, request, response)
 	trx.write('\x00\x00\x00\x00\x80')
-	return 'unlocked'
+	response.state = 'unlocked'
 end
 
-local function setFrequency(driver, frequency)
-	local freq = string.sub(string.format('%09d', frequency), 1, -2)
+local function setFrequency(driver, request, response)
+	local freq = string.sub(string.format('%09d', request.frequency), 1, -2)
 	local bcd = trx.stringToBcd(freq)
 	trx.write(bcd .. '\x01')
-	return frequency
+	response.frequency = request.frequency
 end
 
-local function getFrequency(driver)
+local function getFrequency(driver, request, response)
 	trx.write('\x00\x00\x00\x00\x03')
 	local f = trx.read(5)
 	if f ~= nil then
@@ -53,33 +53,41 @@ local function getFrequency(driver)
 			mode = nil
 		end
 		local fn = tonumber(frequency) * 10
-		return fn, mode
+		response.frequency = fn
+		response.mode = mode
 	else
-		return nil
+		response.status = 'Failure'
+		response.reason = 'No reply from trx'
 	end
 end
 
-local function setMode(driver, band, mode)
-	local newMode = driver.validModes[mode]
+local function setMode(driver, request, response)
+	local newMode = driver.validModes[request.mode]
+
+	response.mode = mode
+
 	if newMode ~= nil then
 		trx.write(string.format('%c\x00\x00\x00\x07', newMode))
-		return band, mode
 	else
-		return band, 'invalid mode ' .. mode
+		response.status = 'Failure'
+		response.reason = 'Unknown mode'
 	end
 end
 
-local function getMode(driver)
+local function getMode(driver, request, response)
 	trx.write('\x00\x00\x00\x00\x03')
 	local f = trx.read(5)
 	local m = string.byte(f, 5)
 
 	for k, v in pairs(driver.validModes) do
 		if v == m then
-			return k
+			response.mode = k
+			return
 		end
 	end
-	return 'unknown mode'
+
+	response.status = 'Failure'
+	response.reason = string.format('Unknown mode code %X', m)
 end
 
 return {

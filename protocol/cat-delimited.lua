@@ -129,50 +129,57 @@ end
 
 -- direct driver commands
 
-local function setLock(driver)
+local function setLock(driver, request, response)
 	trx.write('LK1;')
-	return 'locked'
+	response.state = 'locked'
 end
 
-local function setUnlock(driver)
+local function setUnlock(driver, request, response)
 	trx.write('LK0;')
-	return 'unlocked'
+	response.state = 'unlocked'
 end
 
-local function setFrequency(driver, freq)
-	trx.write(string.format('FA%s;', freq))
-	return freq
+local function setFrequency(driver, request, response)
+	trx.write(string.format('FA%s;', request.frequency))
+	response.frequency = request.frequency
 end
 
-local function getFrequency(driver)
+local function getFrequency(driver, request, response)
 	trx.write('FA;')
 	local reply = trx.read(12)
-	return tonumber(string.sub(reply, 3, 11))
+	response.frequency = tonumber(string.sub(reply, 3, 11))
 end
 
-local function setMode(driver, band, mode)
-	print('ft-710', band, mode)
+local function setMode(driver, request, response)
+	local band = request.band
 	local bcode
+
+	response.band = band
+	response.mode = request.mode
 
 	if band == 'main' then
 		bcode = '0'
 	elseif band == 'sub' then
 		bcode = '1'
 	else
-		return nil, 'invalid band'
+		response.status = 'Failure'
+		response.reason = 'Missing or invalid band'
+		return
 	end
 
 	if driver.validModes[mode] ~= nil then
 		trx.write(string.format('MD%s%s;', bcode,
 		    driver.validModes[mode]))
-		return band, mode
 	else
-		return nil, 'invalid mode'
+		response.status = 'Failure'
+		response.reason = 'Missing or invalid mode'
 	end
 end
 
-local function getMode(driver, band)
+local function getMode(driver, request, response, band)
+	local band = request.band
 	local bcode = '0'
+
 	if band == 'sub' then
 		bcode = '1'
 	end
@@ -183,10 +190,12 @@ local function getMode(driver, band)
 
 	for k, v in pairs(driver.validModes) do
 		if v == mode then
-			return k
+			response.mode = k
+			return
 		end
 	end
-	return 'unknown mode'
+	response.status = 'Failure'
+	response.reason = 'Unknown mode from trx'
 end
 
 return {
