@@ -39,11 +39,11 @@ local function initialize(driver)
 	end
 end
 
-local function lock(driver)
+local function setLock(driver)
 	print (driver.name .. ': locked')
 end
 
-local function unlock(driver)
+local function setUnlock(driver)
 	print (driver.name .. ': unlocked')
 end
 
@@ -98,8 +98,8 @@ return {
 	startStatusUpdates = nil,
 	stopStatusUpdates = nil,
 	handleStatusUpdates = nil,
-	lock = lock,
-	unlock = unlock,
+	setLock = setLock,
+	setUnlock = setUnlock,
 	setFrequency = setFrequency,
 	getFrequency = getFrequency,
 	getMode = getMode,
