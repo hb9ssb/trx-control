@@ -817,8 +817,6 @@ dispatcher(void *arg)
 		req = lua_tostring(L, -1);
 		lua_pop(L, 2);
 
-		printf("to %s, %s\n", to->name, req);
-
 		if (dst == NULL)
 			destination_not_found(d);
 		else {
