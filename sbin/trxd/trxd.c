@@ -42,6 +42,9 @@
 #include <termios.h>
 #include <unistd.h>
 
+#include <bluetooth/bluetooth.h>
+#include <bluetooth/rfcomm.h>
+
 #include <lua.h>
 #include <lualib.h>
 #include <lauxlib.h>
@@ -869,6 +872,7 @@ main(int argc, char *argv[])
 		struct termios tty;
 		const char *device;
 		int speed = 9600;
+		int channel = 0;
 
 		t = malloc(sizeof(nmea_tag_t));
 		if (t == NULL)
@@ -892,22 +896,43 @@ main(int argc, char *argv[])
 			speed = lua_tointeger(L, -1);
 		lua_pop(L, 1);
 
-		t->fd = open(device, O_RDWR);
-		if (t->fd == -1)
-			err(1, "open");
+		lua_getfield(L, -1, "channel");
+		if (lua_isinteger(L, -1))
+			channel = lua_tointeger(L, -1);
+		lua_pop(L, 1);
 
-		if (isatty(t->fd)) {
-			if (tcgetattr(t->fd, &tty) < 0)
-				err(1, "tcgetattr");
-			else {
-				cfmakeraw(&tty);
-				tty.c_cflag |= CLOCAL;
-				cfsetspeed(&tty, speed);
+		if (*device == '/') {
+			/* Assume device under /dev */
+			t->fd = open(device, O_RDWR);
+			if (t->fd == -1)
+				err(1, "trxd: open");
 
-				if (tcsetattr(t->fd, TCSADRAIN, &tty) < 0)
-					err(1, "tcsetattr");
+			if (isatty(t->fd)) {
+				if (tcgetattr(t->fd, &tty) < 0)
+					err(1, "trxd: tcgetattr");
+				else {
+					cfmakeraw(&tty);
+					tty.c_cflag |= CLOCAL;
+					cfsetspeed(&tty, speed);
+
+					if (tcsetattr(t->fd, TCSADRAIN, &tty)
+					   < 0)
+						err(1, "trxd: tcsetattr");
+				}
 			}
-		}
+		} else if (strlen(device) == 17) {
+			/* Assume Bluetooth RFCOMM */
+			struct sockaddr_rc addr = { 0 };
+
+			fd = socket(AF_BLUETOOTH, SOCK_STREAM, BTPROTO_RFCOMM);
+
+			addr.rc_family = AF_BLUETOOTH;
+			addr.rc_channel = (uint8_t) channel;
+			str2ba(device, &addr.rc_bdaddr);
+			if (connect(fd, (struct sockaddr *)&addr, sizeof(addr)))
+				err(1, "trxd: can't connect to %s", device);
+		} else
+			errx(1, "trxd: unknown device %s", device);
 
 		if (add_destination("nmea", DEST_INTERNAL, t))
 			errx(1, "names must be unique");
