@@ -113,7 +113,6 @@ extern struct int_constant curl_int[];
 	C_OPT(TIMEVALUE, number) \
 	C_OPT(CUSTOMREQUEST, string) \
 	C_OPT_SL(POSTQUOTE) \
-	C_OPT(WRITEINFO, string) \
 	C_OPT(VERBOSE, boolean) \
 	C_OPT(HEADER, boolean) \
 	C_OPT(NOPROGRESS, boolean) \
@@ -141,7 +140,6 @@ extern struct int_constant curl_int[];
 	C_OPT(FILETIME, boolean) \
 	C_OPT_SL(TELNETOPTIONS) \
 	C_OPT(MAXCONNECTS, number) \
-	C_OPT(CLOSEPOLICY, number) \
 	C_OPT(FRESH_CONNECT, boolean) \
 	C_OPT(FORBID_REUSE, boolean) \
 	C_OPT(RANDOM_FILE, string) \
@@ -241,6 +239,8 @@ ALL_CURL_OPT
  *	not supported options for any reason
  *
  *	CURLOPT_STDERR (TODO)
+ *	CURLOPT_CLOSEPOLICY
+ *	CURLOPT_WRITEINFO
  *	CURLOPT_ERRORBUFFER (all curl operations return error message via
  *	curl_easy_strerror)
  *	CURLOPT_SHARE (TODO)
