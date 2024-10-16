@@ -81,7 +81,7 @@ main(int argc, char *argv[])
 	status = connect(fd, (struct sockaddr *)&addr, sizeof(addr));
 
 	if (status)
-		err(1, "can't connect to %s using channel %d", argv[0]);
+		err(1, "can't connect to %s on channel %d", argv[0], channel);
 
 	do {
 		status = read(fd, &c, 1);
