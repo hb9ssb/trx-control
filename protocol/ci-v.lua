@@ -144,7 +144,8 @@ return {
 	capabilities = {	-- driver specific
 		frequency = true,
 		mode = true,
-		lock = true
+		lock = true,
+		ptt = false
 	},
 	validModes = {},
 	ctcssModes = {},
@@ -158,5 +159,7 @@ return {
 	setFrequency = setFrequency,
 	getFrequency = getFrequency,
 	getMode = getMode,
-	setMode = setMode
+	setMode = setMode,
+	getPtt = nil,
+	setPtt = nil
 }
