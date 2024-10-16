@@ -128,21 +128,30 @@ local function requestHandler(data, fd)
 end
 
 local function pollHandler(data, fd)
-	local frequency, mode = driver:getFrequency()
-	if lastFrequency ~= frequency or lastMode ~= mode then
+	local response = {
+		status = 'Ok',
+		request = 'status-update',
+		from = name
+	}
+
+	driver.getFrequency(driver, nil, response)
+	driver.getMode(driver, nil, response)
+
+	if lastFrequency ~= response.frequency or lastMode ~= response.mode then
 		local status = {
 			request = 'status-update',
 			from = name,
 			status = {
-				frequency = frequency,
-				mode = mode
+				frequency = response.frequency,
+				mode = response.mode
 			}
 		}
 
 		local jsonData = json.encode(status)
+		print('notify listeners')
 		trxController.notifyListeners(jsonData)
-		lastFrequency = frequency
-		lastMode = mode
+		lastFrequency = response.frequency
+		lastMode = response.mode
 	else
 		return nil
 	end
