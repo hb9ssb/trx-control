@@ -15,13 +15,13 @@ PG_CONFIG=/usr/bin/pg_config
 endif
 
 ifeq ($(ID), fedora)
-PG_CONFIG=	/usr/pgsql-${PG_VERSION}/bin/pg_config
+PG_CONFIG=	/usr/bin/pg_config
 
-ifeq ($(VERSION_ID), "39")
-PG_VERSION=15
+ifeq ($(VERSION_ID), "40")
+PG_VERSION=16
 endif
 
-ifeq ($(VERSION_ID), "38")
+ifeq ($(VERSION_ID), "39")
 PG_VERSION=15
 endif
 
