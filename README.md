@@ -4,7 +4,7 @@ trx-control is an extensible software system to control amateur radio
 transceivers and related hardware like GPIO-pins etc. and to integrate
 third-party software using application specific extensions.
 
-New users should read the user guide found at the URL
+New users should read the *trx-control User Guide* found at the URL
 https://trx-control.msys.ch/#_the_trx_control_user_guide where it is
 available in HTML, PDF, and, EPUB format.
 
@@ -34,7 +34,7 @@ _(trxd(8) listens on port 14285 by default for incoming connections over
 raw sockets and can optionally listen for WebSocket connections. It supports
 both IPv4 and IPv6.)_
 
-See the Integration Guide at
+See the *trx-control Integration Guide* at
 https://trx-control.msys.ch/#_the_trx_control_integration_guide for all
 information on the client/server protocol, the extensions etc.
 
@@ -43,9 +43,9 @@ information on the client/server protocol, the extensions etc.
 Transceivers are controlled using protocol drivers written in
 the Lua programming language.  Properties of a specific transceiver are
 defined in YAML format.  New transceivers can be added by adding a
-protocol driver, if needed, and a transceiver defintion.
+protocol driver (if needed) and a transceiver defintion.
 
-See the Developer Guide at
+See the *trx-control Developer Guide* at
 https://trx-control.msys.ch/#_the_trx_control_developer_guide for all
 information needed to write protocol drivers and the documentation of all
 Lua modules included.
