@@ -8,29 +8,31 @@ New users should read the user guide found at the URL
 https://trx-control.msys.ch/#_the_trx_control_user_guide where it is
 available in HTML, PDF, and, EPUB format.
 
-Further information, technical information, application notes, a FAQ etc.
-can be found on the trx-control website at https://trx-control.msys.ch.
+Further information, project goals, a general overvie, technical information,
+application notes, a FAQ etc. can be found on the trx-control website at
+https://trx-control.msys.ch.
 
 ## What is included?
 
 trx-control mainly consists of trxd(8), a daemon to control the
 transceivers and other hardware, and, trxctl(1), a command line utility to
-access trxd(8), and bluecat(1), a tool to help with configuring bluetooth
-connections.
+access trxd(8), and, bluecat(1), a tool to help with the configuration of
+bluetooth connections.
 
 trx-control comes with protocol drivers for common transceiver
-brands, configurations for common transceiver models, a bunch
-of extensions, complete documentation online as well as in the form on
+brands, configurations for a variety of transceiver models, a bunch
+of extensions, and, complete documentation online as well as in the form on
 manual pages.
 
 ## Using trx-control from client software
 
-Software that wants to make use of trxd(8) should implement the protocol
-and talk to trxd(8) directly over the network.
+Software that wants to make use of trxd(8) should implement the trx-control
+client/server protocol and talk to trxd(8) over the network, either over
+raw IP sockets or WebSockets.
 
-trxd(8) listens on port 14285 by default for incoming connections over
-plain sockets and can optionally listen for WebSocket connections. It supports
-both IPv4 and IPv6.
+_(trxd(8) listens on port 14285 by default for incoming connections over
+raw sockets and can optionally listen for WebSocket connections. It supports
+both IPv4 and IPv6.)_
 
 See the Integration Guide at
 https://trx-control.msys.ch/#_the_trx_control_integration_guide for all
