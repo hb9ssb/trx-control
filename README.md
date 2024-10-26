@@ -36,7 +36,7 @@ both IPv4 and IPv6.)_
 
 See the **trx-control Integration Guide** at
 https://trx-control.msys.ch/#_the_trx_control_integration_guide for all
-information on the client/server protocol, the extensions etc.
+information regarding the client/server protocol, the extensions etc.
 
 ## Adding new transceivers
 
@@ -48,7 +48,7 @@ protocol driver (if needed) and a transceiver defintion.
 See the **trx-control Developer Guide** at
 https://trx-control.msys.ch/#_the_trx_control_developer_guide for all
 information needed to write protocol drivers and the documentation of all
-Lua modules included.
+Lua modules included with trx-control.
 
 See https://lua.org for more information on Lua.
 
