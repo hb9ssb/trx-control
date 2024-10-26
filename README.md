@@ -8,7 +8,7 @@ New users should read the **trx-control User Guide** found at the URL
 https://trx-control.msys.ch/#_the_trx_control_user_guide where it is
 available in HTML, PDF, and, EPUB format.
 
-Further information, project goals, a general overvie, technical information,
+Further information, project goals, a general overview, technical information,
 application notes, a FAQ etc. can be found on the trx-control website at
 https://trx-control.msys.ch.
 
@@ -34,7 +34,7 @@ _(trxd(8) listens on port 14285 by default for incoming connections over
 raw sockets and can optionally listen for WebSocket connections. It supports
 both IPv4 and IPv6.)_
 
-See the *trx-control Integration Guide* at
+See the **trx-control Integration Guide** at
 https://trx-control.msys.ch/#_the_trx_control_integration_guide for all
 information on the client/server protocol, the extensions etc.
 
@@ -45,7 +45,7 @@ the Lua programming language.  Properties of a specific transceiver are
 defined in YAML format.  New transceivers can be added by adding a
 protocol driver (if needed) and a transceiver defintion.
 
-See the *trx-control Developer Guide* at
+See the **trx-control Developer Guide** at
 https://trx-control.msys.ch/#_the_trx_control_developer_guide for all
 information needed to write protocol drivers and the documentation of all
 Lua modules included.
