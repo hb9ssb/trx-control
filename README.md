@@ -4,7 +4,7 @@ trx-control is an extensible software system to control amateur radio
 transceivers and related hardware like GPIO-pins etc. and to integrate
 third-party software using application specific extensions.
 
-New users should read the *trx-control User Guide* found at the URL
+New users should read the **trx-control User Guide** found at the URL
 https://trx-control.msys.ch/#_the_trx_control_user_guide where it is
 available in HTML, PDF, and, EPUB format.
 
