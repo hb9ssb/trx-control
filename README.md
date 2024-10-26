@@ -14,12 +14,10 @@ trxd(8) listens on port 14285 by default for incoming connections over
 plain sockets and can optionally listen for WebSocket connections. It supports
 both IPv4 and IPv6.
 
-The actual transceiver control is done using protocol drivers written in
-the Lua programming language.  Definitions for specific transceivers are
-written in the YAML text format.
-
-This way new transceivers can easily be supported by supplying a corresponding
-protocol driver and transceiver defintion.
+Transceivers are controlled using protocol drivers written in
+the Lua programming language.  Properties of a specific transceiver are
+define in the YAML format.  New transceivers can easily be added by
+adding a corresponding protocol driver and a transceiver defintion.
 
 See https://lua.org and https://lua.msys.ch for more information on Lua.
 
