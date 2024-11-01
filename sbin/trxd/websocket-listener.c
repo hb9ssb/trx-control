@@ -194,7 +194,10 @@ websocket_listener(void *arg)
 
 	if (t->announce) {
 		/* Create the Avahi handler thread */
-		pthread_create(&t->announcer, NULL, avahi_handler, t);
+		if (!pthread_create(&t->announcer, NULL, avahi_handler, t)) {
+			syslog(LOG_ERR, "websocket-listener: can't create avahi handler thread. handler missing?");
+			exit(1);
+		}
 	}
 
 	/* Wait for connections as long as websocket_listener runs */
