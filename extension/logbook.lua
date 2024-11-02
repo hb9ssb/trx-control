@@ -21,6 +21,7 @@
 -- The logbook extension for trx-control provides a hamradio logbook that
 -- store all data in a PostgreSQL database.
 
+local log = require 'linux.sys.log'
 local pgsql = require 'pgsql'
 
 -- The configuration is stored in trxd.yaml under the extension.  The following
@@ -34,12 +35,12 @@ local pgsql = require 'pgsql'
 local config = ...
 
 if config.connStr == nil then
-	print 'logbook: missing connection string'
+	log.syslog('err', 'logbook: missing connection string')
 	return
 end
 
 if trxd.verbose() > 0 then
-	print 'initializing the trx-control logbook extension'
+	log.syslog('notice', 'initializing the trx-control logbook extension')
 end
 
 local function setupDatabase()

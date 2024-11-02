@@ -22,6 +22,8 @@
 -- could as well be a GPIO.
 
 local curl = require 'curl'
+local log = require 'linux.sys.log'
+
 local config = ...
 
 local connectTimeout = config.connectTimeout or 3
@@ -30,7 +32,7 @@ local address = config.address
 local adminPassword = config.adminPassword
 
 if trxd.verbose() > 0 then
-	print 'installing the trx-control tasmota extension'
+	log.syslog('notice', 'installing the trx-control tasmota extension')
 end
 
 local function requestState(state)

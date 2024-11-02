@@ -20,6 +20,7 @@
 
 -- The memory system for trx-control.
 
+local log = require 'linux.sys.log'
 local pgsql = require 'pgsql'
 local memorydb = require 'memory-db'
 
@@ -36,7 +37,7 @@ local config = ...
 local connStr = config.connStr or 'dbname=trx-control'
 
 if trxd.verbose() > 0 then
-	print 'initializing the trx-control memory extension'
+	log.syslog('notice', 'initializing the trx-control memory extension')
 end
 
 local function setupDatabase()
@@ -54,7 +55,8 @@ local function connectDatabase()
 	db = pgsql.connectdb(connStr)
 
 	if db:status() ~= pgsql.CONNECTION_OK then
-		print('can not connect to database: ' .. db:errorMessage())
+		log.syslog('err', 'memory: can not connect to database: '
+		    .. db:errorMessage())
 	else
 		setupDatabase()
 	end
