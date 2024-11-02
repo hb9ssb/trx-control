@@ -22,7 +22,6 @@
 
 /* Provide the 'gpio' Lua module to GPIO drivers */
 
-#include <err.h>
 #include <poll.h>
 #include <stdlib.h>
 #include <termios.h>

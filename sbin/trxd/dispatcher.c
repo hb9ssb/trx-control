@@ -24,12 +24,12 @@
 
 /* XXX evaluate if this needs to be a thread on its own */
 
-#include <err.h>
 #include <pthread.h>
 #include <sched.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <syslog.h>
 #include <unistd.h>
 
 #include <lua.h>
@@ -51,134 +51,187 @@ extern int verbose;
 static void
 call_trx_controller(dispatcher_tag_t *d, trx_controller_tag_t *t)
 {
-	if (pthread_mutex_lock(&t->mutex))
-		err(1, "dispatcher: pthread_mutex_lock");
+	if (pthread_mutex_lock(&t->mutex)) {
+		syslog(LOG_ERR, "dispatcher: pthread_mutex_lock");
+		exit(1);
+	}
 
-	if (pthread_mutex_lock(&d->sender->mutex))
-		err(1, "dispatcher: pthread_mutex_lock");
+	if (pthread_mutex_lock(&d->sender->mutex)) {
+		syslog(LOG_ERR, "dispatcher: pthread_mutex_lock");
+		exit(1);
+	}
 
 	t->handler = "requestHandler";
 	t->response = NULL;
 	t->data = d->data;
 
-	if (pthread_mutex_lock(&t->mutex2))
-		err(1, "dispatcher: pthread_mutex_lock");
+	if (pthread_mutex_lock(&t->mutex2)) {
+		syslog(LOG_ERR, "dispatcher: pthread_mutex_lock");
+		exit(1);
+	}
 
 	/* We signal cond, and mutex gets owned by trx-controller */
-	if (pthread_cond_signal(&t->cond1))
-		err(1, "dispatcher: pthread_cond_signal");
+	if (pthread_cond_signal(&t->cond1)) {
+		syslog(LOG_ERR, "dispatcher: pthread_cond_signal");
+		exit(1);
+	}
 
-	if (pthread_mutex_unlock(&t->mutex2))
-		err(1, "dispatcher: pthread_mutex_unlock");
+	if (pthread_mutex_unlock(&t->mutex2)) {
+		syslog(LOG_ERR, "dispatcher: pthread_mutex_unlock");
+		exit(1);
+	}
 
 	while (t->response == NULL) {
-		if (pthread_cond_wait(&t->cond2, &t->mutex2))
-			err(1, "dispatcher: pthread_cond_wait");
+		if (pthread_cond_wait(&t->cond2, &t->mutex2)) {
+			syslog(LOG_ERR, "dispatcher: pthread_cond_wait");
+			exit(1);
+		}
 	}
 
 	if (strlen(t->response) > 0) {
 		d->sender->data = t->response;
-		if (pthread_cond_signal(&d->sender->cond))
-			err(1, "dispatcher: pthread_cond_signal");
+		if (pthread_cond_signal(&d->sender->cond)) {
+			syslog(LOG_ERR, "dispatcher: pthread_cond_signal");
+			exit(1);
+		}
 		pthread_mutex_unlock(&d->sender->mutex);
 	} else {
 		pthread_mutex_unlock(&d->sender->mutex);
 	}
 
-	if (pthread_mutex_unlock(&t->mutex2))
-		err(1, "dispatcher: pthread_mutex_unlock");
+	if (pthread_mutex_unlock(&t->mutex2)) {
+		syslog(LOG_ERR, "dispatcher: pthread_mutex_unlock");
+		exit(1);
+	}
 
-	if (pthread_mutex_unlock(&t->mutex))
-		err(1, "dispatcher: pthread_mutex_unlock");
+	if (pthread_mutex_unlock(&t->mutex)) {
+		syslog(LOG_ERR, "dispatcher: pthread_mutex_unlock");
+		exit(1);
+	}
 }
 
 static void
 call_sdr_controller(dispatcher_tag_t *d, sdr_controller_tag_t *t)
 {
-	if (pthread_mutex_lock(&t->mutex))
-		err(1, "dispatcher: pthread_mutex_lock");
+	if (pthread_mutex_lock(&t->mutex)) {
+		syslog(LOG_ERR, "dispatcher: pthread_mutex_lock");
+		exit(1);
+	}
 
-	if (pthread_mutex_lock(&d->sender->mutex))
-		err(1, "dispatcher: pthread_mutex_lock");
+	if (pthread_mutex_lock(&d->sender->mutex)) {
+		syslog(LOG_ERR, "dispatcher: pthread_mutex_lock");
+		exit(1);
+	}
 
 	t->handler = "requestHandler";
 	t->response = NULL;
 	t->data = d->data;
 
-	if (pthread_mutex_lock(&t->mutex2))
-		err(1, "dispatcher: pthread_mutex_lock");
+	if (pthread_mutex_lock(&t->mutex2)) {
+		syslog(LOG_ERR, "dispatcher: pthread_mutex_lock");
+		exit(1);
+	}
 
 	/* We signal cond, and mutex gets owned by trx-controller */
-	if (pthread_cond_signal(&t->cond1))
-		err(1, "dispatcher: pthread_cond_signal");
+	if (pthread_cond_signal(&t->cond1)) {
+		syslog(LOG_ERR, "dispatcher: pthread_cond_signal");
+		exit(1);
+	}
 
-	if (pthread_mutex_unlock(&t->mutex2))
-		err(1, "dispatcher: pthread_mutex_unlock");
+	if (pthread_mutex_unlock(&t->mutex2)) {
+		syslog(LOG_ERR, "dispatcher: pthread_mutex_unlock");
+		exit(1);
+	}
 
 	while (t->response == NULL) {
-		if (pthread_cond_wait(&t->cond2, &t->mutex2))
-			err(1, "dispatcher: pthread_cond_wait");
+		if (pthread_cond_wait(&t->cond2, &t->mutex2)) {
+			syslog(LOG_ERR, "dispatcher: pthread_cond_wait");
+			exit(1);
+		}
 	}
 
 	if (strlen(t->response) > 0) {
 		d->sender->data = t->response;
-		if (pthread_cond_signal(&d->sender->cond))
-			err(1, "dispatcher: pthread_cond_signal");
+		if (pthread_cond_signal(&d->sender->cond)) {
+			syslog(LOG_ERR, "dispatcher: pthread_cond_signal");
+			exit(1);
+		}
 		pthread_mutex_unlock(&d->sender->mutex);
 	} else {
 		pthread_mutex_unlock(&d->sender->mutex);
 	}
 
-	if (pthread_mutex_unlock(&t->mutex2))
-		err(1, "dispatcher: pthread_mutex_unlock");
+	if (pthread_mutex_unlock(&t->mutex2)) {
+		syslog(LOG_ERR, "dispatcher: pthread_mutex_unlock");
+		exit(1);
+	}
 
-	if (pthread_mutex_unlock(&t->mutex))
-		err(1, "dispatcher: pthread_mutex_unlock");
+	if (pthread_mutex_unlock(&t->mutex)) {
+		syslog(LOG_ERR, "dispatcher: pthread_mutex_unlock");
+		exit(1);
+	}
 }
 
 static void
 call_gpio_controller(dispatcher_tag_t *d, gpio_controller_tag_t *t)
 {
-	printf("call gpio controller\n");
-	if (pthread_mutex_lock(&t->mutex))
-		err(1, "dispatcher: pthread_mutex_lock");
+	if (pthread_mutex_lock(&t->mutex)) {
+		syslog(LOG_ERR, "dispatcher: pthread_mutex_lock");
+		exit(1);
+	}
 
-	if (pthread_mutex_lock(&d->sender->mutex))
-		err(1, "dispatcher: pthread_mutex_lock");
+	if (pthread_mutex_lock(&d->sender->mutex)) {
+		syslog(LOG_ERR, "dispatcher: pthread_mutex_lock");
+		exit(1);
+	}
 
 	t->handler = "requestHandler";
 	t->response = NULL;
 	t->data = d->data;
 
-	if (pthread_mutex_lock(&t->mutex2))
-		err(1, "dispatcher: pthread_mutex_lock");
+	if (pthread_mutex_lock(&t->mutex2)) {
+		syslog(LOG_ERR, "dispatcher: pthread_mutex_lock");
+		exit(1);
+	}
 
 	/* We signal cond, and mutex gets owned by trx-controller */
-	if (pthread_cond_signal(&t->cond1))
-		err(1, "dispatcher: pthread_cond_signal");
+	if (pthread_cond_signal(&t->cond1)) {
+		syslog(LOG_ERR, "dispatcher: pthread_cond_signal");
+		exit(1);
+	}
 
-	if (pthread_mutex_unlock(&t->mutex2))
-		err(1, "dispatcher: pthread_mutex_unlock");
+	if (pthread_mutex_unlock(&t->mutex2)) {
+		syslog(LOG_ERR, "dispatcher: pthread_mutex_unlock");
+		exit(1);
+	}
 
 	while (t->response == NULL) {
-		if (pthread_cond_wait(&t->cond2, &t->mutex2))
-			err(1, "dispatcher: pthread_cond_wait");
+		if (pthread_cond_wait(&t->cond2, &t->mutex2)) {
+			syslog(LOG_ERR, "dispatcher: pthread_cond_wait");
+			exit(1);
+		}
 	}
 
 	if (strlen(t->response) > 0) {
 		d->sender->data = t->response;
-		if (pthread_cond_signal(&d->sender->cond))
-			err(1, "dispatcher: pthread_cond_signal");
+		if (pthread_cond_signal(&d->sender->cond)) {
+			syslog(LOG_ERR, "dispatcher: pthread_cond_signal");
+			exit(1);
+		}
 		pthread_mutex_unlock(&d->sender->mutex);
 	} else {
 		pthread_mutex_unlock(&d->sender->mutex);
 	}
 
-	if (pthread_mutex_unlock(&t->mutex2))
-		err(1, "dispatcher: pthread_mutex_unlock");
+	if (pthread_mutex_unlock(&t->mutex2)) {
+		syslog(LOG_ERR, "dispatcher: pthread_mutex_unlock");
+		exit(1);
+	}
 
-	if (pthread_mutex_unlock(&t->mutex))
-		err(1, "dispatcher: pthread_mutex_unlock");
+	if (pthread_mutex_unlock(&t->mutex)) {
+		syslog(LOG_ERR, "dispatcher: pthread_mutex_unlock");
+		exit(1);
+	}
 }
 
 static void
@@ -191,8 +244,10 @@ call_nmea(dispatcher_tag_t *d, nmea_tag_t *t)
 	    "{\"status\":\"Ok\",\"response\":\"get-fix\",\"from\":\"nmea\","
 	    "\"fix\":{");
 
-	if (pthread_mutex_lock(&t->mutex))
-		err(1, "dispatcher: pthread_mutex_lock");
+	if (pthread_mutex_lock(&t->mutex)) {
+		syslog(LOG_ERR, "dispatcher: pthread_mutex_lock");
+		exit(1);
+	}
 
 	buf_printf(&buf, "\"date\":\"%02d.%02d.%04d\",",
 	    t->day, t->month, t->year > 0 ? t->year + 2000 : 0);
@@ -208,22 +263,30 @@ call_nmea(dispatcher_tag_t *d, nmea_tag_t *t)
 	buf_printf(&buf, "\"mode\":\"%c\",", t->mode);
 	buf_printf(&buf, "\"locator\":\"%s\"", t->locator);
 
-	if (pthread_mutex_unlock(&t->mutex))
-		err(1, "dispatcher: pthread_mutex_unlock");
+	if (pthread_mutex_unlock(&t->mutex)) {
+		syslog(LOG_ERR, "dispatcher: pthread_mutex_unlock");
+		exit(1);
+	}
 
 	buf_addstring(&buf, "}}");
 
-	if (pthread_mutex_lock(&d->sender->mutex))
-		err(1, "dispatcher: pthread_mutex_lock");
+	if (pthread_mutex_lock(&d->sender->mutex)) {
+		syslog(LOG_ERR, "dispatcher: pthread_mutex_lock");
+		exit(1);
+	}
 
 	d->sender->data = buf.data;
 
-	if (pthread_cond_signal(&d->sender->cond))
-		err(1, "dispatcher: pthread_cond_signal");
+	if (pthread_cond_signal(&d->sender->cond)) {
+		syslog(LOG_ERR, "dispatcher: pthread_cond_signal");
+		exit(1);
+	}
 
 	while (d->sender->data != NULL) {
-		if (pthread_cond_wait(&d->sender->cond2, &d->sender->mutex))
-			err(1, "dispatcher: pthread_cond_wait");
+		if (pthread_cond_wait(&d->sender->cond2, &d->sender->mutex)) {
+			syslog(LOG_ERR, "dispatcher: pthread_cond_wait");
+			exit(1);
+		}
 	}
 	pthread_mutex_unlock(&d->sender->mutex);
 	buf_free(&buf);
@@ -232,18 +295,24 @@ call_nmea(dispatcher_tag_t *d, nmea_tag_t *t)
 static void
 destination_not_found(dispatcher_tag_t *d)
 {
-	if (pthread_mutex_lock(&d->sender->mutex))
-		err(1, "dispatcher: pthread_mutex_lock");
+	if (pthread_mutex_lock(&d->sender->mutex)) {
+		syslog(LOG_ERR, "dispatcher: pthread_mutex_lock");
+		exit(1);
+	}
 
 	d->sender->data = "{\"status\":\"Error\",\"reason\":"
 	    "\"Destination not found\"}";
 
-	if (pthread_cond_signal(&d->sender->cond))
-		err(1, "dispatcher: pthread_cond_signal");
+	if (pthread_cond_signal(&d->sender->cond)) {
+		syslog(LOG_ERR, "dispatcher: pthread_cond_signal");
+		exit(1);
+	}
 
 	while (d->sender->data != NULL) {
-		if (pthread_cond_wait(&d->sender->cond2, &d->sender->mutex))
-			err(1, "dispatcher: pthread_cond_wait");
+		if (pthread_cond_wait(&d->sender->cond2, &d->sender->mutex)) {
+			syslog(LOG_ERR, "dispatcher: pthread_cond_wait");
+			exit(1);
+		}
 	}
 	pthread_mutex_unlock(&d->sender->mutex);
 }
@@ -251,18 +320,24 @@ destination_not_found(dispatcher_tag_t *d)
 static void
 destination_set(dispatcher_tag_t *d)
 {
-	if (pthread_mutex_lock(&d->sender->mutex))
-		err(1, "dispatcher: pthread_mutex_lock");
+	if (pthread_mutex_lock(&d->sender->mutex)) {
+		syslog(LOG_ERR, "dispatcher: pthread_mutex_lock");
+		exit(1);
+	}
 
 	d->sender->data = "{\"status\":\"Ok\",\"message\":"
 	    "\"Destination set\"}";
 
-	if (pthread_cond_signal(&d->sender->cond))
-		err(1, "dispatcher: pthread_cond_signal");
+	if (pthread_cond_signal(&d->sender->cond)) {
+		syslog(LOG_ERR, "dispatcher: pthread_cond_signal");
+		exit(1);
+	}
 
 	while (d->sender->data != NULL) {
-		if (pthread_cond_wait(&d->sender->cond2, &d->sender->mutex))
-			err(1, "dispatcher: pthread_cond_wait");
+		if (pthread_cond_wait(&d->sender->cond2, &d->sender->mutex)) {
+			syslog(LOG_ERR, "dispatcher: pthread_cond_wait");
+			exit(1);
+		}
 	}
 	pthread_mutex_unlock(&d->sender->mutex);
 }
@@ -270,18 +345,24 @@ destination_set(dispatcher_tag_t *d)
 static void
 destination_not_supported(dispatcher_tag_t *d)
 {
-	if (pthread_mutex_lock(&d->sender->mutex))
-		err(1, "dispatcher: pthread_mutex_lock");
+	if (pthread_mutex_lock(&d->sender->mutex)) {
+		syslog(LOG_ERR, "dispatcher: pthread_mutex_lock");
+		exit(1);
+	}
 
 	d->sender->data = "{\"status\":\"Error\",\"reason\":"
 	    "\"Destination type not supported\"}";
 
-	if (pthread_cond_signal(&d->sender->cond))
-		err(1, "dispatcher: pthread_cond_signal");
+	if (pthread_cond_signal(&d->sender->cond)) {
+		syslog(LOG_ERR, "dispatcher: pthread_cond_signal");
+		exit(1);
+	}
 
 	while (d->sender->data != NULL) {
-		if (pthread_cond_wait(&d->sender->cond2, &d->sender->mutex))
-			err(1, "dispatcher: pthread_cond_wait");
+		if (pthread_cond_wait(&d->sender->cond2, &d->sender->mutex)) {
+			syslog(LOG_ERR, "dispatcher: pthread_cond_wait");
+			exit(1);
+		}
 	}
 	pthread_mutex_unlock(&d->sender->mutex);
 }
@@ -293,12 +374,16 @@ request_not_supported(dispatcher_tag_t *d)
 	d->sender->data = "{\"status\":\"Error\",\"reason\":"
 	    "\"Request not supported by extension\"}";
 
-	if (pthread_cond_signal(&d->sender->cond))
-		err(1, "dispatcher: pthread_cond_signal");
+	if (pthread_cond_signal(&d->sender->cond)) {
+		syslog(LOG_ERR, "dispatcher: pthread_cond_signal");
+		exit(1);
+	}
 
 	while (d->sender->data != NULL) {
-		if (pthread_cond_wait(&d->sender->cond2, &d->sender->mutex))
-			err(1, "dispatcher: pthread_cond_wait");
+		if (pthread_cond_wait(&d->sender->cond2, &d->sender->mutex)) {
+			syslog(LOG_ERR, "dispatcher: pthread_cond_wait");
+			exit(1);
+		}
 	}
 	pthread_mutex_unlock(&d->sender->mutex);
 }
@@ -310,12 +395,16 @@ request_ok(dispatcher_tag_t *d)
 	d->sender->data = "{\"status\":\"Ok\",\"response\":"
 	    "\"Request handled\"}";
 
-	if (pthread_cond_signal(&d->sender->cond))
-		err(1, "dispatcher: pthread_cond_signal");
+	if (pthread_cond_signal(&d->sender->cond)) {
+		syslog(LOG_ERR, "dispatcher: pthread_cond_signal");
+		exit(1);
+	}
 
 	while (d->sender->data != NULL) {
-		if (pthread_cond_wait(&d->sender->cond2, &d->sender->mutex))
-			err(1, "dispatcher: pthread_cond_wait");
+		if (pthread_cond_wait(&d->sender->cond2, &d->sender->mutex)) {
+			syslog(LOG_ERR, "dispatcher: pthread_cond_wait");
+			exit(1);
+		}
 	}
 	pthread_mutex_unlock(&d->sender->mutex);
 }
@@ -323,18 +412,24 @@ request_ok(dispatcher_tag_t *d)
 static void
 status_updates_not_supported(dispatcher_tag_t *d)
 {
-	if (pthread_mutex_lock(&d->sender->mutex))
-		err(1, "dispatcher: pthread_mutex_lock");
+	if (pthread_mutex_lock(&d->sender->mutex)) {
+		syslog(LOG_ERR, "dispatcher: pthread_mutex_lock");
+		exit(1);
+	}
 
 	d->sender->data = "{\"status\":\"Error\",\"reason\":"
 	    "\"Automatic status updated not supported by destination\"}";
 
-	if (pthread_cond_signal(&d->sender->cond))
-		err(1, "dispatcher: pthread_cond_signal");
+	if (pthread_cond_signal(&d->sender->cond)) {
+		syslog(LOG_ERR, "dispatcher: pthread_cond_signal");
+		exit(1);
+	}
 
 	while (d->sender->data != NULL) {
-		if (pthread_cond_wait(&d->sender->cond2, &d->sender->mutex))
-			err(1, "dispatcher: pthread_cond_wait");
+		if (pthread_cond_wait(&d->sender->cond2, &d->sender->mutex)) {
+			syslog(LOG_ERR, "dispatcher: pthread_cond_wait");
+			exit(1);
+		}
 	}
 	pthread_mutex_unlock(&d->sender->mutex);
 }
@@ -342,18 +437,24 @@ status_updates_not_supported(dispatcher_tag_t *d)
 static void
 listen_not_supported(dispatcher_tag_t *d)
 {
-	if (pthread_mutex_lock(&d->sender->mutex))
-		err(1, "dispatcher: pthread_mutex_lock");
+	if (pthread_mutex_lock(&d->sender->mutex)) {
+		syslog(LOG_ERR, "dispatcher: pthread_mutex_lock");
+		exit(1);
+	}
 
 	d->sender->data = "{\"status\":\"Error\",\"reason\":"
 	    "\"Listen not supported by destination\"}";
 
-	if (pthread_cond_signal(&d->sender->cond))
-		err(1, "dispatcher: pthread_cond_signal");
+	if (pthread_cond_signal(&d->sender->cond)) {
+		syslog(LOG_ERR, "dispatcher: pthread_cond_signal");
+		exit(1);
+	}
 
 	while (d->sender->data != NULL) {
-		if (pthread_cond_wait(&d->sender->cond2, &d->sender->mutex))
-			err(1, "dispatcher: pthread_cond_wait");
+		if (pthread_cond_wait(&d->sender->cond2, &d->sender->mutex)) {
+			syslog(LOG_ERR, "dispatcher: pthread_cond_wait");
+			exit(1);
+		}
 	}
 	pthread_mutex_unlock(&d->sender->mutex);
 }
@@ -393,8 +494,10 @@ add_sender(dispatcher_tag_t *d, destination_t *dst)
 				break;
 		if (l == NULL) {
 			p->next = malloc(sizeof(sender_list_t));
-			if (p->next == NULL)
-				err(1, "malloc");
+			if (p->next == NULL) {
+				syslog(LOG_ERR, "malloc");
+				exit(1);
+			}
 			p = p->next;
 			p->sender = d->sender;
 			p->next = NULL;
@@ -402,8 +505,10 @@ add_sender(dispatcher_tag_t *d, destination_t *dst)
 		}
 	} else {
 		dst->tag.trx->senders = malloc(sizeof(sender_list_t));
-		if (dst->tag.trx->senders == NULL)
-			err(1, "malloc");
+		if (dst->tag.trx->senders == NULL) {
+			syslog(LOG_ERR, "malloc");
+			exit(1);
+		}
 		dst->tag.trx->senders->sender = d->sender;
 		dst->tag.trx->senders->next = NULL;
 		start_updater_if_not_running(dst->tag.trx);
@@ -477,16 +582,20 @@ add_listener(dispatcher_tag_t *d, destination_t *dst)
 				break;
 		if (l == NULL) {
 			p->next = malloc(sizeof(sender_list_t));
-			if (p->next == NULL)
-				err(1, "malloc");
-			p = p->next;
+			if (p->next == NULL) {
+				syslog(LOG_ERR, "malloc");
+				exit(1);
+		}
+		p = p->next;
 			p->sender = d->sender;
 			p->next = NULL;
 		}
 	} else {
 		dst->tag.extension->listeners = malloc(sizeof(sender_list_t));
-		if (dst->tag.extension->listeners == NULL)
-			err(1, "malloc");
+		if (dst->tag.extension->listeners == NULL) {
+			syslog(LOG_ERR, "malloc");
+			exit(1);
+		}
 		dst->tag.extension->listeners->sender = d->sender;
 		dst->tag.extension->listeners->next = NULL;
 	}
@@ -527,11 +636,15 @@ call_extension(lua_State *L, dispatcher_tag_t* d, extension_tag_t *e,
 {
 	pthread_mutex_lock(&e->mutex);
 
-	if (pthread_mutex_lock(&d->sender->mutex))
-		err(1, "dispatcher: pthread_mutex_lock");
+	if (pthread_mutex_lock(&d->sender->mutex)) {
+		syslog(LOG_ERR, "dispatcher: pthread_mutex_lock");
+		exit(1);
+	}
 
-	if (pthread_mutex_lock(&e->mutex2))
-		err(1, "dispatcher: pthread_mutex_lock");
+	if (pthread_mutex_lock(&e->mutex2)) {
+		syslog(LOG_ERR, "dispatcher: pthread_mutex_lock");
+		exit(1);
+	}
 
 	e->done = 0;
 	lua_getglobal(e->L, req);
@@ -543,8 +656,10 @@ call_extension(lua_State *L, dispatcher_tag_t* d, extension_tag_t *e,
 		e->call = 1;
 
 		pthread_cond_signal(&e->cond1);
-		if (pthread_mutex_unlock(&e->mutex2))
-			err(1, "dispatcher: pthread_mutex_unlock");
+		if (pthread_mutex_unlock(&e->mutex2)) {
+			syslog(LOG_ERR, "dispatcher: pthread_mutex_unlock");
+			exit(1);
+		}
 
 		while (!e->done)
 			pthread_cond_wait(&e->cond2, &e->mutex2);
@@ -552,12 +667,15 @@ call_extension(lua_State *L, dispatcher_tag_t* d, extension_tag_t *e,
 		e->done = 0;
 
 		lua_getglobal(L, "json");
-		if (lua_type(L, -1) != LUA_TTABLE)
-			errx(1, "dispatcher: table expected");
+		if (lua_type(L, -1) != LUA_TTABLE) {
+			syslog(LOG_ERR, "dispatcher: table expected");
+			exit(1);
+		}
 		lua_getfield(L, -1, "encode");
-		if (lua_type(L, -1) != LUA_TFUNCTION)
-			errx(1, "dispatcher: function expected");
-
+		if (lua_type(L, -1) != LUA_TFUNCTION) {
+			syslog(LOG_ERR, "dispatcher: function expected");
+			exit(1);
+		}
 		proxy_map(e->L, L, lua_gettop(L));
 
 		switch (lua_pcall(L, 1, 1, 0)) {
@@ -566,21 +684,30 @@ call_extension(lua_State *L, dispatcher_tag_t* d, extension_tag_t *e,
 		case LUA_ERRRUN:
 		case LUA_ERRMEM:
 		case LUA_ERRERR:
-			err(1, "dispatcher: %s", lua_tostring(L, -1));
+			syslog(LOG_ERR, "dispatcher: %s", lua_tostring(L, -1));
+			exit(1);
 			break;
 		}
-		if (lua_type(L, -1) != LUA_TSTRING)
-			errx(1, "dispatcher: table does not encode to JSON ");
+		if (lua_type(L, -1) != LUA_TSTRING) {
+			syslog(LOG_ERR,
+			    "dispatcher: table does not encode to JSON ");
+			exit(1);
+		}
 
 		d->sender->data = (char *)lua_tostring(L, -1);
 
-		if (pthread_cond_signal(&d->sender->cond))
-			err(1, "dispatcher: pthread_cond_signal");
+		if (pthread_cond_signal(&d->sender->cond)) {
+			syslog(LOG_ERR, "dispatcher: pthread_cond_signal");
+			exit(1);
+		}
 
 		while (d->sender->data != NULL) {
 			if (pthread_cond_wait(&d->sender->cond2,
-			    &d->sender->mutex))
-				err(1, "dispatcher: pthread_cond_wait");
+			    &d->sender->mutex)) {
+				syslog(LOG_ERR, "dispatcher: "
+				    "pthread_cond_wait");
+				exit(1);
+			}
 		}
 	}
 	pthread_mutex_unlock(&d->sender->mutex);
@@ -624,8 +751,10 @@ list_destination(dispatcher_tag_t *d)
 	struct buffer buf;
 	destination_t *dest;
 
-	if (pthread_mutex_lock(&d->sender->mutex))
-		err(1, "dispatcher: pthread_mutex_lock");
+	if (pthread_mutex_lock(&d->sender->mutex)) {
+		syslog(LOG_ERR, "dispatcher: pthread_mutex_lock");
+		exit(1);
+	}
 
 	buf_init(&buf);
 	buf_addstring(&buf,
@@ -681,12 +810,16 @@ list_destination(dispatcher_tag_t *d)
 
 	d->sender->data = buf.data;
 
-	if (pthread_cond_signal(&d->sender->cond))
-		err(1, "dispatcher: pthread_cond_signal");
+	if (pthread_cond_signal(&d->sender->cond)) {
+		syslog(LOG_ERR, "dispatcher: pthread_cond_signal");
+		exit(1);
+	}
 
 	while (d->sender->data != NULL) {
-		if (pthread_cond_wait(&d->sender->cond2, &d->sender->mutex))
-			err(1, "dispatcher: pthread_cond_wait");
+		if (pthread_cond_wait(&d->sender->cond2, &d->sender->mutex)) {
+			syslog(LOG_ERR, "dispatcher: pthread_cond_wait");
+			exit(1);
+		}
 	}
 	pthread_mutex_unlock(&d->sender->mutex);
 	buf_free(&buf);
@@ -731,13 +864,17 @@ dispatcher(void *arg)
 	int status, request;
 	const char *dest, *req;
 
-	if (pthread_detach(pthread_self()))
-		err(1, "dispatcher: pthread_detach");
+	if (pthread_detach(pthread_self())) {
+		syslog(LOG_ERR, "dispatcher: pthread_detach");
+		exit(1);
+	}
 
 	pthread_cleanup_push(cleanup, arg);
 
-	if (pthread_setname_np(pthread_self(), "dispatcher"))
-		err(1, "dispatcher: pthread_setname_np");
+	if (pthread_setname_np(pthread_self(), "dispatcher")) {
+		syslog(LOG_ERR, "dispatcher: pthread_setname_np");
+		exit(1);
+	}
 
 	/* Check if we have a default transceiver */
 	for (to = destination; to != NULL; to = to->next)
@@ -754,8 +891,10 @@ dispatcher(void *arg)
 
 	/* Setup Lua */
 	L = luaL_newstate();
-	if (L == NULL)
-		err(1, "trx-controller: luaL_newstate");
+	if (L == NULL) {
+		syslog(LOG_ERR, "trx-controller: luaL_newstate");
+		exit(1);
+	}
 
 	pthread_cleanup_push(cleanup_lua, L);
 
@@ -763,27 +902,37 @@ dispatcher(void *arg)
 	luaopen_json(L);
 	lua_setglobal(L, "json");
 
-	if (pthread_mutex_lock(&d->mutex))
-		err(1, "dispatcher: pthread_mutex_lock");
+	if (pthread_mutex_lock(&d->mutex)) {
+		syslog(LOG_ERR, "dispatcher: pthread_mutex_lock");
+		exit(1);
+	}
 
 	if (verbose)
 		printf("dispatcher: ready\n");
 
 	d->data = NULL;
-	if (pthread_cond_signal(&d->cond2))
-		err(1, "dispatcher: pthread_cond_signal");
+	if (pthread_cond_signal(&d->cond2)) {
+		syslog(LOG_ERR, "dispatcher: pthread_cond_signal");
+		exit(1);
+	}
 
 	for (;;) {
 		while (d->data == NULL) {
-			if (pthread_cond_wait(&d->cond, &d->mutex))
-				err(1, "dispatcher: pthread_cond_wait");
+			if (pthread_cond_wait(&d->cond, &d->mutex)) {
+				syslog(LOG_ERR, "dispatcher: pthread_cond_wait");
+				exit(1);
+			}
 		}
 		lua_getglobal(L, "json");
-		if (lua_type(L, -1) != LUA_TTABLE)
-			errx(1, "dispatcher: table expected");
+		if (lua_type(L, -1) != LUA_TTABLE) {
+			syslog(LOG_ERR, "dispatcher: table expected");
+			exit(1);
+		}
 		lua_getfield(L, -1, "decode");
-		if (lua_type(L, -1) != LUA_TFUNCTION)
-			errx(1, "dispatcher: function expected");
+		if (lua_type(L, -1) != LUA_TFUNCTION) {
+			syslog(LOG_ERR, "dispatcher: function expected");
+			exit(1);
+		}
 		lua_pushstring(L, d->data);
 		switch (lua_pcall(L, 1, 1, 0)) {
 		case LUA_OK:
@@ -791,11 +940,15 @@ dispatcher(void *arg)
 		case LUA_ERRRUN:
 		case LUA_ERRMEM:
 		case LUA_ERRERR:
-			err(1, "dispatcher: %s", lua_tostring(L, -1));
+			syslog(LOG_ERR, "dispatcher: %s", lua_tostring(L, -1));
+			exit(1);
 			break;
 		}
-		if (lua_type(L, -1) != LUA_TTABLE)
-			errx(1, "dispatcher: JSON does not decode to table");
+		if (lua_type(L, -1) != LUA_TTABLE) {
+			syslog(LOG_ERR, "dispatcher: "
+			    "JSON does not decode to table");
+			exit(1);
+		}
 		/* decoded JSON data is now on top of the stack */
 		request = lua_gettop(L);
 		dest = NULL;
@@ -855,8 +1008,10 @@ dispatcher(void *arg)
 		}
 		free(d->data);
 		d->data = NULL;
-		if (pthread_cond_signal(&d->cond2))
-			err(1, "dispatcher: pthread_cond_signal");
+		if (pthread_cond_signal(&d->cond2)) {
+			syslog(LOG_ERR, "dispatcher: pthread_cond_signal");
+			exit(1);
+		}
 	}
 	pthread_cleanup_pop(0);
 	pthread_cleanup_pop(0);

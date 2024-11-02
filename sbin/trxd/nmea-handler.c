@@ -22,7 +22,6 @@
 
 /* Handle incoming NMEA data  */
 
-#include <err.h>
 #include <errno.h>
 #include <poll.h>
 #include <pthread.h>
@@ -198,8 +197,10 @@ nmea_scan(nmea_tag_t *t, struct nmea *np)
 	}
 
 	/* Lock the NMEA fix data */
-	if (pthread_mutex_lock(&t->mutex))
-		err(1, "nmea-handler: pthread_mutex_lock");
+	if (pthread_mutex_lock(&t->mutex)) {
+		syslog(LOG_ERR, "nmea-handler: pthread_mutex_lock");
+		exit(1);
+	}
 
 	if (!strncmp(fld[0] + 2, "RMC", 3))
 		nmea_gprmc(t, fld, fldcnt);
@@ -209,8 +210,10 @@ nmea_scan(nmea_tag_t *t, struct nmea *np)
 	if (verbose > 2)
 		nmea_dump(t);
 
-	if (pthread_mutex_unlock(&t->mutex))
-		err(1, "nmea-handler: pthread_mutex_unlock");
+	if (pthread_mutex_unlock(&t->mutex)) {
+		syslog(LOG_ERR, "nmea-handler: pthread_mutex_unlock");
+		exit(1);
+	}
 
 	/* Unlock the NMEA fix */
 }
@@ -445,17 +448,23 @@ nmea_handler(void *arg)
 	int n, fd;
 	char data;
 
-	if (pthread_detach(pthread_self()))
-		err(1, "nmea-handler: pthread_detach");
+	if (pthread_detach(pthread_self())) {
+		syslog(LOG_ERR, "nmea-handler: pthread_detach");
+		exit(1);
+	}
 
 	pthread_cleanup_push(cleanup, arg);
 
-	if (pthread_setname_np(pthread_self(), "nmea"))
-		err(1, "nmea-handler: pthread_setname_np");
+	if (pthread_setname_np(pthread_self(), "nmea")) {
+		syslog(LOG_ERR, "nmea-handler: pthread_setname_np");
+		exit(1);
+	}
 
 	np = malloc(sizeof(struct nmea));
-	if (np == NULL)
-		err(1, "nmea-handler: malloc");
+	if (np == NULL) {
+		syslog(LOG_ERR, "nmea-handler: malloc");
+		exit(1);
+	}
 	np->sync = 1;
 
 	pthread_cleanup_push(cleanup_nmea, np);
@@ -465,8 +474,10 @@ nmea_handler(void *arg)
 	pfd.events = POLLIN;
 
 	for (;;) {
-		if (poll(&pfd, 1, 0) == -1)
-			err(1, "nmea-handler: poll");
+		if (poll(&pfd, 1, 0) == -1) {
+			syslog(LOG_ERR, "nmea-handler: poll");
+			exit(1);
+		}
 
 		if (pfd.revents) {
 			read(t->fd, &data, 1);

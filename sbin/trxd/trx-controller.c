@@ -26,7 +26,6 @@
 #include <sys/stat.h>
 #include <sys/socket.h>
 
-#include <err.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <pthread.h>
@@ -78,8 +77,10 @@ trx_controller(void *arg)
 	struct stat sb;
 	pthread_t trx_handler_thread;
 
-	if (pthread_detach(pthread_self()))
-		err(1, "trx-controller: pthread_detach");
+	if (pthread_detach(pthread_self())) {
+		syslog(LOG_ERR, "trx-controller: pthread_detach");
+		exit(1);
+	}
 	if (verbose)
 		printf("trx-controller: initializing trx %s\n", t->name);
 
@@ -87,34 +88,47 @@ trx_controller(void *arg)
 
 	pthread_cleanup_push(cleanup, arg);
 
-	if (pthread_setname_np(pthread_self(), "trx"))
-		err(1, "trx-controller: pthread_setname_np");
+	if (pthread_setname_np(pthread_self(), "trx")) {
+		syslog(LOG_ERR, "trx-controller: pthread_setname_np");
+		exit(1);
+	}
 
 	/*
 	 * Lock this transceivers mutex, so that no other thread accesses
 	 * while we are initializing.
 	 */
-	if (pthread_mutex_lock(&t->mutex))
-		err(1, "trx-controller: pthread_mutex_lock");
+	if (pthread_mutex_lock(&t->mutex)) {
+		syslog(LOG_ERR, "trx-controller: pthread_mutex_lock");
+		exit(1);
+	}
 
-	if (pthread_mutex_lock(&t->mutex2))
-		err(1, "trx-controller: pthread_mutex_lock");
+	if (pthread_mutex_lock(&t->mutex2)) {
+		syslog(LOG_ERR, "trx-controller: pthread_mutex_lock");
+		exit(1);
+	}
 
 	if (*t->device == '/') {	/* Assume device under /dev */
 		fd = open(t->device, O_RDWR);
-		if (fd == -1)
-			err(1, "trx-controller: %s", t->device);
+		if (fd == -1) {
+			syslog(LOG_ERR, "trx-controller: can't open %s",
+			    t->device);
+			exit(1);
+		}
 
 		if (isatty(fd)) {
-			if (tcgetattr(fd, &tty) < 0)
-				err(1, "trx-controller: tcgetattr");
+			if (tcgetattr(fd, &tty) < 0) {
+				syslog(LOG_ERR, "trx-controller: tcgetattr");
+				exit(1);
+			}
 			else {
 				cfmakeraw(&tty);
 				tty.c_cflag |= CLOCAL;
 				cfsetspeed(&tty, t->speed);
 
-				if (tcsetattr(fd, TCSADRAIN, &tty) < 0)
-					err(1, "trx-controller: tcsetattr");
+				if (tcsetattr(fd, TCSADRAIN, &tty) < 0) {
+					syslog(LOG_ERR, "trx-controller: tcsetattr");
+					exit(1);
+				}
 			}
 		}
 	} else if (strlen(t->device) == 17) {	/* Assume Bluetooth RFCOMM */
@@ -126,11 +140,15 @@ trx_controller(void *arg)
 		addr.rc_channel = (uint8_t) t->channel;
 		str2ba(t->device, &addr.rc_bdaddr);
 
-		if (connect(fd, (struct sockaddr *)&addr, sizeof(addr)))
-			err(1, "trx-controller: can't connect to %s",
+		if (connect(fd, (struct sockaddr *)&addr, sizeof(addr))) {
+			syslog(LOG_ERR, "trx-controller: can't connect to %s",
 				t->device);
-	} else
-		errx(1, "trx-controller: unknown device %s", t->device);
+			exit(1);
+		}
+	} else {
+		syslog(LOG_ERR, "trx-controller: unknown device %s", t->device);
+		exit(1);
+	}
 
 	cat_device = fd;
 	t->cat_device = fd;
@@ -148,8 +166,9 @@ trx_controller(void *arg)
 	case LUA_ERRRUN:
 	case LUA_ERRMEM:
 	case LUA_ERRERR:
-		errx(1, "trx-controller: register driver %s",
+		syslog(LOG_ERR, "trx-controller: register driver %s",
 		    lua_tostring(t->L, -1));
+		exit(1);
 		break;
 	}
 	lua_pop(t->L, 1);
@@ -164,16 +183,21 @@ trx_controller(void *arg)
 	if (verbose)
 		printf("trx-controller: ready to control trx %s\n", t->name);
 
-	if (pthread_mutex_unlock(&t->mutex))
-		err(1, "trx-controller: pthread_mutex_unlock");
+	if (pthread_mutex_unlock(&t->mutex)) {
+		syslog(LOG_ERR, "trx-controller: pthread_mutex_unlock");
+		exit(1);
+	}
 
 	while (1) {
 		int nargs = 1;
 
 		/* Wait on cond, this releases the mutex */
 		while (t->handler == NULL) {
-			if (pthread_cond_wait(&t->cond1, &t->mutex2))
-				err(1, "trx-controller: pthread_cond_wait");
+			if (pthread_cond_wait(&t->cond1, &t->mutex2)) {
+				syslog(LOG_ERR, "trx-controller: "
+				    "pthread_cond_wait");
+				exit(1);
+			}
 		}
 
 		lua_geti(t->L, LUA_REGISTRYINDEX, t->ref);
@@ -208,8 +232,10 @@ trx_controller(void *arg)
 		lua_pop(t->L, 2);
 		t->handler = NULL;
 
-		if (pthread_cond_signal(&t->cond2))
-			err(1, "trx-controller: pthread_cond_signal");
+		if (pthread_cond_signal(&t->cond2)) {
+			syslog(LOG_ERR, "trx-controller: pthread_cond_signal");
+			exit(1);
+		}
 	}
 	pthread_cleanup_pop(0);
 	return NULL;

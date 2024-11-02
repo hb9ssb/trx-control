@@ -99,8 +99,10 @@ add_destination(const char *name, enum DestinationType type, void *arg)
 			return -1;
 
 	d = malloc(sizeof(destination_t));
-	if (d == NULL)
-		err(1, "malloc");
+	if (d == NULL) {
+		syslog(LOG_ERR, "memory allocation error");
+		exit(1);
+	}
 
 	d->next = NULL;
 	d->name = strdup(name);
@@ -121,8 +123,10 @@ add_destination(const char *name, enum DestinationType type, void *arg)
 	case DEST_INTERNAL:
 		if (!strcmp(name, "nmea"))
 			d->tag.nmea = arg;
-		else
-			errx(1, "unknown internal name '%s'\n", name);
+		else {
+			syslog(LOG_ERR, "unknown internal name '%s'\n", name);
+			exit(1);
+		}
 		break;
 	case DEST_EXTENSION:
 		d->tag.extension = arg;

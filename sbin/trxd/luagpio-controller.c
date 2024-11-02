@@ -22,11 +22,11 @@
 
 /* Provide the 'gpioController' Lua module to the driver upper half */
 
-#include <err.h>
 #include <pthread.h>
 #include <signal.h>
 #include <string.h>
 #include <stdlib.h>
+#include <syslog.h>
 #include <unistd.h>
 
 #include <lua.h>
@@ -46,13 +46,19 @@ notify_listeners(lua_State *L)
 	data = (char *)luaL_checkstring(L, 1);
 
 	for (l = gpio_controller_tag->senders; l != NULL; l = l->next) {
-		if (pthread_mutex_lock(&l->sender->mutex))
-			err(1, "luatrxd: pthread_mutex_lock");
+		if (pthread_mutex_lock(&l->sender->mutex)) {
+			syslog(LOG_ERR, "luatrxd: pthread_mutex_lock");
+			exit(1);
+		}
 		l->sender->data = data;
-		if (pthread_cond_signal(&l->sender->cond))
-			err(1, "luatrxd: pthread_cond_signal");
-		if (pthread_mutex_unlock(&l->sender->mutex))
-			err(1, "luatrxd: pthread_mutex_unlock");
+		if (pthread_cond_signal(&l->sender->cond)) {
+			syslog(LOG_ERR, "luatrxd: pthread_cond_signal");
+			exit(1);
+		}
+		if (pthread_mutex_unlock(&l->sender->mutex)) {
+			syslog(LOG_ERR, "luatrxd: pthread_mutex_unlock");
+			exit(1);
+		}
 	}
 	return 0;
 }
