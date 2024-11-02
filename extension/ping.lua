@@ -20,8 +20,10 @@
 
 -- The trx-control ping extension
 
+local log = require 'linux.sys.log'
+
 if trxd.verbose() > 0 then
-	print 'installing the trx-control ping extension'
+	log.syslog('notice', 'installing the trx-control ping extension')
 end
 
 function ping(request)

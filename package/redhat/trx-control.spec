@@ -86,6 +86,7 @@ trx-control software repository
 /usr/share/trxd/protocol/simulated.lua
 /usr/share/trxd/protocol/rtxlink.lua
 /usr/share/trxd/trx-controller.lua
+/usr/share/trxd/trx/csi-cs7000-m17.yaml
 /usr/share/trxd/trx/icom-ic-705.yaml
 /usr/share/trxd/trx/openrtx.yaml
 /usr/share/trxd/trx/simulator.yaml
@@ -139,6 +140,10 @@ rm -rf $RPM_BUILD_ROOT
 %{__make} clean
 
 %changelog
+* Sat Nov 2 2024 Marc Balmer  HB9SSB <info@hb9ssb.ch>
+
+ - Improved error reporting using syslog facilities.
+
 * Wed Oct 2 2024 Marc Balmer  HB9SSB <info@hb9ssb.ch>
 
  - Add the bluecat(1) command.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Marc Balmer HB9SSB
+ * Copyright (c) 2023 - 2024 Marc Balmer HB9SSB
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -22,7 +22,6 @@
 
 /* Handle incoming data from the trx */
 
-#include <err.h>
 #include <errno.h>
 #include <poll.h>
 #include <pthread.h>
@@ -51,13 +50,17 @@ trx_handler(void *arg)
 	int n, fd;
 	char buf[128];
 
-	if (pthread_detach(pthread_self()))
-		err(1, "trx-handler: pthread_detach");
+	if (pthread_detach(pthread_self())) {
+		syslog(LOG_ERR, "trx-handler: pthread_detach");
+		exit(1);
+	}
 
 	pthread_cleanup_push(cleanup, arg);
 
-	if (pthread_setname_np(pthread_self(), "trx-handler"))
-		err(1, "trx-handler: pthread_setname_np");
+	if (pthread_setname_np(pthread_self(), "trx-handler")) {
+		syslog(LOG_ERR, "trx-handler: pthread_setname_np");
+		exit(1);
+	}
 
 	fd = t->cat_device;
 
@@ -65,11 +68,15 @@ trx_handler(void *arg)
 	pfd.events = POLLIN;
 
 	for (;;) {
-		if (pthread_mutex_lock(&t->mutex))
-			err(1, "trx-handler: pthread_mutex_lock");
+		if (pthread_mutex_lock(&t->mutex)) {
+			syslog(LOG_ERR, "trx-handler: pthread_mutex_lock");
+			exit(1);
+		}
 
-		if (poll(&pfd, 1, 0) == -1)
-			err(1, "trx-handler: poll");
+		if (poll(&pfd, 1, 0) == -1) {
+			syslog(LOG_ERR, "trx-handler: poll");
+			exit(1);
+		}
 		if (pfd.revents) {
 			for (n = 0; n < sizeof(buf) - 1; n++) {
 				read(fd, &buf[n], 1);
@@ -83,22 +90,33 @@ trx_handler(void *arg)
 			t->data = buf;
 			t->client_fd = 0;
 
-			if (pthread_mutex_lock(&t->mutex2))
-				err(1, "trx-handler: pthread_mutex_lock");
+			if (pthread_mutex_lock(&t->mutex2)) {
+				syslog(LOG_ERR, "trx-handler: pthread_mutex_lock");
+				exit(1);
+			}
 
-			if (pthread_cond_signal(&t->cond1))
-				err(1, "trx-handler: pthread_cond_signal");
+			if (pthread_cond_signal(&t->cond1)) {
+				syslog(LOG_ERR, "trx-handler: pthread_cond_signal");
+				exit(1);
+			}
 
-			if (pthread_mutex_unlock(&t->mutex2))
-				err(1, "trx-handler: pthread_mutex_unlock");
+			if (pthread_mutex_unlock(&t->mutex2)) {
+				syslog(LOG_ERR, "trx-handler: pthread_mutex_unlock");
+				exit(1);
+			}
 
 			while (t->response == NULL) {
-				if (pthread_cond_wait(&t->cond2, &t->mutex2))
-					err(1, "trx-handler: "
+				if (pthread_cond_wait(&t->cond2, &t->mutex2)) {
+					syslog(LOG_ERR, "trx-handler: "
 					    "pthread_cond_wait");
+					exit(1);
+				}
 			}
-			if (pthread_mutex_unlock(&t->mutex))
-				err(1, "trx-handler: pthread_mutex_unlock");
+			if (pthread_mutex_unlock(&t->mutex)) {
+				syslog(LOG_ERR, "trx-handler: "
+				    "pthread_mutex_unlock");
+				exit(1);
+			}
 		}
 	};
 	pthread_cleanup_pop(0);

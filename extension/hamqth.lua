@@ -25,11 +25,12 @@
 
 local curl = require 'curl'
 local expat = require 'expat'
+local log = require 'linux.sys.log'
 
 local config = ...
 
 if config.username == nil or config.password == nil then
-	print 'hamqth: missing username and/or password'
+	log.syslog('err', 'hamqth: missing username and/or password')
 	return
 end
 

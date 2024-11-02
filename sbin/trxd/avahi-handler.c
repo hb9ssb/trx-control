@@ -22,12 +22,12 @@
 
 /* Handle Avahi */
 
-#include <err.h>
 #include <pthread.h>
 #include <sched.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <syslog.h>
 #include <unistd.h>
 
 #include <avahi-client/client.h>
@@ -65,7 +65,8 @@ entry_group_callback(AvahiEntryGroup *g, AvahiEntryGroupState state,
 
 		/* The entry group has been established successfully */
 		if (verbose)
-			printf("avahi-handler: service '%s' established.\n",
+			syslog(LOG_INFO,
+			    "avahi-handler: service '%s' established.\n",
 			    name);
 		break;
 	case AVAHI_ENTRY_GROUP_COLLISION: {
@@ -78,15 +79,15 @@ entry_group_callback(AvahiEntryGroup *g, AvahiEntryGroupState state,
 		avahi_free(name);
 		name = n;
 		if (verbose)
-			printf("avahi-hahndler: service name collision, "
-			    "renaming service to '%s'\n", name);
+			syslog(LOG_INFO, "avahi-hahndler: service name "
+			    "collision, renaming service to '%s'\n", name);
 
 		/* And recreate the services */
 		create_services(avahi_entry_group_get_client(g), w);
 		break;
 	}
 	case AVAHI_ENTRY_GROUP_FAILURE:
-		fprintf(stderr, "avahi-handler: entry group failure: %s\n",
+		syslog(LOG_ERR, "avahi-handler: entry group failure: %s\n",
 		    avahi_strerror(
 		    avahi_client_errno(avahi_entry_group_get_client(g))));
 
@@ -116,7 +117,7 @@ create_services(AvahiClient *c, websocket_listener_t *w)
 	if (!group)
 		if (!(group = avahi_entry_group_new(c,
 		    entry_group_callback, w))) {
-			fprintf(stderr, "avahi-handler: "
+			syslog(LOG_ERR, "avahi-handler: "
 			    "avahi_entry_group_new() failed: %s\n",
 			    avahi_strerror(avahi_client_errno(c)));
 			goto fail;
@@ -128,7 +129,8 @@ create_services(AvahiClient *c, websocket_listener_t *w)
 	 */
 	if (avahi_entry_group_is_empty(group)) {
 		if (verbose)
-			printf("avahi-handler: adding service '%s'\n", name);
+			syslog(LOG_INFO,
+			    "avahi-handler: adding service '%s'\n", name);
 
 		/* Create TXT data */
 		snprintf(path, sizeof(path), "path=%s", w->path);
@@ -147,7 +149,7 @@ create_services(AvahiClient *c, websocket_listener_t *w)
 		    path, w->certificate ? "ssl=true" : NULL, NULL)) < 0) {
 			if (ret == AVAHI_ERR_COLLISION)
 				goto collision;
-			fprintf(stderr, "avahi-handler: failed to add "
+			syslog(LOG_ERR, "avahi-handler: failed to add "
 			    "_trx-control._tcp service: %s\n",
 			    avahi_strerror(ret));
 			goto fail;
@@ -155,7 +157,7 @@ create_services(AvahiClient *c, websocket_listener_t *w)
 
 		/* Tell the server to register the service */
 		if ((ret = avahi_entry_group_commit(group)) < 0) {
-			fprintf(stderr, "avahi-handler: failed to commit entry"
+			syslog(LOG_ERR, "avahi-handler: failed to commit entry"
 			    " group: %s\n", avahi_strerror(ret));
 			goto fail;
 		}
@@ -170,7 +172,7 @@ collision:
 	n = avahi_alternative_service_name(name);
 	avahi_free(name);
 	name = n;
-	fprintf(stderr, "avahi-handler: service name collision, renaming "
+	syslog(LOG_INFO, "avahi-handler: service name collision, renaming "
 	    "service to '%s'\n", name);
 	avahi_entry_group_reset(group);
 	create_services(c, w);
@@ -195,7 +197,7 @@ client_callback(AvahiClient *c, AvahiClientState state, void *userdata)
 		create_services(c, w);
 		break;
 	case AVAHI_CLIENT_FAILURE:
-		fprintf(stderr, "avahi-handler: client failure: %s\n",
+		syslog(LOG_ERR, "avahi-handler: client failure: %s\n",
 		    avahi_strerror(avahi_client_errno(c)));
 		avahi_simple_poll_quit(simple_poll);
 		break;
@@ -226,7 +228,7 @@ cleanup_client(void *arg)
 	AvahiClient *client = (AvahiClient *)arg;
 
 	if (verbose)
-		printf("avahi-handler: terminating\n");
+		syslog(LOG_NOTICE, "avahi-handler: terminating\n");
 
 	avahi_client_free(client);
 	avahi_free(name);
@@ -236,6 +238,9 @@ static void
 cleanup_simple_poll(void *arg)
 {
 	AvahiSimplePoll *simple_poll = (AvahiSimplePoll *)arg;
+
+	if (verbose)
+		syslog(LOG_NOTICE, "avahi-handler: terminate simple_poll\n");
 
 	avahi_simple_poll_free(simple_poll);
 }
@@ -248,13 +253,16 @@ avahi_handler(void *arg)
 	AvahiClient *client = NULL;
 	int error;
 
-	if (pthread_detach(pthread_self()))
-		err(1, "avahi-handler: pthread_detach");
+	if (pthread_detach(pthread_self())) {
+		syslog(LOG_ERR, "avahi-handler: pthread_detach");
+		exit(1);
+	}
 
 	/* Allocate main loop object */
 	if (!(simple_poll = avahi_simple_poll_new())) {
-		err(1, "avahi-handler: failed to create simple poll "
+		syslog(LOG_ERR, "avahi-handler: failed to create simple poll "
 		    "object\n");
+		exit(1);
 	}
 
 	if (!gethostname(hostname, sizeof(hostname)))
@@ -265,15 +273,18 @@ avahi_handler(void *arg)
 	client = avahi_client_new(avahi_simple_poll_get(simple_poll), 0,
 	    client_callback, w, &error);
 
-	if (!client)
-		err(1, "avahi-handler: failed to create client: %s",
+	if (!client) {
+		syslog(LOG_ERR, "avahi-handler: failed to create client: %s",
 		    avahi_strerror(error));
-
+		exit(1);
+	}
 	pthread_cleanup_push(cleanup_client, client);
 	pthread_cleanup_push(cleanup_simple_poll, simple_poll);
 
-	if (pthread_setname_np(pthread_self(), "avahi"))
-		err(1, "avahi-handler: pthread_setname_np");
+	if (pthread_setname_np(pthread_self(), "avahi")) {
+		syslog(LOG_ERR,"avahi-handler: pthread_setname_np");
+		exit(1);
+	}
 
 	avahi_simple_poll_loop(simple_poll);
 

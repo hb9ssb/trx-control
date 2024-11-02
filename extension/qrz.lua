@@ -27,11 +27,12 @@
 
 local curl = require 'curl'
 local expat = require 'expat'
+local log = require 'linux.sys.log'
 
 local config = ...
 
 if config.username == nil or config.password == nil then
-	print 'qrz: missing username and/or password'
+	log.syslog('err', 'qrz: missing username and/or password')
 	return
 end
 

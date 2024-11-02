@@ -22,7 +22,6 @@
 
 /* trx-control extensions written in Lua */
 
-#include <err.h>
 #include <errno.h>
 #include <pthread.h>
 #include <syslog.h>
@@ -56,20 +55,24 @@ extension(void *arg)
 {
 	extension_tag_t *t = (extension_tag_t *)arg;
 
-	if (pthread_detach(pthread_self()))
-		err(1, "extension: pthread_detach");
-
+	if (pthread_detach(pthread_self())) {
+		syslog(LOG_ERR, "extension: pthread_detach");
+		exit(1);
+	}
 	extension_tag = t;
 
 	pthread_cleanup_push(cleanup, arg);
 
-	if (pthread_setname_np(pthread_self(), "extension"))
-		err(1, "extension: pthread_setname_np");
+	if (pthread_setname_np(pthread_self(), "extension")) {
+		syslog(LOG_ERR, "extension: pthread_setname_np");
+		exit(1);
+	}
 
 	if (t->is_callable) {
-		if (pthread_mutex_lock(&t->mutex2))
-			err(1, "extension: pthread_mutex_lock");
-
+		if (pthread_mutex_lock(&t->mutex2)) {
+			syslog(LOG_ERR, "extension: pthread_mutex_lock");
+			exit(1);
+		}
 		if (t->has_config)
 			lua_call(t->L, 1, 1);
 		else
@@ -79,8 +82,11 @@ extension(void *arg)
 			t->call = 0;
 			/* Wait on cond, this releases the mutex */
 			while (t->call == 0) {
-				if (pthread_cond_wait(&t->cond1, &t->mutex2))
-					err(1, "extension: pthread_cond_wait");
+				if (pthread_cond_wait(&t->cond1, &t->mutex2)) {
+					syslog(LOG_ERR,
+					    "extension: pthread_cond_wait");
+					exit(1);
+				}
 			}
 			t->call = 0;
 			switch (lua_pcall(t->L, 1, 1, 0)) {
@@ -95,8 +101,11 @@ extension(void *arg)
 				break;
 			}
 			t->done = 1;
-			if (pthread_cond_signal(&t->cond2))
-				err(1, "extension: pthread_cond_signal");
+			if (pthread_cond_signal(&t->cond2)) {
+				syslog(LOG_ERR,
+				    "extension: pthread_cond_signal");
+				exit(1);
+			}
 		}
 	} else {
 		if (t->has_config)

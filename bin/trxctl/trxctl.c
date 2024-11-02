@@ -290,7 +290,7 @@ main(int argc, char *argv[])
 			break;
 		}
 
-		if (*line == '@') {
+		if (*line == '@' && strlen(line) > 1) {
 			char *p;
 
 			to = ++line;

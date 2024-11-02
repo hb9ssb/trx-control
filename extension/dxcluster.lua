@@ -21,13 +21,14 @@
 -- The dxcluster extension for trx-control.  This can also be used for the
 -- SOTA cluster.
 
+local log = require 'linux.sys.log'
 local socket = require 'linux.sys.socket'
 
 local config = ...
 local loggedIn = false;
 
 if trxd.verbose() > 0 then
-	print 'initializing the trx-control dxcluster extension'
+	log.syslog('notice', 'initializing the trx-control dxcluster extension')
 end
 
 local cacheTime = config.cacheTime or 3600

@@ -26,13 +26,13 @@
 
 #include <openssl/ssl.h>
 
-#include <err.h>
 #include <errno.h>
 #include <pthread.h>
 #include <sched.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <syslog.h>
 #include <unistd.h>
 
 #include "trxd.h"
@@ -50,7 +50,7 @@ cleanup(void *arg)
 	websocket_t *w = (websocket_t *)arg;
 
 	if (verbose)
-		printf("websocket-handler: terminating\n");
+		syslog(LOG_NOTICE, "websocket-handler: terminating\n");
 
 	if (w->ssl) {
 		SSL_shutdown(w->ssl);
@@ -107,18 +107,24 @@ websocket_handler(void *arg)
 	dispatcher_tag_t *d;
 	char *buf;
 
-	if (pthread_detach(pthread_self()))
-		err(1, "websocket-handler: pthread_detach");
+	if (pthread_detach(pthread_self())) {
+		syslog(LOG_ERR, "websocket-handler: pthread_detach");
+		exit(1);
+	}
 
 	pthread_cleanup_push(cleanup, arg);
 
-	if (pthread_setname_np(pthread_self(), "websocket"))
-		err(1, "websocket-handler: pthread_setname_np");
+	if (pthread_setname_np(pthread_self(), "websocket")) {
+		syslog(LOG_ERR, "websocket-handler: pthread_setname_np");
+		exit(1);
+	}
 
 	/* Create a websocket-sender thread to send data to the client */
 	s = malloc(sizeof(sender_tag_t));
-	if (s == NULL)
-		err(1, "websocket-handler: malloc");
+	if (s == NULL) {
+		syslog(LOG_ERR, "websocket-handler: malloc");
+		exit(1);
+	}
 	s->data = (char *)1;
 	s->socket = w->socket;
 	s->ssl = w->ssl;
@@ -126,66 +132,96 @@ websocket_handler(void *arg)
 
 	w->sender = s;
 
-	if (pthread_mutex_init(&s->mutex, NULL))
-		err(1, "websocket-handler: pthread_mutex_init");
+	if (pthread_mutex_init(&s->mutex, NULL)) {
+		syslog(LOG_ERR, "websocket-handler: pthread_mutex_init");
+		exit(1);
+	}
 
-	if (pthread_mutex_init(&s->mutex2, NULL))
-		err(1, "websocket-handler: pthread_mutex_init");
+	if (pthread_mutex_init(&s->mutex2, NULL)) {
+		syslog(LOG_ERR, "websocket-handler: pthread_mutex_init");
+		exit(1);
+	}
 
-	if (pthread_cond_init(&s->cond, NULL))
-		err(1, "websocket-handler: pthread_cond_init");
+	if (pthread_cond_init(&s->cond, NULL)) {
+		syslog(LOG_ERR, "websocket-handler: pthread_cond_init");
+		exit(1);
+	}
 
-	if (pthread_cond_init(&s->cond2, NULL))
-		err(1, "websocket-handler: pthread_cond_init");
+	if (pthread_cond_init(&s->cond2, NULL)) {
+		syslog(LOG_ERR, "websocket-handler: pthread_cond_init");
+		exit(1);
+	}
 
-	if (pthread_create(&s->sender, NULL, websocket_sender, s))
-		err(1, "websocket-handler: pthread_create");
+	if (pthread_create(&s->sender, NULL, websocket_sender, s)) {
+		syslog(LOG_ERR, "websocket-handler: pthread_create");
+		exit(1);
+	}
 
 	pthread_cleanup_push(cleanup_sender, s);
 
 	/* Create a dispatcher thread to dispatch incoming data */
 	d = malloc(sizeof(dispatcher_tag_t));
-	if (d == NULL)
-		err(1, "websocket-handler: malloc");
+	if (d == NULL) {
+		syslog(LOG_ERR, "websocket-handler: malloc");
+		exit(1);
+	}
 	d->data = (char *)1;
 	d->sender = s;
 
-	if (pthread_mutex_init(&d->mutex, NULL))
-		err(1, "websocket-handler: pthread_mutex_init");
+	if (pthread_mutex_init(&d->mutex, NULL)) {
+		syslog(LOG_ERR, "websocket-handler: pthread_mutex_init");
+		exit(1);
+	}
 
-	if (pthread_mutex_init(&d->mutex2, NULL))
-		err(1, "websocket-handler: pthread_mutex_init");
+	if (pthread_mutex_init(&d->mutex2, NULL)) {
+		syslog(LOG_ERR, "websocket-handler: pthread_mutex_init");
+		exit(1);
+	}
 
-	if (pthread_cond_init(&d->cond, NULL))
-		err(1, "websocket-handler: pthread_cond_init");
+	if (pthread_cond_init(&d->cond, NULL)) {
+		syslog(LOG_ERR, "websocket-handler: pthread_cond_init");
+		exit(1);
+	}
 
-	if (pthread_cond_init(&d->cond2, NULL))
-		err(1, "websocket-handler: pthread_cond_init");
+	if (pthread_cond_init(&d->cond2, NULL)) {
+		syslog(LOG_ERR, "websocket-handler: pthread_cond_init");
+		exit(1);
+	}
 
-	if (pthread_create(&d->dispatcher, NULL, dispatcher, d))
-		err(1, "websocket-handler: pthread_create");
+	if (pthread_create(&d->dispatcher, NULL, dispatcher, d)) {
+		syslog(LOG_ERR, "websocket-handler: pthread_create");
+		exit(1);
+	}
 
 	pthread_cleanup_push(cleanup_dispatcher, d);
 
-	if (pthread_mutex_lock(&d->mutex2))
-		err(1, "websocket-handler: pthread_mutex_lock");
+	if (pthread_mutex_lock(&d->mutex2)) {
+		syslog(LOG_ERR, "websocket-handler: pthread_mutex_lock");
+		exit(1);
+	}
 
 	if (verbose)
 		printf("websocket-handler: wait for dispatcher\n");
 
 	while (d->data != NULL)
-		if (pthread_cond_wait(&d->cond2, &d->mutex2))
-			err(1, "wbsocket-handler: pthread_cond_wait");
+		if (pthread_cond_wait(&d->cond2, &d->mutex2)) {
+			syslog(LOG_ERR, "wbsocket-handler: pthread_cond_wait");
+			exit(1);
+		}
 
-	if (pthread_mutex_lock(&s->mutex2))
-		err(1, "websocket-handler: pthread_mutex_lock");
+	if (pthread_mutex_lock(&s->mutex2)) {
+		syslog(LOG_ERR, "websocket-handler: pthread_mutex_lock");
+		exit(1);
+	}
 
 	if (verbose)
 		printf("websocket-handler: wait for sender\n");
 
 	while (s->data != NULL)
-		if (pthread_cond_wait(&s->cond2, &s->mutex2))
-			err(1, "websocket-handler: pthread_cond_wait");
+		if (pthread_cond_wait(&s->cond2, &s->mutex2)) {
+			syslog(LOG_ERR, "websocket-handler: pthread_cond_wait");
+			exit(1);
+		}
 
 	if (verbose)
 		printf("websocket-handler: sender is ready\n");
@@ -202,12 +238,18 @@ websocket_handler(void *arg)
 
 		d->data = buf;
 
-		if (pthread_cond_signal(&d->cond))
-			err(1, "websocket-handler: pthread_cond_signal");
+		if (pthread_cond_signal(&d->cond)) {
+			syslog(LOG_ERR,
+			    "websocket-handler: pthread_cond_signal");
+			exit(1);
+		}
 
 		while (d->data != NULL)
-			if (pthread_cond_wait(&d->cond2, &d->mutex2))
-				err(1, "websocket-handler: pthread_cond_wait");
+			if (pthread_cond_wait(&d->cond2, &d->mutex2)) {
+				syslog(LOG_ERR,
+				    "websocket-handler: pthread_cond_wait");
+				exit(1);
+			}
 	}
 	pthread_cleanup_pop(0);
 	pthread_cleanup_pop(0);

@@ -27,7 +27,6 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-#include <err.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <getopt.h>
@@ -100,8 +99,10 @@ add_destination(const char *name, enum DestinationType type, void *arg)
 			return -1;
 
 	d = malloc(sizeof(destination_t));
-	if (d == NULL)
-		err(1, "malloc");
+	if (d == NULL) {
+		syslog(LOG_ERR, "memory allocation error");
+		exit(1);
+	}
 
 	d->next = NULL;
 	d->name = strdup(name);
@@ -122,8 +123,10 @@ add_destination(const char *name, enum DestinationType type, void *arg)
 	case DEST_INTERNAL:
 		if (!strcmp(name, "nmea"))
 			d->tag.nmea = arg;
-		else
-			errx(1, "unknown internal name '%s'\n", name);
+		else {
+			syslog(LOG_ERR, "unknown internal name '%s'\n", name);
+			exit(1);
+		}
 		break;
 	case DEST_EXTENSION:
 		d->tag.extension = arg;
@@ -303,7 +306,9 @@ main(int argc, char *argv[])
 		case LUA_ERRRUN:
 		case LUA_ERRMEM:
 		case LUA_ERRERR:
-			errx(1, "%s: %s", cfg_file, lua_tostring(L, -1));
+			syslog(LOG_ERR, "%s: %s", cfg_file,
+			    lua_tostring(L, -1));
+			exit(1);
 			break;
 		}
 	} else {
@@ -411,13 +416,16 @@ main(int argc, char *argv[])
 			t->senders = NULL;
 
 			lua_getfield(L, -1, "device");
-			if (!lua_isstring(L, -1))
-				errx(1, "missing trx device path");
+			if (!lua_isstring(L, -1)) {
+				syslog(LOG_ERR, "missing trx device path");
+				exit(1);
+			}
 			t->device = strdup(lua_tostring(L, -1));
 			lua_pop(L, 1);
 
 			if (*t->device == '/' && stat(t->device, &sb)) {
-				warnx("trxd: file not found %s\n", t->device);
+				syslog(LOG_WARNING,
+				    "trxd: file not found %s\n", t->device);
 				free((void *)t->device);
 				free(t->name);
 				free(t);
@@ -451,8 +459,10 @@ main(int argc, char *argv[])
 			lua_pop(L, 1);
 
 			lua_getfield(L, -1, "trx");
-			if (!lua_isstring(L, -1))
-				errx(1, "missing trx name");
+			if (!lua_isstring(L, -1)) {
+				syslog(LOG_ERR, "missing trx name");
+				exit(1);
+			}
 			t->trx = strdup(lua_tostring(L, -1));
 			lua_pop(L, 1);
 
@@ -462,8 +472,10 @@ main(int argc, char *argv[])
 
 			/* Setup Lua */
 			t->L = luaL_newstate();
-			if (t->L == NULL)
-				err(1, "luaL_newstate");
+			if (t->L == NULL) {
+				syslog(LOG_ERR, "cannot create Lua state");
+				exit(1);
+			}
 
 			luaL_openlibs(t->L);
 
@@ -482,8 +494,10 @@ main(int argc, char *argv[])
 			snprintf(trx_path, sizeof(trx_path), "%s/%s.yaml",
 			    _PATH_TRX, t->trx);
 
-			if (stat(trx_path, &sb))
-				err(1, "%s", trx_path);
+			if (stat(trx_path, &sb)) {
+				syslog(LOG_ERR, "%s: file not found", trx_path);
+				exit(1);
+			}
 
 			lua_getglobal(t->L, "yaml");
 			lua_getfield(t->L, -1, "parsefile");
@@ -493,40 +507,53 @@ main(int argc, char *argv[])
 			case LUA_OK:
 				lua_getfield(t->L, -1, "protocol");
 				protocol = lua_tostring(t->L, -1);
-				if (protocol == NULL)
-					errx(1, "%s: no protocol specified",
+				if (protocol == NULL) {
+					syslog(LOG_ERR,
+					    "%s: no protocol specified",
 					    trx_path);
+					exit(1);
+				}
 				lua_pop(t->L, 1);
 				lua_setglobal(t->L, "_trx");
 				break;
 			case LUA_ERRRUN:
 			case LUA_ERRMEM:
 			case LUA_ERRERR:
-				errx(1, "%s: %s", trx_path,
+				syslog(LOG_ERR, "%s: %s", trx_path,
 				    lua_tostring(t->L, -1));
+				exit(1);
 				break;
 			}
 
 			snprintf(proto_path, sizeof(proto_path), "%s/%s.lua",
 			    _PATH_PROTOCOL, protocol);
 
-			if (stat(proto_path, &sb))
-				errx(1, "protocol not found: %s", protocol);
-
-			if (luaL_dofile(t->L, proto_path))
-				errx(1, "%s", lua_tostring(t->L, -1));
+			if (stat(proto_path, &sb)) {
+				syslog(LOG_ERR, "protocol not found: %s",
+				    protocol);
+				exit(1);
+			}
+			if (luaL_dofile(t->L, proto_path)) {
+				syslog(LOG_ERR, "%s", lua_tostring(t->L, -1));
+				exit(1);
+			}
 
 			lua_setglobal(t->L, "_protocol");
 
 			if (luaL_dostring(t->L, "for k, v in pairs(_trx) do "
-			    "_protocol[k] = v end"))
-				errx(1, "%s", lua_tostring(t->L, -1));
+			    "_protocol[k] = v end")) {
+				syslog(LOG_ERR, "%s", lua_tostring(t->L, -1));
+				exit(1);
+			}
 
-			if (luaL_dofile(t->L, _PATH_TRX_CONTROLLER))
-				errx(1, "%s", lua_tostring(t->L, -1));
-			if (lua_type(t->L, -1) != LUA_TTABLE)
-				errx(1, "table expected");
-			else
+			if (luaL_dofile(t->L, _PATH_TRX_CONTROLLER)) {
+				syslog(LOG_ERR, "%s", lua_tostring(t->L, -1));
+				exit(1);
+			}
+			if (lua_type(t->L, -1) != LUA_TTABLE) {
+				syslog(LOG_ERR, "table expected");
+				exit(1);
+			} else
 				t->ref = luaL_ref(t->L, LUA_REGISTRYINDEX);
 
 			/*
@@ -551,8 +578,11 @@ main(int argc, char *argv[])
 				lua_setglobal(t->L, "_config");
 				if (luaL_dostring(t->L, "for k, v in "
 				    "pairs(_config) do _G[k] = v end "
-				    "_config = nil"))
-					errx(1, "%s", lua_tostring(t->L, -1));
+				    "_config = nil")) {
+					syslog(LOG_ERR, "%s",
+					    lua_tostring(t->L, -1));
+					exit(1);
+				}
 			}
 			lua_pop(L, 1);
 
@@ -564,8 +594,11 @@ main(int argc, char *argv[])
 			lua_setfield(t->L, -2, "audio");
 			lua_pop(L, 1);
 
-			if (add_destination(t->name, DEST_TRX, t))
-				errx(1, "names must be unique");
+			if (add_destination(t->name, DEST_TRX, t)) {
+				syslog(LOG_ERR,
+				    "transceivers: names must be unique");
+				exit(1);
+			}
 
 			if (pthread_mutex_init(&t->mutex, NULL))
 				goto terminate;
@@ -585,7 +618,7 @@ main(int argc, char *argv[])
 			lua_pop(L, 1);
 		}
 	} else if (verbose)
-		printf("trxd: no trx defined\n");
+		syslog(LOG_NOTICE, "no transceivers defined\n");
 	lua_pop(L, 1);
 
 	/* Setup the gpio-controllers */
@@ -606,8 +639,10 @@ main(int argc, char *argv[])
 			t->senders = NULL;
 
 			lua_getfield(L, -1, "device");
-			if (!lua_isstring(L, -1))
-				errx(1, "missing gpio device path");
+			if (!lua_isstring(L, -1)) {
+				syslog(LOG_ERR, "missing gpio device path");
+				exit(1);
+			}
 			t->device = strdup(lua_tostring(L, -1));
 			lua_pop(L, 1);
 
@@ -617,13 +652,17 @@ main(int argc, char *argv[])
 			lua_pop(L, 1);
 
 			lua_getfield(L, -1, "driver");
-			if (!lua_isstring(L, -1))
-				errx(1, "missing gpio driver name");
+			if (!lua_isstring(L, -1)) {
+				syslog(LOG_ERR, "missing gpio driver name");
+				exit(1);
+			}
 			t->driver = strdup(lua_tostring(L, -1));
 			lua_pop(L, 1);
 
-			if (add_destination(t->name, DEST_GPIO, t))
-				errx(1, "names must be unique");
+			if (add_destination(t->name, DEST_GPIO, t)) {
+				syslog(LOG_ERR, "gpio: names must be unique");
+				exit(1);
+			}
 
 			if (pthread_mutex_init(&t->mutex, NULL))
 				goto terminate;
@@ -643,7 +682,7 @@ main(int argc, char *argv[])
 			lua_pop(L, 1);
 		}
 	} else if (verbose)
-		printf("trxd: no gpio defined\n");
+		syslog(LOG_NOTICE, "no gpio defined\n");
 	lua_pop(L, 1);
 
 	/* Setup the relay-controllers */
@@ -661,14 +700,18 @@ main(int argc, char *argv[])
 			t->poller_running = 0;
 
 			lua_getfield(L, -1, "driver");
-			if (!lua_isstring(L, -1))
-				errx(1, "missing relay driver name");
+			if (!lua_isstring(L, -1)) {
+				syslog(LOG_ERR, "missing relay driver name");
+				exit(1);
+			}
 
 			t->driver = strdup(lua_tostring(L, -1));
 			lua_pop(L, 1);
 
-			if (add_destination(t->name, DEST_RELAY, t))
-				errx(1, "names must be unique");
+			if (add_destination(t->name, DEST_RELAY, t)) {
+				syslog(LOG_ERR, "relays: names must be unique");
+				exit(1);
+			}
 
 			if (pthread_mutex_init(&t->mutex, NULL))
 				goto terminate;
@@ -688,7 +731,7 @@ main(int argc, char *argv[])
 			lua_pop(L, 1);
 		}
 	} else if (verbose)
-		printf("trxd: no relays defined\n");
+		syslog(LOG_NOTICE, "no relays defined\n");
 	lua_pop(L, 1);
 
 	/* Setup the extensions */
@@ -702,14 +745,17 @@ main(int argc, char *argv[])
 			char script[PATH_MAX], *name;
 
 			t = malloc(sizeof(extension_tag_t));
-			if (t == NULL)
-				err(1, "malloc");
+			if (t == NULL) {
+				syslog(LOG_ERR, "memory allocation failure");
+				exit(1);
+			}
 			t->has_config = 0;
 			t->listeners = NULL;
 			t->L = luaL_newstate();
-			if (t->L == NULL)
-				err(1, "luaL_newstate");
-
+			if (t->L == NULL) {
+				syslog(LOG_ERR, "cannot create Lua state");
+				exit(1);
+			}
 			luaL_openlibs(t->L);
 			luaopen_trxd(t->L);
 			lua_setglobal(t->L, "trxd");
@@ -764,21 +810,27 @@ main(int argc, char *argv[])
 			lua_pop(L, 1);
 
 			lua_getfield(L, -1, "script");
-			if (!lua_isstring(L, -1))
-				errx(1, "missing extension script name");
-
+			if (!lua_isstring(L, -1)) {
+				syslog(LOG_ERR,
+				    "missing extension script name");
+				exit(1);
+			}
 			p = lua_tostring(L, -1);
 
-			if (strchr(p, '/'))
-				err(1, "script name must not contain slashes");
-
+			if (strchr(p, '/')) {
+				syslog(LOG_ERR,
+				    "script name must not contain slashes");
+				exit(1);
+			}
 			snprintf(script, sizeof(script), "%s/%s.lua",
 			    _PATH_EXTENSION, p);
 
 			lua_pop(L, 1);
 
-			if (luaL_loadfile(t->L, script))
-				err(1, "%s", lua_tostring(t->L, -1));
+			if (luaL_loadfile(t->L, script)) {
+				syslog(LOG_ERR, "%s", lua_tostring(t->L, -1));
+				exit(1);
+			}
 
 			lua_getfield(L, -1, "configuration");
 			if (lua_istable(L, -1)) {
@@ -794,8 +846,10 @@ main(int argc, char *argv[])
 				t->is_callable = 1;
 			lua_pop(L, 1);
 
-			if (add_destination(name, DEST_EXTENSION, t))
-				errx(1, "names must be unique");
+			if (add_destination(name, DEST_EXTENSION, t)) {
+				syslog(LOG_ERR, "names must be unique");
+				exit(1);
+			}
 
 			if (pthread_mutex_init(&t->mutex, NULL))
 				goto terminate;
@@ -814,7 +868,7 @@ main(int argc, char *argv[])
 			lua_pop(L, 1);
 		}
 	} else if (verbose)
-		printf("trxd: no extensions defined\n");
+		syslog(LOG_NOTICE, "no extensions defined\n");
 	lua_pop(L, 1);
 
 	/* Setup WebSocket listening */
@@ -823,28 +877,36 @@ main(int argc, char *argv[])
 		websocket_listener_t *t;
 
 		t = malloc(sizeof(websocket_listener_t));
-		if (t == NULL)
-			err(1, "malloc");
+		if (t == NULL) {
+			syslog(LOG_ERR, "memory allocation error");
+			exit(1);
+		}
 		t->ssl = NULL;
 		t->ctx = NULL;
 		t->certificate = NULL;
 		t->announce = noannounce ? 0 : 1;
 
 		lua_getfield(L, -1, "bind-address");
-		if (!lua_isstring(L, -1))
-			errx(1, "missing websocket bind-address");
+		if (!lua_isstring(L, -1)) {
+			syslog(LOG_ERR, "missing websocket bind-address");
+			exit(1);
+		}
 		t->bind_addr = strdup(lua_tostring(L, -1));
 		lua_pop(L, 1);
 
 		lua_getfield(L, -1, "listen-port");
-		if (!lua_isstring(L, -1))
-			errx(1, "missing websocket listen-port");
+		if (!lua_isstring(L, -1)) {
+			syslog(LOG_ERR, "missing websocket listen-port");
+			exit(1);
+		}
 		t->listen_port = strdup(lua_tostring(L, -1));
 		lua_pop(L, 1);
 
 		lua_getfield(L, -1, "path");
-		if (!lua_isstring(L, -1))
-			errx(1, "missing websocket path");
+		if (!lua_isstring(L, -1)) {
+			syslog(LOG_ERR, "missing websocket path");
+			exit(1);
+		}
 		t->path = strdup(lua_tostring(L, -1));
 		lua_pop(L, 1);
 
@@ -875,8 +937,10 @@ main(int argc, char *argv[])
 		int channel = 0;
 
 		t = malloc(sizeof(nmea_tag_t));
-		if (t == NULL)
-			err(1, "malloc");
+		if (t == NULL) {
+			syslog(LOG_ERR, "memory allocation error");
+			exit(1);
+		}
 		t->year = t->month = t->day = 0;
 		t->hour = t->minute = t->second = 0;
 		t->status = 0;
@@ -886,8 +950,10 @@ main(int argc, char *argv[])
 		t->locator[0] = '\0';
 
 		lua_getfield(L, -1, "device");
-		if (!lua_isstring(L, -1))
-			errx(1, "missing nmea device");
+		if (!lua_isstring(L, -1)) {
+			syslog(LOG_ERR, "missing nmea device");
+			exit(1);
+		}
 		device = lua_tostring(L, -1);
 		lua_pop(L, 1);
 
@@ -904,20 +970,26 @@ main(int argc, char *argv[])
 		if (*device == '/') {
 			/* Assume device under /dev */
 			t->fd = open(device, O_RDWR);
-			if (t->fd == -1)
-				err(1, "trxd: open");
+			if (t->fd == -1) {
+				syslog(LOG_ERR, "cannot open nmea device");
+				exit(1);
+			}
 
 			if (isatty(t->fd)) {
-				if (tcgetattr(t->fd, &tty) < 0)
-					err(1, "trxd: tcgetattr");
-				else {
+				if (tcgetattr(t->fd, &tty) < 0) {
+					syslog(LOG_ERR, "tcgetattr");
+					exit(1);
+				} else {
 					cfmakeraw(&tty);
 					tty.c_cflag |= CLOCAL;
 					cfsetspeed(&tty, speed);
 
 					if (tcsetattr(t->fd, TCSADRAIN, &tty)
-					   < 0)
-						err(1, "trxd: tcsetattr");
+					   < 0) {
+						syslog(LOG_ERR,
+						    "tcsetattr");
+						exit(1);
+					}
 				}
 			}
 		} else if (strlen(device) == 17) {
@@ -929,13 +1001,21 @@ main(int argc, char *argv[])
 			addr.rc_family = AF_BLUETOOTH;
 			addr.rc_channel = (uint8_t) channel;
 			str2ba(device, &addr.rc_bdaddr);
-			if (connect(fd, (struct sockaddr *)&addr, sizeof(addr)))
-				err(1, "trxd: can't connect to %s", device);
-		} else
-			errx(1, "trxd: unknown device %s", device);
+			if (connect(fd,
+			    (struct sockaddr *)&addr, sizeof(addr))) {
+				syslog(LOG_ERR, "can't connect to %s",
+				    device);
+				exit(1);
+			}
+		} else {
+			syslog(LOG_ERR, "unknown device %s", device);
+			exit(1);
+		}
 
-		if (add_destination("nmea", DEST_INTERNAL, t))
-			errx(1, "names must be unique");
+		if (add_destination("nmea", DEST_INTERNAL, t)) {
+			syslog(LOG_ERR, "nmea: names must be unique");
+			exit(1);
+		}
 
 		if (pthread_mutex_init(&t->mutex, NULL))
 			goto terminate;

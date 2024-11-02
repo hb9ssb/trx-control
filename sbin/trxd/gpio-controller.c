@@ -25,7 +25,6 @@
 #include <sys/ioctl.h>
 #include <sys/stat.h>
 
-#include <err.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <pthread.h>
@@ -75,8 +74,10 @@ gpio_controller(void *arg)
 	pthread_t gpio_handler_thread;
 
 	t->L = NULL;
-	if (pthread_detach(pthread_self()))
-		err(1, "gpio-controller: pthread_detach");
+	if (pthread_detach(pthread_self())) {
+		syslog(LOG_ERR, "gpio-controller: pthread_detach");
+		exit(1);
+	}
 	if (verbose)
 		printf("gpio-controller: initializing gpio %s\n", t->name);
 
@@ -84,36 +85,50 @@ gpio_controller(void *arg)
 
 	pthread_cleanup_push(cleanup, arg);
 
-	if (pthread_setname_np(pthread_self(), "gpio"))
-		err(1, "gpio-controller: pthread_setname_np");
+	if (pthread_setname_np(pthread_self(), "gpio")) {
+		syslog(LOG_ERR, "gpio-controller: pthread_setname_np");
+		exit(1);
+	}
 
 	/*
 	 * Lock this gpios mutex, so that no other thread accesses
 	 * while we are initializing.
 	 */
-	if (pthread_mutex_lock(&t->mutex))
-		err(1, "gpio-controller: pthread_mutex_lock");
+	if (pthread_mutex_lock(&t->mutex)) {
+		syslog(LOG_ERR, "gpio-controller: pthread_mutex_lock");
+		exit(1);
+	}
 
-	if (pthread_mutex_lock(&t->mutex2))
-		err(1, "gpio-controller: pthread_mutex_lock");
+	if (pthread_mutex_lock(&t->mutex2)) {
+		syslog(LOG_ERR, "gpio-controller: pthread_mutex_lock");
+		exit(1);
+	}
 
-	if (strchr(t->driver, '/'))
-		err(1, "gpio-controller: driver name must not contain slashes");
+	if (strchr(t->driver, '/')) {
+		syslog(LOG_ERR, "gpio-controller: driver name must not "
+		    "contain slashes");
+		exit(1);
+	}
 
 	fd = open(t->device, O_RDWR);
-	if (fd == -1)
-		err(1, "gpio-controller: %s", t->device);
+	if (fd == -1) {
+		syslog(LOG_ERR, "gpio-controller: %s", t->device);
+		exit(1);
+	}
 
 	if (isatty(fd)) {
-		if (tcgetattr(fd, &tty) < 0)
-			err(1, "gpio-controller: tcgetattr");
-		else {
+		if (tcgetattr(fd, &tty) < 0) {
+			syslog(LOG_ERR, "gpio-controller: tcgetattr");
+			exit(1);
+		} else {
 			cfmakeraw(&tty);
 			tty.c_cflag |= CLOCAL;
 			cfsetspeed(&tty, t->speed);
 
-			if (tcsetattr(fd, TCSADRAIN, &tty) < 0)
-				err(1, "gpio-controller: tcsetattr");
+			if (tcsetattr(fd, TCSADRAIN, &tty) < 0) {
+				syslog(LOG_ERR, "gpio-controller: tcsetattr");
+				exit(1);
+			}
 		}
 	}
 
@@ -122,8 +137,10 @@ gpio_controller(void *arg)
 
 	/* Setup Lua */
 	t->L = luaL_newstate();
-	if (t->L == NULL)
-		err(1, "gpio-controller: luaL_newstate");
+	if (t->L == NULL) {
+		syslog(LOG_ERR, "gpio-controller: luaL_newstate");
+		exit(1);
+	}
 
 	luaL_openlibs(t->L);
 
@@ -136,28 +153,37 @@ gpio_controller(void *arg)
 	luaopen_json(t->L);
 	lua_setglobal(t->L, "json");
 
-	if (luaL_dofile(t->L, _PATH_GPIO_CONTROLLER))
-		err(1, "gpio-controller: %s", lua_tostring(t->L, -1));
-	if (lua_type(t->L, -1) != LUA_TTABLE)
-		err(1, "gpio-controller: table expected");
-	else
+	if (luaL_dofile(t->L, _PATH_GPIO_CONTROLLER)) {
+		syslog(LOG_ERR, "gpio-controller: %s", lua_tostring(t->L, -1));
+		exit(1);
+	}
+	if (lua_type(t->L, -1) != LUA_TTABLE) {
+		syslog(LOG_ERR, "gpio-controller: table expected");
+		exit(1);
+	} else
 		t->ref = luaL_ref(t->L, LUA_REGISTRYINDEX);
 
 	snprintf(gpio_driver, sizeof(gpio_driver), "%s/%s.lua", _PATH_GPIO,
 	    t->driver);
 
-	if (stat(gpio_driver, &sb))
-		err(1, "gpio-controller: %s", t->driver);
+	if (stat(gpio_driver, &sb)) {
+		syslog(LOG_ERR, "gpio-controller: %s", t->driver);
+		exit(1);
+	}
 
 	lua_geti(t->L, LUA_REGISTRYINDEX, t->ref);
 	lua_getfield(t->L, -1, "registerDriver");
 	lua_pushstring(t->L, t->name);
 	lua_pushstring(t->L, t->device);
-	if (luaL_dofile(t->L, gpio_driver))
-		err(1, "gpio-controller: %s", lua_tostring(t->L, -1));
-	if (lua_type(t->L, -1) != LUA_TTABLE)
-		err(1, "gpio-controller: %s: table expected", t->driver);
-	else {
+	if (luaL_dofile(t->L, gpio_driver)) {
+		syslog(LOG_ERR, "gpio-controller: %s", lua_tostring(t->L, -1));
+		exit(1);
+	}
+	if (lua_type(t->L, -1) != LUA_TTABLE) {
+		syslog(LOG_ERR, "gpio-controller: %s: table expected",
+		    t->driver);
+		exit(1);
+	} else {
 		lua_getfield(t->L, -1, "statusUpdatesRequirePolling");
 		t->poller_required = lua_toboolean(t->L, -1);
 		lua_pop(t->L, 1);
@@ -167,7 +193,9 @@ gpio_controller(void *arg)
 		case LUA_ERRRUN:
 		case LUA_ERRMEM:
 		case LUA_ERRERR:
-			err(1, "trx-controller: %s", lua_tostring(t->L, -1));
+			syslog(LOG_ERR, "trx-controller: %s",
+			    lua_tostring(t->L, -1));
+			exit(1);
 			break;
 		}
 	}
@@ -179,16 +207,21 @@ gpio_controller(void *arg)
 	 * We are ready to go, unlock the mutex, so that client-handlers,
 	 * gpio-handlers, and, gpio-pollers can access it.
 	 */
-	if (pthread_mutex_unlock(&t->mutex))
-		err(1, "gpio-controller: pthread_mutex_unlock");
+	if (pthread_mutex_unlock(&t->mutex)) {
+		syslog(LOG_ERR, "gpio-controller: pthread_mutex_unlock");
+		exit(1);
+	}
 
 	while (1) {
 		int nargs = 1;
 
 		/* Wait on cond, this releases the mutex */
 		while (t->handler == NULL) {
-			if (pthread_cond_wait(&t->cond1, &t->mutex2))
-				err(1, "gpio-controller: pthread_cond_wait");
+			if (pthread_cond_wait(&t->cond1, &t->mutex2)) {
+				syslog(LOG_ERR, "gpio-controller: "
+				    "pthread_cond_wait");
+				exit(1);
+			}
 		}
 		lua_geti(t->L, LUA_REGISTRYINDEX, t->ref);
 		lua_getfield(t->L, -1, t->handler);
@@ -221,8 +254,10 @@ gpio_controller(void *arg)
 		lua_pop(t->L, 2);
 		t->handler = NULL;
 
-		if (pthread_cond_signal(&t->cond2))
-			err(1, "gpio-controller: pthread_cond_signal");
+		if (pthread_cond_signal(&t->cond2)) {
+			syslog(LOG_ERR, "gpio-controller: pthread_cond_signal");
+			exit(1);
+		}
 	}
 	pthread_cleanup_pop(0);
 	return NULL;

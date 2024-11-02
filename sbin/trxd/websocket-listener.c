@@ -29,7 +29,6 @@
 
 #include <openssl/ssl.h>
 
-#include <err.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <getopt.h>
@@ -121,11 +120,15 @@ websocket_listener(void *arg)
 	struct addrinfo hints, *res, *res0;
 	int listen_fd[MAXLISTEN], i, error, val, ret;
 
-	if (pthread_detach(pthread_self()))
-		err(1, "websocket-listener: pthread_detach");
+	if (pthread_detach(pthread_self())) {
+		syslog(LOG_ERR, "websocket-listener: pthread_detach");
+		exit(1);
+	}
 
-	if (pthread_setname_np(pthread_self(), "ws-listener"))
-		err(1, "websocket-listener: pthread_setname_np");
+	if (pthread_setname_np(pthread_self(), "ws-listener")) {
+		syslog(LOG_ERR, "websocket-listener: pthread_setname_np");
+		exit(1);
+	}
 
 	/* Setup network listening */
 	for (i = 0; i < MAXLISTEN; i++)
@@ -179,15 +182,24 @@ websocket_listener(void *arg)
 	if (t->certificate != NULL) {
 		SSL_library_init();
 		SSL_load_error_strings();
-		if ((t->ctx = SSL_CTX_new(TLSv1_2_method())) == NULL)
-			err(1, "websocket-listener: can't create SSL context");
+		if ((t->ctx = SSL_CTX_new(TLSv1_2_method())) == NULL) {
+			syslog(LOG_ERR, "websocket-listener: "
+			    "can't create SSL context");
+			exit(1);
+		}
 
 		if (SSL_CTX_use_certificate_chain_file(t->ctx, t->certificate)
-		    != 1)
-			err(1, "websocket-listener: can't load certificate");
+		    != 1) {
+			syslog(LOG_ERR, "websocket-listener: "
+			    "can't load certificate");
+			exit(1);
+		}
 		if (SSL_CTX_use_PrivateKey_file(t->ctx, t->certificate,
-		    SSL_FILETYPE_PEM) != 1)
-			err(1, "websocket-listener: error loading private key");
+		    SSL_FILETYPE_PEM) != 1) {
+			syslog(LOG_ERR, "websocket-listener: "
+			    "error loading private key");
+			exit(1);
+		}
 	}
 
 	/* Announce the listener using mDNS if configured to do so*/
@@ -260,13 +272,13 @@ websocket_listener(void *arg)
 			if (t->ctx != NULL) {
 				w->ctx = t->ctx;
 				if ((w->ssl = SSL_new(w->ctx)) == NULL)
-					warnx("websocket-listener: can't "
-					    "create SSL context");
+					syslog(LOG_ERR, "websocket-listener: "
+					    "can't create SSL context");
 
 				if (!SSL_set_fd(w->ssl, w->socket))
-					warnx("can't set SSL socket");
+					syslog(LOG_ERR, "can't set SSL socket");
 				if ((ret = SSL_accept(w->ssl)) <= 0) {
-					warnx("can't accept SSL "
+					syslog(LOG_ERR, "can't accept SSL "
 					    "connection: SSL error code %d",
 					    SSL_get_error(w->ssl, ret));
 					close(w->socket);

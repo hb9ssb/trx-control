@@ -1,0 +1,12 @@
+# Connect Systems Inc. CS7000-M17 with OpenRTX firmware
+
+name: Connect Systems CS7000-M17
+protocol: rtxlink
+
+validModes:
+  fm: fm
+  m17: m17
+
+frequencyRange:
+  min: 400000000
+  max: 512000000

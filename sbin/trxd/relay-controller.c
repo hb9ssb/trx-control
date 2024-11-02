@@ -25,7 +25,6 @@
 #include <sys/ioctl.h>
 #include <sys/stat.h>
 
-#include <err.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <pthread.h>
@@ -74,11 +73,15 @@ relay_controller(void *arg)
 	char trx_driver[PATH_MAX];
 	pthread_t relay_handler_thread;
 
-	if (pthread_detach(pthread_self()))
-		err(1, "relay-controller: pthread_detach");
+	if (pthread_detach(pthread_self())) {
+		syslog(LOG_ERR, "relay-controller: pthread_detach");
+		exit(1);
+	}
 
-	if (pthread_setname_np(pthread_self(), "relay"))
-		err(1, "relay-controller: pthread_setname_np");
+	if (pthread_setname_np(pthread_self(), "relay")) {
+		syslog(LOG_ERR, "relay-controller: pthread_setname_np");
+		exit(1);
+	}
 
 	pthread_cleanup_push(cleanup, arg);
 
@@ -86,16 +89,22 @@ relay_controller(void *arg)
 	 * Lock this relays mutex, so that no other thread accesses
 	 * while we are initializing.
 	 */
-	if (pthread_mutex_lock(&t->mutex))
-		err(1, "relay-controller: pthread_mutex_lock");
+	if (pthread_mutex_lock(&t->mutex)) {
+		syslog(LOG_ERR, "relay-controller: pthread_mutex_lock");
+		exit(1);
+	}
 
-	if (pthread_mutex_lock(&t->mutex2))
-		err(1, "relay-controller: pthread_mutex_lock");
+	if (pthread_mutex_lock(&t->mutex2)) {
+		syslog(LOG_ERR, "relay-controller: pthread_mutex_lock");
+		exit(1);
+	}
 
 	/* Setup Lua */
 	L = luaL_newstate();
-	if (L == NULL)
-		err(1, "relay-controller: luaL_newstate");
+	if (L == NULL) {
+		syslog(LOG_ERR, "relay-controller: luaL_newstate");
+		exit(1);
+	}
 
 	pthread_cleanup_push(cleanup_lua, L);
 
@@ -112,16 +121,21 @@ relay_controller(void *arg)
 	 * We are ready to go, unlock the mutex, so that client-handlers,
 	 * relay-handlers, and, relay-pollers can access it.
 	 */
-	if (pthread_mutex_unlock(&t->mutex))
-		err(1, "relay-controller: pthread_mutex_unlock");
+	if (pthread_mutex_unlock(&t->mutex)) {
+		syslog(LOG_ERR, "relay-controller: pthread_mutex_unlock");
+		exit(1);
+	}
 
 	while (1) {
 		int nargs = 1;
 
 		/* Wait on cond, this releases the mutex */
 		while (t->handler == NULL) {
-			if (pthread_cond_wait(&t->cond1, &t->mutex2))
-				err(1, "relay-controller: pthread_cond_wait");
+			if (pthread_cond_wait(&t->cond1, &t->mutex2)) {
+				syslog(LOG_ERR, "relay-controller: "
+				    "pthread_cond_wait");
+				exit(1);
+			}
 		}
 
 		lua_pushstring(L, t->data);
@@ -144,8 +158,11 @@ relay_controller(void *arg)
 		lua_pop(L, 2);
 		t->handler = NULL;
 
-		if (pthread_cond_signal(&t->cond2))
-			err(1, "relay-controller: pthread_cond_signal");
+		if (pthread_cond_signal(&t->cond2)) {
+			syslog(LOG_ERR, "relay-controller: "
+			    "pthread_cond_signal");
+			exit(1);
+		}
 	}
 	pthread_cleanup_pop(0);
 	pthread_cleanup_pop(0);
