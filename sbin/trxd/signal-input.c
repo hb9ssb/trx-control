@@ -22,7 +22,6 @@
 
 /* Signal incoming data from a file descriptor (usually a socket) */
 
-#include <err.h>
 #include <errno.h>
 #include <poll.h>
 #include <pthread.h>
@@ -52,24 +51,33 @@ signal_input(void *arg)
 
 	e = i->extension;
 
-	if (pthread_detach(pthread_self()))
-		err(1, "signal-input: pthread_detach");
+	if (pthread_detach(pthread_self())) {
+		syslog(LOG_ERR, "signal-input: pthread_detach");
+		exit(1);
+	}
 
 	pthread_cleanup_push(cleanup, arg);
 
-	if (pthread_setname_np(pthread_self(), "signal-input"))
-		err(1, "signal-input: pthread_setname_np");
+	if (pthread_setname_np(pthread_self(), "signal-input")) {
+		syslog(LOG_ERR, "signal-input: pthread_setname_np");
+		exit(1);
+	}
 
 	pfd.fd = i->fd;
 	pfd.events = POLLIN;
 
 	for (;;) {
-		if (poll(&pfd, 1, -1) == -1)
-			err(1, "signal-input: poll");
+		if (poll(&pfd, 1, -1) == -1) {
+			syslog(LOG_ERR, "signal-input: poll");
+			exit(1);
+		}
 		if (pfd.revents) {
 
-			if (pthread_mutex_lock(&e->mutex2))
-				err(1, "signal-input: pthread_mutex_lock");
+			if (pthread_mutex_lock(&e->mutex2)) {
+				syslog(LOG_ERR,
+				    "signal-input: pthread_mutex_lock");
+				exit(1);
+			}
 
 			e->done = 0;
 			lua_getglobal(e->L, i->func);

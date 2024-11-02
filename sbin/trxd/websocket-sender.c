@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Marc Balmer HB9SSB
+ * Copyright (c) 2023 - 2024 Marc Balmer HB9SSB
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -26,12 +26,11 @@
 
 #include <openssl/ssl.h>
 
-#include <assert.h>
-#include <err.h>
 #include <pthread.h>
 #include <sched.h>
 #include <stdio.h>
 #include <string.h>
+#include <syslog.h>
 #include <stdlib.h>
 #include <unistd.h>
 
@@ -58,23 +57,33 @@ websocket_sender(void *arg)
 
 	pthread_cleanup_push(cleanup, arg);
 
-	if (pthread_detach(pthread_self()))
-		err(1, "websocket-sender: pthread_detach");
+	if (pthread_detach(pthread_self())) {
+		syslog(LOG_ERR, "websocket-sender: pthread_detach");
+		exit(1);
+	}
 
-	if (pthread_setname_np(pthread_self(), "ws-sender"))
-		err(1, "websocket-sender: pthread_setname_np");
+	if (pthread_setname_np(pthread_self(), "ws-sender")) {
+		syslog(LOG_ERR, "websocket-sender: pthread_setname_np");
+		exit(1);
+	}
 
-	if (pthread_mutex_lock(&s->mutex))
-		err(1, "websocket-sender: pthread_mutex_lock");
+	if (pthread_mutex_lock(&s->mutex)) {
+		syslog(LOG_ERR, "websocket-sender: pthread_mutex_lock");
+		exit(1);
+	}
 
 	s->data = NULL;
-	if (pthread_cond_signal(&s->cond2))
-		err(1, "websocket-sender: pthread_cond_signal");
+	if (pthread_cond_signal(&s->cond2)) {
+		syslog(LOG_ERR, "websocket-sender: pthread_cond_signal");
+		exit(1);
+	}
 
 	for (;;) {
 		while (s->data == NULL) {
-			if (pthread_cond_wait(&s->cond, &s->mutex))
-				err(1, "websocket-sender: pthread_cond_wait");
+			if (pthread_cond_wait(&s->cond, &s->mutex)) {
+				syslog(LOG_ERR, "websocket-sender: pthread_cond_wait");
+				exit(1);
+			}
 		}
 
 		if (verbose)
@@ -82,8 +91,10 @@ websocket_sender(void *arg)
 		datasize = strlen(s->data);
 		buf = malloc(BUFSIZE);
 		framesize = datasize;
-		if (buf == NULL)
-			err(1, "websocket-sender: malloc\n");
+		if (buf == NULL) {
+			syslog(LOG_ERR, "websocket-sender: malloc\n");
+			exit(1);
+		}
 
 		wsMakeFrame((const uint8_t *)s->data, datasize,
 		    (unsigned char *)buf, &framesize, WS_TEXT_FRAME);
@@ -94,8 +105,10 @@ websocket_sender(void *arg)
 			send(s->socket, buf, framesize, 0);
 		free(buf);
 		s->data = NULL;
-		if (pthread_cond_signal(&s->cond2))
-			err(1, "websocket-sender: pthread_cond_signal");
+		if (pthread_cond_signal(&s->cond2)) {
+			syslog(LOG_ERR, "websocket-sender: pthread_cond_signal");
+			exit(1);
+		}
 	}
 	pthread_cleanup_pop(0);
 	return NULL;

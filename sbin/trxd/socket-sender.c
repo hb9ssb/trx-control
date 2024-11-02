@@ -22,12 +22,12 @@
 
 /* Send data to networked clients over plain TCP/IP sockets */
 
-#include <err.h>
 #include <pthread.h>
 #include <sched.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <syslog.h>
 #include <unistd.h>
 
 #include "trxd.h"
@@ -46,25 +46,35 @@ socket_sender(void *arg)
 {
 	sender_tag_t *s = (sender_tag_t *)arg;
 
-	if (pthread_detach(pthread_self()))
-		err(1, "socket-sender: pthread_detach");
+	if (pthread_detach(pthread_self())) {
+		syslog(LOG_ERR, "socket-sender: pthread_detach");
+		exit(1);
+	}
 
 	pthread_cleanup_push(cleanup, arg);
 
-	if (pthread_setname_np(pthread_self(), "sender"))
-		err(1, "socket-sender: pthread_setname_np");
+	if (pthread_setname_np(pthread_self(), "sender")) {
+		syslog(LOG_ERR, "socket-sender: pthread_setname_np");
+		exit(1);
+	}
 
-	if (pthread_mutex_lock(&s->mutex))
-		err(1, "socket-sender: pthread_mutex_lock");
+	if (pthread_mutex_lock(&s->mutex)) {
+		syslog(LOG_ERR, "socket-sender: pthread_mutex_lock");
+		exit(1);
+	}
 
 	s->data = NULL;
-	if (pthread_cond_signal(&s->cond2))
-		err(1, "socket-sender: pthread_cond_signal");
+	if (pthread_cond_signal(&s->cond2)) {
+		syslog(LOG_ERR, "socket-sender: pthread_cond_signal");
+		exit(1);
+	}
 
 	for (;;) {
 		while (s->data == NULL) {
-			if (pthread_cond_wait(&s->cond, &s->mutex))
-				err(1, "socket-sender: pthread_cond_wait");
+			if (pthread_cond_wait(&s->cond, &s->mutex)) {
+				syslog(LOG_ERR, "socket-sender: pthread_cond_wait");
+				exit(1);
+			}
 		}
 
 		if (verbose)
@@ -72,8 +82,10 @@ socket_sender(void *arg)
 
 		trxd_writeln(s->socket, s->data);
 		s->data = NULL;
-		if (pthread_cond_signal(&s->cond2))
-			err(1, "socket-sender: pthread_cond_signal");
+		if (pthread_cond_signal(&s->cond2)) {
+			syslog(LOG_ERR, "socket-sender: pthread_cond_signal");
+			exit(1);
+		}
 	}
 	pthread_cleanup_pop(0);
 	return NULL;
