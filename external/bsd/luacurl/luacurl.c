@@ -1117,14 +1117,14 @@ luaopen_curl(lua_State *L)
 	luaL_newlib(L, luacurl_funcs);
 
 	lua_pushliteral(L, "_COPYRIGHT");
-	lua_pushliteral(L, "Copyright (c) 2013 - 2020 "
+	lua_pushliteral(L, "Copyright (c) 2013 - 2024 "
 	    "micro systems marc balmer");
 	lua_settable(L, -3);
 	lua_pushliteral(L, "_DESCRIPTION");
 	lua_pushliteral(L,  "CURL for Lua");
 	lua_settable(L, -3);
 	lua_pushliteral(L, "_VERSION");
-	lua_pushliteral(L,  "1.2.0");
+	lua_pushliteral(L,  "1.2.1");
 	lua_settable(L, -3);
 
 	for (n = 0; n < num_curl_int(); n++) {
