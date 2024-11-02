@@ -91,8 +91,9 @@ end
 -- local functions
 
 -- Generalized function for making cURL requests
-local function apiRequest(url, payload, method)
+local function apiRequest(url, payload, method, decode)
 	local c = curl.easy()
+	if decode == nil then decode = true end
 	
 	if trxd.verbose() > 0 then
 		c:setopt(curl.OPT_VERBOSE, true)
@@ -122,14 +123,18 @@ local function apiRequest(url, payload, method)
 	local status = c:getinfo(curl.INFO_RESPONSE_CODE)
 	c:cleanup()
 
-	return response, json.decode(table.concat(responseChunks)), status
+	if decode then
+		return response, json.decode(table.concat(responseChunks)), status
+	else 
+		return response, table.concat(responseChunks), status
+	end
 end
 
 -- API Functions
 
 local function apiAuth()
 	local url = string.format('%s/api/auth/%s', config.url, config.apiKey)
-	return apiRequest(url, nil, "GET")
+	return apiRequest(url, nil, "GET", false)
 end
 
 local function apiRadio(request)
