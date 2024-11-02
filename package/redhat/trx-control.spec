@@ -138,6 +138,10 @@ rm -rf $RPM_BUILD_ROOT
 %{__make} clean
 
 %changelog
+* Sat Nov 2 2024 Marc Balmer  HB9SSB <info@hb9ssb.ch>
+
+ - Improved error reporting using syslog facilities.
+
 * Wed Oct 2 2024 Marc Balmer  HB9SSB <info@hb9ssb.ch>
 
  - Add the bluecat(1) command.
