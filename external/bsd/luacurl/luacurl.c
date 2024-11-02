@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 - 2020 Micro Systems Marc Balmer, CH-5073 Gipf-Oberfrick
+ * Copyright (c) 2013 - 2024 Micro Systems Marc Balmer, CH-5073 Gipf-Oberfrick
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,6 +43,8 @@
  * Contributors: Thomas Harning added support for tables/threads as the
  * CURLOPT_*DATA items.
  */
+
+#include <sys/param.h>
 
 #include <string.h>
 #include <stdlib.h>
@@ -295,10 +297,10 @@ readerCallback(void *ptr, size_t size, size_t nmemb, void *stream)
 	pushLuaValueT(c->L, c->rudtype, c->rud);
 	lua_pushnumber(c->L, size * nmemb);
 	lua_call(c->L, 2, 1);
-	readBytes=lua_tostring(c->L, -1);
+	readBytes = lua_tostring(c->L, -1);
 	if (readBytes) {
-		memcpy(ptr, readBytes, lua_rawlen(c->L, -1));
-		return lua_rawlen(c->L, -1);
+		memcpy(ptr, readBytes, MIN(lua_rawlen(c->L, -1), size * nmemb));
+		return MIN(lua_rawlen(c->L, -1), size * nmemb);
 	}
 	return 0;
 }
