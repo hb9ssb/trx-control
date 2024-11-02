@@ -22,11 +22,11 @@
 
 /* Handle transceivers that require polling for status updates */
 
-#include <err.h>
 #include <pthread.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <syslog.h>
 #include <unistd.h>
 
 #include "trxd.h"
@@ -45,45 +45,64 @@ trx_poller(void *arg)
 {
 	trx_controller_tag_t *t = (trx_controller_tag_t *)arg;
 
-	if (pthread_detach(pthread_self()))
-		err(1, "trx-poller: pthread_detach");
+	if (pthread_detach(pthread_self())) {
+		syslog(LOG_ERR, "trx-poller: pthread_detach");
+		exit(1);
+	}
 
 	pthread_cleanup_push(cleanup, NULL);
 
-	if (pthread_setname_np(pthread_self(), "trx-poller"))
-		err(1, "trx-poller: pthread_setname_np");
+	if (pthread_setname_np(pthread_self(), "trx-poller")) {
+		syslog(LOG_ERR, "trx-poller: pthread_setname_np");
+		exit(1);
+	}
 
 	for (;;) {
-		if (pthread_mutex_lock(&t->mutex))
-			err(1, "trx-poller: pthread_mutex_lock");
+		if (pthread_mutex_lock(&t->mutex)) {
+			syslog(LOG_ERR, "trx-poller: pthread_mutex_lock");
+			exit(1);
+		}
 
 		t->handler = "pollHandler";
 		t->response = NULL;
 		t->data  = NULL;
 
-		if (pthread_mutex_lock(&t->mutex2))
-			err(1, "trx-poller: pthread_mutex_lock");
+		if (pthread_mutex_lock(&t->mutex2)) {
+			syslog(LOG_ERR, "trx-poller: pthread_mutex_lock");
+			exit(1);
+		}
 
-		if (pthread_cond_signal(&t->cond1))
-			err(1, "trx-poller: pthread_cond_signal");
+		if (pthread_cond_signal(&t->cond1)) {
+			syslog(LOG_ERR, "trx-poller: pthread_cond_signal");
+			exit(1);
+		}
 
-		if (pthread_mutex_unlock(&t->mutex2))
-			err(1, "trx-poller: pthread_mutex_unlock");
+		if (pthread_mutex_unlock(&t->mutex2)) {
+			syslog(LOG_ERR, "trx-poller: pthread_mutex_unlock");
+			exit(1);
+		}
 
 		while (t->response == NULL) {
-			if (pthread_cond_wait(&t->cond2, &t->mutex2))
-				err(1, "trx-poller: pthread_cond_wait");
+			if (pthread_cond_wait(&t->cond2, &t->mutex2)) {
+				syslog(LOG_ERR, "trx-poller: pthread_cond_wait");
+				exit(1);
+			}
 		}
 
 		if (strlen(t->response))
-			printf("trx-poller: unexpected response '%s'\n",
+			syslog(LOG_WARNING,
+			    "trx-poller: unexpected response '%s'\n",
 			    t->response);
 
-		if (pthread_mutex_unlock(&t->mutex2))
-			err(1, "trx-poller: pthread_mutex_unlock");
+		if (pthread_mutex_unlock(&t->mutex2)) {
+			syslog(LOG_ERR, "trx-poller: pthread_mutex_unlock");
+			exit(1);
+		}
 
-		if (pthread_mutex_unlock(&t->mutex))
-			err(1, "trx-poller: pthread_mutex_unlock");
+		if (pthread_mutex_unlock(&t->mutex)) {
+			syslog(LOG_ERR, "trx-poller: pthread_mutex_unlock");
+			exit(1);
+		}
 
 		usleep(POLLING_INTERVAL);
 	}
