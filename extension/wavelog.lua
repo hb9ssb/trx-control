@@ -151,8 +151,18 @@ local function apiRadio(request)
 		radio = request.radio or 'trx-control',
 		frequency = request.frequency,
 		mode = request.mode,
-		timestamp = os.date('%Y/%m/%d %H:%M:%S')
+		timestamp = os.date('%Y/%m/%d %H:%M:%S') -- no longer necessary, timestamp is set in wavelog but we keep it, just in case..
 	}
+
+	if request.prop_mode ~= nil then payload.prop_mode = request.prop_mode end
+	if request.sat_name ~= nil then payload.sat_name = request.sat_name end
+	if request.power ~= nil then payload.power = request.power end
+	if request.uplink_freq ~= nil then payload.uplink_freq = request.uplink_freq end
+	if request.uplink_mode ~= nil then payload.uplink_mode = request.uplink_mode end
+	if request.downlink_freq ~= nil then payload.downlink_freq = request.downlink_freq end
+	if request.downlink_mode ~= nil then payload.downlink_mode = request.downlink_mode end
+	if request.frequency_rx ~= nil then payload.frequency_rx = request.frequency_rx end
+	if request.mode_rx ~= nil then payload.mode_rx = request.mode_rx end
 	
 	return apiRequest(url, payload, "POST")
 end
