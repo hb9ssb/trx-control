@@ -194,11 +194,12 @@ local function apiPrivateLookup(request)
 	local url = string.format('%s/api/private_lookup', config.url)
 	local payload = {
 		key = config.apiKey,
-		callsign = request.callsign,
-		station_ids = request.station_ids,
-		band = request.band,
-		mode = request.mode
+		callsign = request.callsign
 	}
+
+	if request.station_ids ~= nil then payload.station_ids = request.station_ids end
+	if request.band ~= nil then payload.band = request.band end
+	if request.mode ~= nil then payload.mode = request.mode end
 	
 	return apiRequest(url, payload, "POST")
 end
@@ -215,9 +216,10 @@ local function apiCallsignInLogbook(request)
 	local payload = {
 		key = config.apiKey,
 		logbook_public_slug = request.slug,
-		callsign = request.callsign,
-		band = request.band
+		callsign = request.callsign
 	}
+
+	if request.band ~= nil then payload.band = request.band end
 	
 	return apiRequest(url, payload, "POST")
 end
@@ -234,10 +236,11 @@ local function apiCheckGrid(request)
 	local payload = {
 		key = config.apiKey,
 		logbook_public_slug = request.slug,
-		grid = request.grid,
-		band = request.band,
-		cnfm = request.cnfm
+		grid = request.grid
 	}
+
+	if request.band ~= nil then payload.band = request.band end
+	if request.cnfm ~= nil then payload.cnfm = request.cnfm end
 	
 	return apiRequest(url, payload, "POST")
 end
@@ -264,9 +267,10 @@ local function apiGetContactsAdif(request)
 	local payload = {
 		key = config.apiKey,
 		station_id = request.station_id,
-		fetchfromid = request.fetchfromid,
-		limit = request.limit
+		fetchfromid = request.fetchfromid
 	}
+
+	if request.limit ~= nil then payload.limit = request.cnlimitfm end
 	
 	return apiRequest(url, payload, "POST")
 end
