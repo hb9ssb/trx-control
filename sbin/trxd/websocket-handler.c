@@ -239,13 +239,15 @@ websocket_handler(void *arg)
 		d->data = buf;
 
 		if (pthread_cond_signal(&d->cond)) {
-			syslog(LOG_ERR, "websocket-handler: pthread_cond_signal");
+			syslog(LOG_ERR,
+			    "websocket-handler: pthread_cond_signal");
 			exit(1);
 		}
 
 		while (d->data != NULL)
 			if (pthread_cond_wait(&d->cond2, &d->mutex2)) {
-				syslog(LOG_ERR, "websocket-handler: pthread_cond_wait");
+				syslog(LOG_ERR,
+				    "websocket-handler: pthread_cond_wait");
 				exit(1);
 			}
 	}
