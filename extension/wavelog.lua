@@ -45,21 +45,18 @@
 --      apiKey: "xxxxxxxxxxxx"							# API key for your wavelog instance	(use a r+w key)
 --	    ssl: true										# Use SSL (default: true)
 -- 
---
--- An example of this extension written for cloudlog implemented in python as a trx-control 
--- websocket client can be found at: 
--- https://github.com/gx1400/python-trx-wavelog
 
 local config = ...
 local curl = require 'curl'
 local expat = require 'expat'
+local log = require 'linux.sys.log'
 
 if trxd.verbose() > 0 then
-    print 'installing the wavelog extension'
+    log.syslog('notice', 'installing the wavelog extension')
 end
 
 if config.apiKey == nil then
-	print 'wavelog: api key is missing'
+	log.syslog('err', 'wavelog: api key is missing')
 end
 
 if config.ssl == nil then
@@ -67,10 +64,10 @@ if config.ssl == nil then
 end
 
 if config.url == nil then
-	print 'wavelog: url is missing'
+	log.syslog('err', 'wavelog: url is missing')
 else
 	if trxd.verbose() > 0 then
-		print('wavelog: url ',config.url)
+		log.syslog('notice', 'wavelog: url ' .. config.url)
 	end
 end
 
@@ -136,11 +133,13 @@ local function apiAuth()
 end
 
 local function apiRadio(request)
-	if not request.frequency then 
-		return false, "no frequency provided" 
+	if not request.frequency then
+		log.syslog('err', 'wavelog: no frequency provided')
+		return false
 	end
 	if not request.mode then 
-		return false, "no mode provided" 
+		log.syslog('err', 'wavelog: no mode provided')
+		return false
 	end
 	
 	local url = string.format('%s/api/radio', config.url)
@@ -167,10 +166,12 @@ end
 
 local function apiQso(request)
 	if not request.adif then 
-		return false, "no adif data provided" 
+		log.syslog('err', 'wavelog: no adif data provided')
+		return false
 	end
 	if not request.station_id then 
-		return false, "no station profile id provided" 
+		log.syslog('err', 'wavelog: no station profile id provided')
+		return false
 	end
 	
 	local url = string.format('%s/api/qso%s', config.url, request.dryrun and '/true' or '')
@@ -186,7 +187,8 @@ end
 
 local function apiPrivateLookup(request)
 	if not request.callsign then 
-		return false, "no callsign provided" 
+		log.syslog('err', 'wavelog: no callsign provided')
+		return false
 	end
 	
 	local url = string.format('%s/api/private_lookup', config.url)
@@ -204,10 +206,12 @@ end
 
 local function apiCallsignInLogbook(request)
 	if not request.callsign then 
-		return false, "no callsign provided" 
+		log.syslog('err', 'wavelog: no callsign provided')
+		return false
 	end
 	if not request.slug then 
-		return false, "no public logbook slug provided" 
+		log.syslog('err', 'wavelog: no public logbook slug provided')
+		return false
 	end
 	
 	local url = string.format('%s/api/logbook_check_callsign', config.url)
@@ -224,10 +228,12 @@ end
 
 local function apiCheckGrid(request)
 	if not request.grid then 
-		return false, "no gridsquare provided" 
+		log.syslog('err', 'wavelog: no gridsquare provided')
+		return false
 	end
 	if not request.slug then 
-		return false, "no public logbook slug provided" 
+		log.syslog('err', 'wavelog: no public logbook slug provided')
+		return false
 	end
 	
 	local url = string.format('%s/api/logbook_check_grid', config.url)
@@ -255,10 +261,12 @@ end
 
 local function apiGetContactsAdif(request)
 	if not request.station_id then 
-		return false, "no station id provided" 
+		log.syslog('err', 'wavelog: no station id provided')
+		return false
 	end
 	if not request.fetchfromid then 
-		return false, "no qso id provided from where to fetch (fetchfromid)" 
+		log.syslog('err', 'wavelog: no qso id provided from where to fetch (fetchfromid)')
+		return false
 	end
 	
 	local url = string.format('%s/api/get_contacts_adif', config.url)
