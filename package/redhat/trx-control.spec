@@ -63,6 +63,7 @@ trx-control software repository
 /usr/share/trxd/extension/ping.lua
 /usr/share/trxd/extension/qrz.lua
 /usr/share/trxd/extension/tasmota.lua
+/usr/share/trxd/extension/wavelog.lua
 /usr/share/trxd/gpio-controller.lua
 /usr/share/trxd/gpio/bmcm-usb-pio.lua
 /usr/share/trxd/lua/curl.so
