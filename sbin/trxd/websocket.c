@@ -217,6 +217,17 @@ wsGetHandshakeAnswer(const struct handshake *hs, uint8_t *outFrame,
 	*outLength = written;
 }
 
+static uint64_t
+htonll(uint64_t value)
+{
+	uint32_t high, low;
+
+	high = htonl(value >> 32);
+	low = htonl(value & 0xFFFFFFFF);
+
+	return (uint64_t)low << 32 | high;
+}
+
 void
 wsMakeFrame(const uint8_t *data, size_t dataLength, uint8_t *outFrame,
     size_t *outLength, enum wsFrameType frameType)
@@ -238,7 +249,8 @@ wsMakeFrame(const uint8_t *data, size_t dataLength, uint8_t *outFrame,
 		*outLength = 4;
 	} else {
 		outFrame[1] = 127;
-		memcpy(&outFrame[2], &dataLength, 8);
+		uint64_t payloadLength64b = htonll((uint64_t)dataLength);
+		memcpy(&outFrame[2], &payloadLength64b, 8);
 		*outLength = 10;
 	}
 	memcpy(&outFrame[*outLength], data, dataLength);
@@ -403,13 +415,16 @@ wsRead(char **dest, size_t *destlen,
 			type = WS_INCOMPLETE_FRAME;
 			break;
 		case WS_TEXT_FRAME:
-			data[datasize] = '\0';
-			*dest = strdup(data);
-			if (destlen != NULL)
-				*destlen = datasize;
-			if (*dest == NULL) {
-				free(buf);
-				return -1;
+			if (data) {
+				data[datasize] = '\0';
+
+				*dest = strdup(data);
+				if (destlen != NULL)
+					*destlen = datasize;
+				if (*dest == NULL) {
+					free(buf);
+					return -1;
+				}
 			}
 			break;
 		case WS_INCOMPLETE_FRAME:

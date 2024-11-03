@@ -40,7 +40,7 @@
 
 extern int verbose;
 
-#define BUFSIZE		65535
+#define MAX_WS_HEADER	10
 
 static void
 cleanup(void *arg)
@@ -52,7 +52,7 @@ void *
 websocket_sender(void *arg)
 {
 	sender_tag_t *s = (sender_tag_t *)arg;
-	char *buf;
+	unsigned char *buf;
 	size_t datasize, framesize;
 
 	pthread_cleanup_push(cleanup, arg);
@@ -89,7 +89,7 @@ websocket_sender(void *arg)
 		if (verbose)
 			printf("websocket-sender: -> %s\n", s->data);
 		datasize = strlen(s->data);
-		buf = malloc(BUFSIZE);
+		buf = malloc(datasize + MAX_WS_HEADER);
 		framesize = datasize;
 		if (buf == NULL) {
 			syslog(LOG_ERR, "websocket-sender: malloc\n");
