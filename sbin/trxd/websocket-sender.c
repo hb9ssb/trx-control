@@ -81,7 +81,8 @@ websocket_sender(void *arg)
 	for (;;) {
 		while (s->data == NULL) {
 			if (pthread_cond_wait(&s->cond, &s->mutex)) {
-				syslog(LOG_ERR, "websocket-sender: pthread_cond_wait");
+				syslog(LOG_ERR, "websocket-sender: "
+				    "pthread_cond_wait");
 				exit(1);
 			}
 		}
@@ -106,7 +107,8 @@ websocket_sender(void *arg)
 		free(buf);
 		s->data = NULL;
 		if (pthread_cond_signal(&s->cond2)) {
-			syslog(LOG_ERR, "websocket-sender: pthread_cond_signal");
+			syslog(LOG_ERR, "websocket-sender: "
+			    "pthread_cond_signal");
 			exit(1);
 		}
 	}
