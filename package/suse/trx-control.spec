@@ -138,6 +138,7 @@ rm -rf $RPM_BUILD_ROOT
  - Add the wavelog extension, written by HB9HIL and based on an older
    cloudlog extension originally developed by Nz0P.
  - Bugfixes in WebSocket handling.
+ - Add the CSI CS7000-M17 transceiver.
 
 * Sat Nov 2 2024 Marc Balmer  HB9SSB <info@hb9ssb.ch>
 

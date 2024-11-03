@@ -3,6 +3,7 @@ trx-control (1.2.3-1) stable; urgency=low
   * Add the wavelog extension, written by HB9HIL and based on an older
     cloudlog extension originally developed by Nz0P.
   * Bugfixes in WebSocket handling.
+  * Add the CSI CS7000-M17 transceiver.
 
  -- Marc Balmer HB9SSB (trx-control package signing) <info@hb9ssb.ch>  Sat, 2 ONovect 2024 12:00:00 +0100
 
