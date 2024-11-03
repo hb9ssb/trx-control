@@ -1,8 +1,6 @@
+-- Copyright (c) 2024 Fabian Berg HB9HIL
 -- Copyright (c) 2024 Derek Rowland NZ0P
 -- Copyright (c) 2024 Marc Balmer HB9SSB
---
--- Rewrite and readd after removal from repo as Wavelog extension (was cloudlog.lua)
--- Copyright (c) 2024 Fabian Berg HB9HIL
 --
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to
