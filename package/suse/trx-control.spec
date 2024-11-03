@@ -133,6 +133,12 @@ rm -rf $RPM_BUILD_ROOT
 %{__make} clean
 
 %changelog
+* Sun Nov 23 2024 Marc Balmer  HB9SSB <info@hb9ssb.ch>
+
+ - Add the wavelog extension, written by HB9HIL and based on an older
+   cloudlog extension originally developed by Nz0P.
+ - Bugfixes in WebSocket handling.
+
 * Sat Nov 2 2024 Marc Balmer  HB9SSB <info@hb9ssb.ch>
 
  - Improved error reporting using syslog facilities.
