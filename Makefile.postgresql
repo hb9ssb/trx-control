@@ -17,6 +17,10 @@ endif
 ifeq ($(ID), fedora)
 PG_CONFIG=	/usr/bin/pg_config
 
+ifeq ($(VERSION_ID), "41")
+PG_VERSION=16
+endif
+
 ifeq ($(VERSION_ID), "40")
 PG_VERSION=16
 endif
