@@ -51,16 +51,19 @@
 --
 
 local config = ...
+
 local curl = require 'curl'
 local expat = require 'expat'
 local log = require 'linux.sys.log'
 
 if trxd.verbose() > 0 then
-    log.syslog('notice', 'installing the wavelog extension')
+	log.syslog('notice', 'installing the wavelog extension')
+	return
 end
 
 if config.apiKey == nil then
 	log.syslog('err', 'wavelog: api key is missing')
+	return
 end
 
 if config.ssl == nil then
@@ -69,12 +72,12 @@ end
 
 if config.url == nil then
 	log.syslog('err', 'wavelog: url is missing')
+	return
 else
 	if trxd.verbose() > 0 then
 		log.syslog('notice', 'wavelog: url ' .. config.url)
 	end
 end
-
 
 local connectTimeout = config.connectTimeout or 5
 local timeout = config.timeout or 15
