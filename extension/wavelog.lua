@@ -23,8 +23,9 @@
 -- The trx-control Wavelog extension
 --
 -- Implements Wavelog APIs: https://github.com/wavelog/wavelog/wiki/API
--- Since Wavelog is a fork of Cloudlog, most API calls are compatible with Cloudlog unless noted otherwise.
--- 
+-- Since Wavelog is a fork of Cloudlog, most API calls are compatible with
+-- Cloudlog unless noted otherwise.
+--
 -- Implemented:
 --   * /api/auth/<apiKey>
 --   * /api/radio
@@ -41,10 +42,13 @@
 --  wavelog:
 --    script: wavelog
 --    configuration:
---      url: "https://wavelog.xyz.com/index.php"    	# URL of your wavelog instance
---      apiKey: "xxxxxxxxxxxx"							# API key for your wavelog instance	(use a r+w key)
---	    ssl: true										# Use SSL (default: true)
--- 
+--      # URL of your wavelog instance
+--      url: "https://wavelog.xyz.com/index.php"
+--      # API key for your wavelog instance (use a r+w key)
+--      apiKey: "xxxxxxxxxxxx"
+--          # Use SSL (default: true)
+--	    ssl: true
+--
 
 local config = ...
 local curl = require 'curl'
@@ -89,16 +93,16 @@ end
 local function apiRequest(url, payload, method, decode)
 	local c = curl.easy()
 	if decode == nil then decode = true end
-	
+
 	if trxd.verbose() > 0 then
 		c:setopt(curl.OPT_VERBOSE, true)
 	end
-	
+
 	c:setopt(curl.OPT_SSL_VERIFYHOST, verifyhost)
 	c:setopt(curl.OPT_SSL_VERIFYPEER, ssl)
 	c:setopt(curl.OPT_CONNECTTIMEOUT, connectTimeout)
 	c:setopt(curl.OPT_TIMEOUT, timeout)
-	
+
 	if method == "GET" then
 		c:setopt(curl.OPT_URL, url)
 		c:setopt(curl.OPT_HTTPGET, true)
@@ -119,8 +123,9 @@ local function apiRequest(url, payload, method, decode)
 	c:cleanup()
 
 	if decode then
-		return response, json.decode(table.concat(responseChunks)), status
-	else 
+		return response, json.decode(table.concat(responseChunks)),
+		    status
+	else
 		return response, table.concat(responseChunks), status
 	end
 end
@@ -137,18 +142,21 @@ local function apiRadio(request)
 		log.syslog('err', 'wavelog: no frequency provided')
 		return false
 	end
-	if not request.mode then 
+	if not request.mode then
 		log.syslog('err', 'wavelog: no mode provided')
 		return false
 	end
-	
+
 	local url = string.format('%s/api/radio', config.url)
 	local payload = {
 		key = config.apiKey,
 		radio = request.radio or 'trx-control',
 		frequency = request.frequency,
 		mode = request.mode,
-		timestamp = os.date('%Y/%m/%d %H:%M:%S') -- no longer necessary, timestamp is set in wavelog but we keep it, just in case..
+
+		-- a timestamp is no longer necessary as it is set in wavelog
+		-- but we keep it, just in case..
+		timestamp = os.date('%Y/%m/%d %H:%M:%S')
 	}
 
 	if request.prop_mode ~= nil then payload.prop_mode = request.prop_mode end
@@ -160,20 +168,20 @@ local function apiRadio(request)
 	if request.downlink_mode ~= nil then payload.downlink_mode = request.downlink_mode end
 	if request.frequency_rx ~= nil then payload.frequency_rx = request.frequency_rx end
 	if request.mode_rx ~= nil then payload.mode_rx = request.mode_rx end
-	
+
 	return apiRequest(url, payload, "POST")
 end
 
 local function apiQso(request)
-	if not request.adif then 
+	if not request.adif then
 		log.syslog('err', 'wavelog: no adif data provided')
 		return false
 	end
-	if not request.station_id then 
+	if not request.station_id then
 		log.syslog('err', 'wavelog: no station profile id provided')
 		return false
 	end
-	
+
 	local url = string.format('%s/api/qso%s', config.url, request.dryrun and '/true' or '')
 	local payload = {
 		key = config.apiKey,
@@ -181,16 +189,16 @@ local function apiQso(request)
 		station_profile_id = request.station_id,
 		string = request.adif
 	}
-	
+
 	return apiRequest(url, payload, "POST")
 end
 
 local function apiPrivateLookup(request)
-	if not request.callsign then 
+	if not request.callsign then
 		log.syslog('err', 'wavelog: no callsign provided')
 		return false
 	end
-	
+
 	local url = string.format('%s/api/private_lookup', config.url)
 	local payload = {
 		key = config.apiKey,
@@ -200,20 +208,20 @@ local function apiPrivateLookup(request)
 	if request.station_ids ~= nil then payload.station_ids = request.station_ids end
 	if request.band ~= nil then payload.band = request.band end
 	if request.mode ~= nil then payload.mode = request.mode end
-	
+
 	return apiRequest(url, payload, "POST")
 end
 
 local function apiCallsignInLogbook(request)
-	if not request.callsign then 
+	if not request.callsign then
 		log.syslog('err', 'wavelog: no callsign provided')
 		return false
 	end
-	if not request.slug then 
+	if not request.slug then
 		log.syslog('err', 'wavelog: no public logbook slug provided')
 		return false
 	end
-	
+
 	local url = string.format('%s/api/logbook_check_callsign', config.url)
 	local payload = {
 		key = config.apiKey,
@@ -222,20 +230,20 @@ local function apiCallsignInLogbook(request)
 	}
 
 	if request.band ~= nil then payload.band = request.band end
-	
+
 	return apiRequest(url, payload, "POST")
 end
 
 local function apiCheckGrid(request)
-	if not request.grid then 
+	if not request.grid then
 		log.syslog('err', 'wavelog: no gridsquare provided')
 		return false
 	end
-	if not request.slug then 
+	if not request.slug then
 		log.syslog('err', 'wavelog: no public logbook slug provided')
 		return false
 	end
-	
+
 	local url = string.format('%s/api/logbook_check_grid', config.url)
 	local payload = {
 		key = config.apiKey,
@@ -245,7 +253,7 @@ local function apiCheckGrid(request)
 
 	if request.band ~= nil then payload.band = request.band end
 	if request.cnfm ~= nil then payload.cnfm = request.cnfm end
-	
+
 	return apiRequest(url, payload, "POST")
 end
 
@@ -260,15 +268,15 @@ local function apiStationInfo()
 end
 
 local function apiGetContactsAdif(request)
-	if not request.station_id then 
+	if not request.station_id then
 		log.syslog('err', 'wavelog: no station id provided')
 		return false
 	end
-	if not request.fetchfromid then 
+	if not request.fetchfromid then
 		log.syslog('err', 'wavelog: no qso id provided from where to fetch (fetchfromid)')
 		return false
 	end
-	
+
 	local url = string.format('%s/api/get_contacts_adif', config.url)
 	local payload = {
 		key = config.apiKey,
@@ -277,7 +285,7 @@ local function apiGetContactsAdif(request)
 	}
 
 	if request.limit ~= nil then payload.limit = request.cnlimitfm end
-	
+
 	return apiRequest(url, payload, "POST")
 end
 
@@ -298,7 +306,7 @@ function auth(request)
 			}
 		end
 	end
-	
+
 	if resp == true and status == 200 then
 		return {
 			request = 'wavelog',
