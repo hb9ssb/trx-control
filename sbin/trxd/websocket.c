@@ -425,6 +425,10 @@ wsRead(char **dest, size_t *destlen,
 					free(buf);
 					return -1;
 				}
+			} else {
+				if (destlen != NULL)
+					*destlen = 0;
+				*dest = NULL;
 			}
 			break;
 		case WS_INCOMPLETE_FRAME:

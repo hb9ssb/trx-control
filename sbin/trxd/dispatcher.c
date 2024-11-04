@@ -933,6 +933,7 @@ dispatcher(void *arg)
 			syslog(LOG_ERR, "dispatcher: function expected");
 			exit(1);
 		}
+
 		lua_pushstring(L, d->data);
 		switch (lua_pcall(L, 1, 1, 0)) {
 		case LUA_OK:
@@ -946,8 +947,8 @@ dispatcher(void *arg)
 		}
 		if (lua_type(L, -1) != LUA_TTABLE) {
 			syslog(LOG_ERR, "dispatcher: "
-			    "JSON does not decode to table");
-			exit(1);
+			    "JSON does not decode to table. Skipping request.");
+			goto skip_request;
 		}
 		/* decoded JSON data is now on top of the stack */
 		request = lua_gettop(L);
@@ -1006,6 +1007,7 @@ dispatcher(void *arg)
 			} else
 				destination_set(d);
 		}
+skip_request:
 		free(d->data);
 		d->data = NULL;
 		if (pthread_cond_signal(&d->cond2)) {
