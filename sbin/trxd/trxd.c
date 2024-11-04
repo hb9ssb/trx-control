@@ -400,7 +400,7 @@ main(int argc, char *argv[])
 		while (lua_next(L, top)) {
 			trx_controller_tag_t *t;
 			char trx_path[PATH_MAX];
-			char *protocol;
+			const char *protocol;
 			char proto_path[PATH_MAX];
 
 			t = malloc(sizeof(trx_controller_tag_t));
@@ -917,9 +917,13 @@ main(int argc, char *argv[])
 			lua_pop(L, 1);
 		}
 
-		lua_getfield(L, -1, "certificate");
-		if (lua_isstring(L, -1))
-			t->certificate = strdup(lua_tostring(L, -1));
+		lua_getfield(L, -1, "ssl");
+		if (lua_istable(L, -1)) {
+			lua_getfield(L, -1, "certificate");
+			if (lua_isstring(L, -1))
+				t->certificate = strdup(lua_tostring(L, -1));
+			lua_pop(L, 1);
+		}
 		lua_pop(L, 1);
 
 		/* Create the websocket-listener thread */

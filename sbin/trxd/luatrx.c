@@ -71,7 +71,7 @@ static int
 luatrx_read(lua_State *L)
 {
 	struct pollfd pfd;
-	char buf[256];
+	unsigned char buf[256];
 	size_t len, nread, nfds;
 
 	len = luaL_checkinteger(L, 1);
@@ -116,7 +116,7 @@ luatrx_read(lua_State *L)
 static int
 luatrx_write(lua_State *L)
 {
-	const char *data;
+	const unsigned char *data;
 	size_t len;
 
 	data = luaL_checklstring(L, 1, &len);
