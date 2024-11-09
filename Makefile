@@ -1,11 +1,5 @@
-# This Makefile is used on the target OS to build trx-control locally
-
-ifndef NO_POSTGRESQL
-include Makefile.postgresql
-SUBDIR+=	external/bsd/luapgsql
-endif
-
-include Makefile.version
+VERSION=	1.2.4
+RELEASE=	1
 
 build:
 
@@ -21,9 +15,10 @@ SUBDIR+=	bin/bluecat \
 		sbin/trxd \
 		udev \
 		external/bsd/luacurl \
-		external/bsd/luasqlite \
 		external/mit/luaexpat \
 		external/mit/lualinux \
+		external/bsd/luapgsql \
+		external/bsd/luasqlite \
 		external/mit/luayaml \
 		yum \
 		zypp \
@@ -39,8 +34,7 @@ build:		subdir
 subdir: $(SUBDIR)
 
 $(SUBDIR):
-	VERSION=$(VERSION) PG_CONFIG=$(PG_CONFIG) PG_VERSION=$(PG_VERSION) \
-	    $(MAKE) -C $@ $(TARGET)
+	VERSION=$(VERSION) $(MAKE) -C $@ $(TARGET)
 
 # Recursive targets
 .PHONY: clean

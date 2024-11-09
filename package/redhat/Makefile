@@ -6,6 +6,5 @@ all:
 	rpmbuild -bb --define "_topdir $$HOME/rpmbuild" \
 		--define "version ${VERSION}" \
 		--define "release ${RELEASE}" \
-		--define "pg_version ${PG_VERSION}" \
 		--define "distribution ${DISTRIBUTION}" \
 		${RPM_OPTS} trx-control.spec

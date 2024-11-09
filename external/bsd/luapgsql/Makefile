@@ -1,7 +1,7 @@
 VPATH=		../../mit/lua/src
 
 SRCS=		luapgsql.c
-PG_CONFIG?=	/usr/pgsql-$(PG_VERSION)/bin/pg_config
+PG_CONFIG?=	/usr/bin/pg_config
 
 LUADIR?=	/usr/share/trxd/lua
 

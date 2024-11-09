@@ -12,14 +12,13 @@ BuildRequires: avahi-devel
 BuildRequires: curl-devel expat-devel gcc libyaml-devel make
 BuildRequires: openssl-devel readline-devel
 BuildRequires: sqlite-devel
+BuildRequires: postgresql-server-devel
 
-Requires: expat libcurl libyaml openssl postgresql16-libs
-Requires: readline sqlite-libs
+Requires: expat libcurl libyaml openssl postgresql-libs
+Requires: readline sqlite-libs postgresql-server
 
 %if %{?fedora:1}%{?!fedora:0}
-BuildRequires: postgresql-server-devel
 %else
-BuildRequires: postgresql%{pg_version}-devel
 Requires: epel-release
 %endif
 
@@ -29,7 +28,7 @@ Buildroot: /tmp/trx-control
 
 %package repo
 BuildArch: noarch
-Summary: trx-control repository for Alma Linux / RHEL / RockyLinux
+Summary: trx-control repository for Alma Linux / RHEL / RockyLinux / Fedora
 
 %description
 A modern and extensible software system to control transceivers and other
@@ -140,7 +139,7 @@ rm -rf $RPM_BUILD_ROOT
 %{__make} clean
 
 %changelog
-* Sun Nov 23 2024 Marc Balmer  HB9SSB <info@hb9ssb.ch>
+* Sun Nov 3 2024 Marc Balmer  HB9SSB <info@hb9ssb.ch>
 
  - Add the wavelog extension, written by HB9HIL and based on an older
    cloudlog extension originally developed by Nz0P.

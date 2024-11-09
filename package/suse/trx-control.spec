@@ -10,7 +10,7 @@ Source: trx-control-%{version}.tar.gz
 Prefix: /usr
 BuildRequires: libavahi-devel
 BuildRequires: curl-devel libexpat-devel gcc libyaml-devel make
-BuildRequires: openssl-devel postgresql%{pg_version}-devel readline-devel
+BuildRequires: openssl-devel postgresql16-devel readline-devel
 BuildRequires: sqlite-devel
 
 Requires: expat libcurl libyaml openssl postgresql16-libs
@@ -133,7 +133,7 @@ rm -rf $RPM_BUILD_ROOT
 %{__make} clean
 
 %changelog
-* Sun Nov 23 2024 Marc Balmer  HB9SSB <info@hb9ssb.ch>
+* Sun Nov 3 2024 Marc Balmer  HB9SSB <info@hb9ssb.ch>
 
  - Add the wavelog extension, written by HB9HIL and based on an older
    cloudlog extension originally developed by Nz0P.
