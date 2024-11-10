@@ -87,7 +87,8 @@ ZYPPDEST=	$(PKGDEST)/zypp
 REPOUSER=	root
 REPOPATH=	$(REPOBASE)/rhel-$(RELEASEVER)-$(ARCH)
 
-REDHAT_BASED=	alma-9 \
+REDHAT_BASED=	alma-10-kitten \
+		alma-9 \
 		alma-8 \
 		rocky-9 \
 		rocky-8 \
