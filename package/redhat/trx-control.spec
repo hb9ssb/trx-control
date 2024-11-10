@@ -116,7 +116,6 @@ fi
 %postun
 if [ "$1" == "0" ]; then
 	userdel -r trxd
-	groupdel trxd
 fi
 
 %files repo
