@@ -92,6 +92,7 @@ REDHAT_BASED=	alma-10-kitten \
 		alma-8 \
 		rocky-9 \
 		rocky-8 \
+		fedora-rawhide \
 		fedora-41 \
 		fedora-40 \
 		fedora-39
