@@ -24,7 +24,7 @@ clean:
 	make -C pwd clean
 	make -C sys clean
 
-install:
+install:	linux.so
 	install linux.so $(DESTDIR)$(LUADIR)/linux.so
 	make -C dirent install
 	make -C dl install
