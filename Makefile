@@ -1,5 +1,5 @@
 VERSION=	1.2.4
-RELEASE=	1
+RELEASE=	2
 
 build:
 

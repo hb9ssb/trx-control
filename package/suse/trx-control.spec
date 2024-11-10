@@ -97,15 +97,14 @@ fi
 
 %post
 systemctl daemon-reload
-if [ "$1" == "1" ]; then
-	systemctl enable trx-control
-else
-	systemctl -q is-enabled trx-control && systemctl restart trx-control
+# Do not enable trxd on initial install, but restart on update if running
+if [ "$1" != "1" ]; then
+	systemctl -q is-enabled trxd && systemctl restart trxd
 fi
 
 %preun
 if [ "$1" == "0" ]; then
-	systemctl disable --now trx-control
+	systemctl disable --now trxd
 fi
 
 %postun
