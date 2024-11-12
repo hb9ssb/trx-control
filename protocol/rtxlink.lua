@@ -22,7 +22,7 @@
 
 local function slipWrite(s)
 	trx.write(string.format('\xc0%s\xc0',
-	    s:gsub('\xc0', '\xc0\xdc'):gsub('\xdb', '\xdb\xdd')))
+	    s:gsub('\xc0', '\xdb\xdc'):gsub('\xdb', '\xdb\xdd')))
 end
 
 local function slipRead(nbytes)
@@ -30,7 +30,7 @@ local function slipRead(nbytes)
 	local decodedData = ''
 
 	repeat
-		local data, n = rawData:gsub('\xc0\xdc', '\xc0')
+		local data, n = rawData:gsub('\xdb\xdc', '\xc0')
 		local data, m = data:gsub('\xdb\xdd', '\xdb')
 		decodedData = decodedData .. data
 		local missingBytes = n + m
