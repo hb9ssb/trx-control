@@ -253,7 +253,9 @@ typedef struct websocket_listener {
 	char			*bind_addr;
 	char			*listen_port;
 	char			*path;
+	char			*root;
 	char			*certificate;
+	char			*key;
 	int			 announce;
 
 	int			 socket;

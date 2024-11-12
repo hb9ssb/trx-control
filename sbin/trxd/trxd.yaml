@@ -20,7 +20,10 @@ websocket:
 
   # If define SSL parameters if you want to use wss instead of ws
   ssl:
-    certificate: server.pem
+    certificate: server.crt
+    key: server.key
+    # if you define an SSL root, client certificates are checked against it
+    root: server_ca.pem
 
   # If you don't want to announce trx-control over mDNS, set announce to false
   announce: true

@@ -883,7 +883,9 @@ main(int argc, char *argv[])
 		}
 		t->ssl = NULL;
 		t->ctx = NULL;
+		t->root = NULL;
 		t->certificate = NULL;
+		t->key = NULL;
 		t->announce = noannounce ? 0 : 1;
 
 		lua_getfield(L, -1, "bind-address");
@@ -919,9 +921,17 @@ main(int argc, char *argv[])
 
 		lua_getfield(L, -1, "ssl");
 		if (lua_istable(L, -1)) {
+			lua_getfield(L, -1, "root");
+			if (lua_isstring(L, -1))
+				t->root = strdup(lua_tostring(L, -1));
+			lua_pop(L, 1);
 			lua_getfield(L, -1, "certificate");
 			if (lua_isstring(L, -1))
 				t->certificate = strdup(lua_tostring(L, -1));
+			lua_pop(L, 1);
+			lua_getfield(L, -1, "key");
+			if (lua_isstring(L, -1))
+				t->key = strdup(lua_tostring(L, -1));
 			lua_pop(L, 1);
 		}
 		lua_pop(L, 1);

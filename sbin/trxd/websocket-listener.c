@@ -27,7 +27,12 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+#include <openssl/bio.h>
+#include <openssl/err.h>
 #include <openssl/ssl.h>
+#include <openssl/x509.h>
+#include <openssl/x509v3.h>
+#include <openssl/pem.h>
 
 #include <errno.h>
 #include <fcntl.h>
@@ -188,17 +193,44 @@ websocket_listener(void *arg)
 			exit(1);
 		}
 
+		if (t->root) {
+			if (SSL_CTX_load_verify_locations(t->ctx, t->root, NULL)
+			   != 1) {
+				syslog(LOG_ERR, "websocket-listener: "
+				    "can't load verify locations");
+				exit(1);
+			}
+
+			SSL_CTX_set_client_CA_list(t->ctx,
+			    SSL_load_client_CA_file(t->root));
+
+			SSL_CTX_set_verify(t->ctx, SSL_VERIFY_PEER
+			    | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, NULL);
+			SSL_CTX_set_verify_depth(t->ctx, 4);
+		}
+
 		if (SSL_CTX_use_certificate_chain_file(t->ctx, t->certificate)
 		    != 1) {
 			syslog(LOG_ERR, "websocket-listener: "
-			    "can't load certificate");
+			    "can't load certificate chain");
 			exit(1);
 		}
-		if (SSL_CTX_use_PrivateKey_file(t->ctx, t->certificate,
-		    SSL_FILETYPE_PEM) != 1) {
-			syslog(LOG_ERR, "websocket-listener: "
-			    "error loading private key");
-			exit(1);
+
+		if (t->key) {
+			if (SSL_CTX_use_PrivateKey_file(t->ctx, t->key,
+			    SSL_FILETYPE_PEM) != 1) {
+				syslog(LOG_ERR, "websocket-listener: "
+				    "error loading private key from key file");
+				exit(1);
+			}
+		} else {
+			if (SSL_CTX_use_PrivateKey_file(t->ctx, t->certificate,
+			    SSL_FILETYPE_PEM) != 1) {
+				syslog(LOG_ERR, "websocket-listener: "
+				    "error loading private key from "
+				    "certificate");
+				exit(1);
+			}
 		}
 	}
 
