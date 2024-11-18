@@ -759,8 +759,6 @@ main(int argc, char *argv[])
 			luaL_openlibs(t->L);
 			luaopen_trxd(t->L);
 			lua_setglobal(t->L, "trxd");
-
-			luaL_openlibs(t->L);
 			luaopen_json(t->L);
 			lua_setglobal(t->L, "json");
 
