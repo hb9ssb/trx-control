@@ -29,6 +29,7 @@
 #include <errno.h>
 #include <pthread.h>
 #include <sched.h>
+#include <signal.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -97,6 +98,12 @@ websocket_write(void *data, unsigned char *dest, size_t len)
 		return SSL_write(websock->ssl, dest, len);
 	else
 		return send(websock->socket, dest, len, 0);
+}
+
+void
+sigpipe_handler(int unused)
+{
+	pthread_exit(NULL);
 }
 
 void *
@@ -222,6 +229,8 @@ websocket_handler(void *arg)
 			syslog(LOG_ERR, "websocket-handler: pthread_cond_wait");
 			exit(1);
 		}
+
+	sigaction(SIGPIPE, &(struct sigaction){sigpipe_handler}, NULL);
 
 	if (verbose)
 		printf("websocket-handler: sender is ready\n");
