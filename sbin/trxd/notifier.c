@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Marc Balmer HB9SSB
+ * Copyright (c) 2024 - 2025 Marc Balmer HB9SSB
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -35,13 +35,6 @@
 
 extern int verbose;
 
-
-static void
-cleanup(void *arg)
-{
-	free(arg);
-}
-
 void *
 notifier(void *arg)
 {
@@ -55,7 +48,7 @@ notifier(void *arg)
 	if (pthread_detach(pthread_self()))
 		err(1, "notifier: pthread_detach");
 
-	pthread_cleanup_push(cleanup, arg);
+	pthread_cleanup_push(free, arg);
 
 	if (pthread_setname_np(pthread_self(), "notifier"))
 		err(1, "notifier: pthread_setname_np");
