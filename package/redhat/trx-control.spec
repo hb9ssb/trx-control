@@ -56,6 +56,7 @@ trx-control software repository
 /usr/share/trxd/extension/config.lua
 /usr/share/trxd/extension/dxcluster.lua
 /usr/share/trxd/extension/hamqth.lua
+/usr/share/trxd/extension/hello.lua
 /usr/share/trxd/extension/logbook.lua
 /usr/share/trxd/extension/memory.lua
 /usr/share/trxd/extension/memory-db.lua
