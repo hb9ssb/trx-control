@@ -83,7 +83,7 @@ luatrx_read(lua_State *L)
 	if (verbose > 1)
 		printf("<- (read %d bytes from %d)\n", len, cat_device);
 	while (nread < len) {
-		nfds = poll(&pfd, 1, 100);
+		nfds = poll(&pfd, 1, 1000);
 		if (nfds == -1)
 			return luaL_error(L, "poll error");
 		if (nfds == 1) {
