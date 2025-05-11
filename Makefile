@@ -95,8 +95,7 @@ REDHAT_BASED=	alma-10-kitten \
 		rocky-8 \
 		fedora-rawhide \
 		fedora-41 \
-		fedora-40 \
-		fedora-39
+		fedora-40
 
 SUSE_BASED=	opensuse-leap-15.6 \
 		opensuse-leap-15.5 \
@@ -106,7 +105,6 @@ DEBIAN_BASED=	ubuntu-25.04 \
 		ubuntu-24.10 \
 		ubuntu-24.04 \
 		ubuntu-22.04 \
-		ubuntu-20.04 \
 		debian-13 \
 		debian-12 \
 		debian-11
