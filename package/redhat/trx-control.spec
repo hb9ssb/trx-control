@@ -75,6 +75,7 @@ trx-control software repository
 /usr/share/trxd/lua/linux/dirent.so
 /usr/share/trxd/lua/linux/dl.so
 /usr/share/trxd/lua/linux/pwd.so
+/usr/share/trxd/lua/node.so
 /usr/share/trxd/lua/pgsql.so
 /usr/share/trxd/lua/sqlite.so
 /usr/share/trxd/lua/yaml.so
