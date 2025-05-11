@@ -1,6 +1,7 @@
 PROTO=		cat-delimited.lua \
 		cat-5-byte.lua \
 		ci-v.lua \
+		kenwood-th-d-series.lua \
 		kenwood-ts480.lua \
 		rtxlink.lua \
 		simulated.lua
