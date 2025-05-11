@@ -17,6 +17,7 @@ SUBDIR+=	bin/bluecat \
 		external/bsd/luacurl \
 		external/mit/luaexpat \
 		external/mit/lualinux \
+		external/mit/luanode \
 		external/bsd/luapgsql \
 		external/bsd/luasqlite \
 		external/mit/luayaml \
