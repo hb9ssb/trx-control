@@ -112,11 +112,18 @@ trx_handler(void *arg)
 					exit(1);
 				}
 			}
-			if (pthread_mutex_unlock(&t->mutex)) {
-				syslog(LOG_ERR, "trx-handler: "
-				    "pthread_mutex_unlock");
+
+			if (pthread_mutex_unlock(&t->mutex2)) {
+				syslog(LOG_ERR, "trx-handler: pthread_mutex_unlock");
 				exit(1);
 			}
+
+		}
+
+		if (pthread_mutex_unlock(&t->mutex)) {
+			syslog(LOG_ERR, "trx-handler: "
+			    "pthread_mutex_unlock");
+			exit(1);
 		}
 	};
 	pthread_cleanup_pop(0);

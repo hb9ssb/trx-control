@@ -88,6 +88,8 @@ relays:
     idProduct: 0x5678
     driver: dummy-relay
 
+# extensions is the list of public extensions that are run once for all clients
+# that connect.  See private-extensions for extension run per-connection.
 extensions:
   ping:
     script: ping
@@ -138,3 +140,10 @@ extensions:
     configuration:
       username: MYCALLSIGN
       password: sicrit
+
+# private-exensions is the list of extensions that are run on a per-connection
+# basis, i.e. once for each connecting client.
+private-extensions:
+  hello:
+    script: hello
+

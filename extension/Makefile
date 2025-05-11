@@ -1,4 +1,4 @@
-EXTENSION?=	config.lua dxcluster.lua logbook.lua ping.lua \
+EXTENSION?=	config.lua dxcluster.lua hello.lua logbook.lua ping.lua \
 		qrz.lua tasmota.lua memory.lua memory-db.lua hamqth.lua \
 		wavelog.lua
 
