@@ -89,6 +89,7 @@ trx-control software repository
 /usr/share/trxd/trx-controller.lua
 /usr/share/trxd/trx/csi-cs7000-m17.yaml
 /usr/share/trxd/trx/icom-ic-705.yaml
+/usr/share/trxd/trx/kenwood-th-d75.yaml
 /usr/share/trxd/trx/openrtx.yaml
 /usr/share/trxd/trx/simulator.yaml
 /usr/share/trxd/trx/yaesu-ft-710.yaml
