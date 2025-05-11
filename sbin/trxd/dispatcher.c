@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 - 2024 Marc Balmer HB9SSB
+ * Copyright (c) 2023 - 2025 Marc Balmer HB9SSB
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -37,16 +37,22 @@
 #include <lauxlib.h>
 
 #include "buffer.h"
+#include "pathnames.h"
 #include "trxd.h"
 #include "trx-control.h"
 
 extern int luaopen_json(lua_State *);
+extern int luaopen_trxd(lua_State *);
 extern void proxy_map(lua_State *, lua_State *, int);
 extern void *trx_poller(void *);
 extern void *trx_handler(void *);
+extern void *extension(void *);
 
+extern char *private_extensions;
 extern destination_t *destination;
 extern int verbose;
+
+extern __thread int cat_device;
 
 static void
 call_trx_controller(dispatcher_tag_t *d, trx_controller_tag_t *t)
@@ -460,7 +466,7 @@ listen_not_supported(dispatcher_tag_t *d)
 }
 
 static void
-start_updater_if_not_running(trx_controller_tag_t *t)
+start_updater_if_not_running(dispatcher_tag_t *d, trx_controller_tag_t *t)
 {
 	if (t->poller_required) {
 		if (t->poller_running == 0) {
@@ -468,14 +474,18 @@ start_updater_if_not_running(trx_controller_tag_t *t)
 			pthread_create(&t->trx_poller, NULL, trx_poller, t);
 		}
 	} else {
-		if (t->handler_running = 0) {
+		if (t->handler_running == 0) {
 			t->handler_running = 1;
-			lua_geti(t->L, LUA_REGISTRYINDEX, t->ref);
+			cat_device = t->cat_device;
+
+			lua_getglobal(t->L, "_protocol");
 			lua_getfield(t->L, -1, "startStatusUpdates");
 			lua_pcall(t->L, 0, 1, 0);
+
 			t->handler_eol = lua_tointeger(t->L, -1);
 			if (verbose > 1)
-				printf("EOL character is %c\n", t->handler_eol);
+				printf("EOL character: %02x\n", t->handler_eol);
+
 			pthread_create(&t->trx_handler, NULL, trx_handler, t);
 		}
 	}
@@ -501,7 +511,7 @@ add_sender(dispatcher_tag_t *d, destination_t *dst)
 			p = p->next;
 			p->sender = d->sender;
 			p->next = NULL;
-			start_updater_if_not_running(dst->tag.trx);
+			start_updater_if_not_running(d, dst->tag.trx);
 		}
 	} else {
 		dst->tag.trx->senders = malloc(sizeof(sender_list_t));
@@ -511,7 +521,7 @@ add_sender(dispatcher_tag_t *d, destination_t *dst)
 		}
 		dst->tag.trx->senders->sender = d->sender;
 		dst->tag.trx->senders->next = NULL;
-		start_updater_if_not_running(dst->tag.trx);
+		start_updater_if_not_running(d, dst->tag.trx);
 	}
 	pthread_mutex_unlock(&dst->tag.trx->mutex);
 }
@@ -854,6 +864,145 @@ cleanup_lua(void *arg)
 	lua_close(L);
 }
 
+static void
+initialize_private_extensions(lua_State *L)
+{
+	int top;
+
+	/* The tabe with the extensions is a the Lua stack top */
+	top = lua_gettop(L);
+	lua_pushnil(L);
+	while (lua_next(L, top)) {
+		extension_tag_t *t;
+		const char *p;
+		char script[PATH_MAX], *name;
+
+		t = malloc(sizeof(extension_tag_t));
+		if (t == NULL) {
+			syslog(LOG_ERR, "memory allocation failure");
+			exit(1);
+		}
+		t->has_config = 0;
+		t->listeners = NULL;
+		t->L = luaL_newstate();
+		if (t->L == NULL) {
+			syslog(LOG_ERR, "cannot create Lua state");
+			exit(1);
+		}
+		luaL_openlibs(t->L);
+		luaopen_trxd(t->L);
+		lua_setglobal(t->L, "trxd");
+		luaopen_json(t->L);
+		lua_setglobal(t->L, "json");
+
+		t->call = t->done = 0;
+		name = (char *)lua_tostring(L, -2);
+
+		lua_getglobal(t->L, "package");
+		lua_getfield(t->L, -1, "cpath");
+		lua_pushstring(t->L, ";");
+		lua_pushstring(t->L, _PATH_LUA_CPATH);
+		lua_concat(t->L, 3);
+		lua_setfield(t->L, -2, "cpath");
+		lua_pop(t->L, 1);
+
+		lua_getglobal(t->L, "package");
+		lua_getfield(t->L, -1, "path");
+		lua_pushstring(t->L, ";");
+		lua_pushstring(t->L, _PATH_LUA_PATH);
+		lua_concat(t->L, 3);
+		lua_setfield(t->L, -2, "path");
+		lua_pop(t->L, 1);
+
+		lua_getfield(L, -1, "path");
+		if (lua_isstring(L, -1)) {
+			p = lua_tostring(L, -1);
+			lua_getglobal(t->L, "package");
+			lua_getfield(t->L, -1, "path");
+			lua_pushstring(t->L, ";");
+			lua_pushstring(t->L, p);
+			lua_concat(t->L, 3);
+			lua_setfield(t->L, -2, "path");
+			lua_pop(t->L, 1);
+		}
+		lua_pop(L, 1);
+
+		lua_getfield(L, -1, "cpath");
+		if (lua_isstring(L, -1)) {
+			p = lua_tostring(L, -1);
+			lua_getglobal(t->L, "package");
+			lua_getfield(t->L, -1, "cpath");
+			lua_pushstring(t->L, ";");
+			lua_pushstring(t->L, p);
+			lua_concat(t->L, 3);
+			lua_setfield(t->L, -2, "cpath");
+			lua_pop(t->L, 1);
+		}
+		lua_pop(L, 1);
+
+		lua_getfield(L, -1, "script");
+		if (!lua_isstring(L, -1)) {
+			syslog(LOG_ERR,
+			    "missing extension script name");
+			exit(1);
+		}
+		p = lua_tostring(L, -1);
+
+		if (strchr(p, '/')) {
+			syslog(LOG_ERR,
+			    "script name must not contain slashes");
+			exit(1);
+		}
+		snprintf(script, sizeof(script), "%s/%s.lua",
+		    _PATH_EXTENSION, p);
+
+		lua_pop(L, 1);
+
+		if (luaL_loadfile(t->L, script)) {
+			syslog(LOG_ERR, "%s", lua_tostring(t->L, -1));
+			exit(1);
+		}
+
+		lua_getfield(L, -1, "configuration");
+		if (lua_istable(L, -1)) {
+			proxy_map(L, t->L, lua_gettop(t->L));
+			t->has_config = 1;
+		}
+		lua_pop(L, 1);
+
+		lua_getfield(L, -1, "callable");
+		if (lua_isboolean(L, -1))
+			t->is_callable = lua_toboolean(L, -1);
+		else
+			t->is_callable = 1;
+		lua_pop(L, 1);
+
+#if 0
+		if (add_destination(name, DEST_EXTENSION, t)) {
+			syslog(LOG_ERR, "names must be unique");
+			exit(1);
+		}
+#endif
+		if (pthread_mutex_init(&t->mutex, NULL))
+			goto terminate;
+
+		if (pthread_mutex_init(&t->mutex2, NULL))
+			goto terminate;
+
+		if (pthread_cond_init(&t->cond1, NULL))
+			goto terminate;
+
+		if (pthread_cond_init(&t->cond2, NULL))
+			goto terminate;
+
+		/* Create the extension thread */
+		pthread_create(&t->extension, NULL, extension, t);
+		lua_pop(L, 1);
+	}
+terminate:
+	lua_pop(L, 1);
+}
+
 void *
 dispatcher(void *arg)
 {
@@ -901,6 +1050,30 @@ dispatcher(void *arg)
 	luaL_openlibs(L);
 	luaopen_json(L);
 	lua_setglobal(L, "json");
+
+	/* Initialize private extensions */
+	if (private_extensions) {
+		printf("initialize private extensions from:\n%s\n", private_extensions);
+		lua_getglobal(L, "json");
+		lua_getfield(L, -1, "decode");
+		lua_pushstring(L, private_extensions);
+		if (lua_istable(L, -1)) {
+			switch (lua_pcall(L, 1, 1, 0)) {
+			case LUA_OK:
+				/* Initialize the extensions */
+				initialize_private_extensions(L);
+				lua_pop(L, 1);
+				break;
+			case LUA_ERRRUN:
+			case LUA_ERRMEM:
+			case LUA_ERRERR:
+				syslog(LOG_ERR, "%s", lua_tostring(L, -1));
+				exit(1);
+				break;
+			}
+		}
+		lua_pop(L, 2);
+	}
 
 	if (pthread_mutex_lock(&d->mutex)) {
 		syslog(LOG_ERR, "dispatcher: pthread_mutex_lock");
