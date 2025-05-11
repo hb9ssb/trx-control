@@ -102,7 +102,9 @@ SUSE_BASED=	opensuse-leap-15.6 \
 		opensuse-leap-15.5 \
 		opensuse-tumbleweed
 
-DEBIAN_BASED=	ubuntu-24.04 \
+DEBIAN_BASED=	ubuntu-25.04 \
+		ubuntu-24.10 \
+		ubuntu-24.04 \
 		ubuntu-22.04 \
 		ubuntu-20.04 \
 		debian-13 \
