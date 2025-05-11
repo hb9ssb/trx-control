@@ -171,7 +171,7 @@ redhat:	$(REDHAT_BASED)
 
 suse:	$(SUSE_BASED)
 
-debian:	connect fetch-debian $(DEBIAN_BASED) disconnect
+debian:	$(DEBIAN_BASED)
 
 packages-clean:
 	rm -rf $(PKGDEST)
