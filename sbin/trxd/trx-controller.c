@@ -188,7 +188,7 @@ trx_controller(void *arg)
 		exit(1);
 	}
 
-	while (1) {
+	for (;;) {
 		int nargs = 1;
 
 		/* Wait on cond, this releases the mutex */
