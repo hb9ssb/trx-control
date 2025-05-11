@@ -1,0 +1,16 @@
+# Kenwood TH-D75 handheld transceiver definitions
+
+name: Kenwood TH-D75
+protocol: kenwood-th-d-series
+
+validModes:
+  fm: '0'
+  dv: '1'
+  am: '2'
+  lsb: '3'
+  usb: '4'
+  cw: '5'
+  nfm: '6'
+  dr: '7'
+  wfm: '8'
+  r-cw: '9'
