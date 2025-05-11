@@ -80,6 +80,13 @@ extern int trx_control_running;
 
 destination_t *destination = NULL;
 
+/*
+ * privat,, i.e. per connection extensions configuration.  This is in
+ * JSON format, if private extensions have been defined.
+ */
+
+char *private_extensions = NULL;
+
 static void
 usage(void)
 {
@@ -248,11 +255,16 @@ main(int argc, char *argv[])
 	}
 	luaL_openlibs(L);
 
-	/* Provide the yaml and trxd modules as if they were part of std Lua */
+	/*
+	 * Provide the yaml, trxd, and, json modules as if they were part of
+	 * std Lua
+	 */
 	luaopen_yaml(L);
 	lua_setglobal(L, "yaml");
 	luaopen_trxd(L);
 	lua_setglobal(L, "trxd");
+	luaopen_json(L);
+	lua_setglobal(L, "json");
 
 	/* Read the configuration file and extract parameters */
 	if (!stat(cfg_file, &sb)) {
@@ -868,6 +880,32 @@ main(int argc, char *argv[])
 	} else if (verbose)
 		syslog(LOG_NOTICE, "no extensions defined\n");
 	lua_pop(L, 1);
+
+#if 0
+	/* Setup private extensions */
+	lua_getglobal(L, "json");
+	lua_getfield(L, -1, "encode");
+	lua_getfield(L, -3, "private-extensions");
+	if (lua_istable(L, -1)) {
+		switch (lua_pcall(L, 1, 1, 0)) {
+		case LUA_OK:
+			private_extensions = strdup(lua_tostring(L, -1));
+			lua_pop(L, 1);
+			if (private_extensions == NULL) {
+				syslog(LOG_ERR, "memory error");
+				exit(1);
+			}
+			break;
+		case LUA_ERRRUN:
+		case LUA_ERRMEM:
+		case LUA_ERRERR:
+			syslog(LOG_ERR, "%s", lua_tostring(L, -1));
+			exit(1);
+			break;
+		}
+	}
+	lua_pop(L, 2);
+#endif
 
 	/* Setup WebSocket listening */
 	lua_getfield(L, -1, "websocket");
