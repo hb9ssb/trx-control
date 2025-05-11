@@ -82,6 +82,7 @@ trx-control software repository
 /usr/share/trxd/protocol/cat-5-byte.lua
 /usr/share/trxd/protocol/cat-delimited.lua
 /usr/share/trxd/protocol/ci-v.lua
+/usr/share/trxd/protocol/kenwood-th-d-series.lua
 /usr/share/trxd/protocol/kenwood-ts480.lua
 /usr/share/trxd/protocol/simulated.lua
 /usr/share/trxd/protocol/rtxlink.lua
