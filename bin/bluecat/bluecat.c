@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 - 2024 Marc Balmer HB9SSB
+ * Copyright (c) 2023 - 2025 Marc Balmer HB9SSB
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -31,7 +31,7 @@
 static void
 usage(void)
 {
-	(void)fprintf(stderr, "usage: bluecat [-c channel] device\n");
+	(void)fprintf(stderr, "usage: bluecat [-V] [-c channel] device\n");
 	exit(1);
 }
 
@@ -48,6 +48,7 @@ main(int argc, char *argv[])
 		int option_index = 0;
 		static struct option long_options[] = {
 			{ "channel",		required_argument, 0, 'c' },
+			{ "version",		no_argument, 0, 'V' },
 			{ 0, 0, 0, 0 }
 		};
 
@@ -63,6 +64,9 @@ main(int argc, char *argv[])
 		case 'c':
 			channel = atoi(optarg);
 			break;
+		case 'V':
+			printf("bluecat %s\n", VERSION);
+			exit(0);
 		default:
 			usage();
 		}

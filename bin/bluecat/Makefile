@@ -5,7 +5,7 @@ OBJS=		${SRCS:.c=.o}
 MANDIR?=	/usr/share/man
 BINDIR?=	/usr/bin
 
-CFLAGS+=	-D_GNU_SOURCE
+CFLAGS+=	-D_GNU_SOURCE -DVERSION=\"${VERSION}\"
 LDFLAGS+=	-lbluetooth
 
 build:		bluecat
