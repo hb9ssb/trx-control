@@ -141,18 +141,22 @@ rm -rf $RPM_BUILD_ROOT
 %{__make} clean
 
 %changelog
-* Sun Nov 3 2024 Marc Balmer  HB9SSB <info@hb9ssb.ch>
+* Tue May 13 2025 Marc Balmer HB9SSB <info@hb9ssb.ch>
+
+ - Add the Kenwood TH-D series protocol and the Kenwood TH-D75 HT.
+
+* Sun Nov 3 2024 Marc Balmer HB9SSB <info@hb9ssb.ch>
 
  - Add the wavelog extension, written by HB9HIL and based on an older
    cloudlog extension originally developed by Nz0P.
  - Bugfixes in WebSocket handling.
  - Add the CSI CS7000-M17 transceiver.
 
-* Sat Nov 2 2024 Marc Balmer  HB9SSB <info@hb9ssb.ch>
+* Sat Nov 2 2024 Marc Balmer HB9SSB <info@hb9ssb.ch>
 
  - Improved error reporting using syslog facilities.
 
-* Wed Oct 2 2024 Marc Balmer  HB9SSB <info@hb9ssb.ch>
+* Wed Oct 2 2024 Marc Balmer HB9SSB <info@hb9ssb.ch>
 
  - Add the bluecat(1) command.
 

@@ -136,6 +136,10 @@ rm -rf $RPM_BUILD_ROOT
 %{__make} clean
 
 %changelog
+* Tue May 13 2025 Marc Balmer HB9SSB <info@hb9ssb.ch>
+
+ - Add the Kenwood TH-D series protocol and the Kenwood TH-D75 HT.
+
 * Sun Nov 3 2024 Marc Balmer  HB9SSB <info@hb9ssb.ch>
 
  - Add the wavelog extension, written by HB9HIL and based on an older

@@ -1,5 +1,5 @@
-VERSION=	1.2.4
-RELEASE=	3
+VERSION=	1.2.5
+RELEASE=	0
 
 build:
 
@@ -94,6 +94,7 @@ REDHAT_BASED=	alma-10-kitten \
 		rocky-9 \
 		rocky-8 \
 		fedora-rawhide \
+		fedora-42 \
 		fedora-41 \
 		fedora-40
 
