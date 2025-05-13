@@ -52,7 +52,7 @@ main(int argc, char *argv[])
 			{ 0, 0, 0, 0 }
 		};
 
-		ch = getopt_long(argc, argv, "c:", long_options,
+		ch = getopt_long(argc, argv, "c:V", long_options,
 		    &option_index);
 
 		if (ch == -1)
