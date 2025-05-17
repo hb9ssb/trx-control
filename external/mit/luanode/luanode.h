@@ -27,6 +27,16 @@
 #ifndef __NODE_H__
 #define __NODE_H__
 
+#define NODE_METATABLE		"Lua node"
+
+typedef struct node {
+	pthread_mutex_t		 mutex;
+	lua_State		*L;
+	pthread_t		 handler;
+	int			 nargs;
+	int			 killable;
+} node_t;
+
 extern void node_openlibs(lua_State *L);
 
 #endif /* __NODE_H__ */
