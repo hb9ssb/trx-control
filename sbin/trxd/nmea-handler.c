@@ -210,12 +210,11 @@ nmea_scan(nmea_tag_t *t, struct nmea *np)
 	if (verbose > 2)
 		nmea_dump(t);
 
+	/* Unlock the NMEA fix data */
 	if (pthread_mutex_unlock(&t->mutex)) {
 		syslog(LOG_ERR, "nmea-handler: pthread_mutex_unlock");
 		exit(1);
 	}
-
-	/* Unlock the NMEA fix */
 }
 
 /* Decode the recommended minimum specific GPS/TRANSIT data. */
