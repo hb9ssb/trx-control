@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Micro Systems Marc Balmer, CH-5073 Gipf-Oberfrick
+ * Copyright (c) 2023 - 2025 Micro Systems Marc Balmer, CH-5073 Gipf-Oberfrick
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -29,16 +29,23 @@
 #include <pwd.h>
 #include <shadow.h>
 
-#include "luapwd.h"
+static int linux_setpwent(lua_State *);
+static int linux_endpwent(lua_State *);
+static int linux_getpwent(lua_State *);
+static int linux_getpwnam(lua_State *);
+static int linux_getpwuid(lua_State *);
+static int linux_getspnam(lua_State *);
+static int linux_getgrnam(lua_State *);
+static int linux_getgrgid(lua_State *);
 
-int
+static int
 linux_setpwent(lua_State *L)
 {
 	setpwent();
 	return 0;
 }
 
-int
+static int
 linux_endpwent(lua_State *L)
 {
 	endpwent();
@@ -65,7 +72,7 @@ linux_pushpasswd(lua_State *L, struct passwd *pwd)
 	lua_setfield(L, -2, "pw_shell");
 }
 
-int
+static int
 linux_getpwent(lua_State *L)
 {
 	struct passwd *pwd;
@@ -78,7 +85,7 @@ linux_getpwent(lua_State *L)
 	return 1;
 }
 
-int
+static int
 linux_getpwnam(lua_State *L)
 {
 	struct passwd *pwd;
@@ -91,7 +98,7 @@ linux_getpwnam(lua_State *L)
 	return 1;
 }
 
-int
+static int
 linux_getpwuid(lua_State *L)
 {
 	struct passwd *pwd;
@@ -126,7 +133,7 @@ linux_pushspasswd(lua_State *L, struct spwd *spwd)
 	lua_setfield(L, -2, "sp_expire");
 }
 
-int
+static int
 linux_getspnam(lua_State *L)
 {
 	struct spwd *spwd;
@@ -162,7 +169,7 @@ linux_pushgroup(lua_State *L, struct group *grp)
 	lua_setfield(L, -2, "gr_mem");
 }
 
-int
+static int
 linux_getgrnam(lua_State *L)
 {
 	struct group *grp;
@@ -175,7 +182,7 @@ linux_getgrnam(lua_State *L)
 	return 1;
 }
 
-int
+static int
 linux_getgrgid(lua_State *L)
 {
 	struct group *grp;

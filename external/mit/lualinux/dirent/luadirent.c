@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Micro Systems Marc Balmer, CH-5073 Gipf-Oberfrick
+ * Copyright (c) 2023 - 2025 Micro Systems Marc Balmer, CH-5073 Gipf-Oberfrick
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -30,6 +30,13 @@
 #include <string.h>
 
 #include "luadirent.h"
+
+static int linux_opendir(lua_State *);
+static int linux_readdir(lua_State *);
+static int linux_telldir(lua_State *);
+static int linux_seekdir(lua_State *);
+static int linux_rewinddir(lua_State *);
+static int linux_closedir(lua_State *);
 
 static int
 linux_opendir(lua_State *L)

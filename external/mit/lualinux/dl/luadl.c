@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Micro Systems Marc Balmer, CH-5073 Gipf-Oberfrick
+ * Copyright (c) 2023 -  2025 Micro Systems Marc Balmer, CH-5073 Gipf-Oberfrick
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -54,7 +54,12 @@ static const char *dlopen_options[] = {
 	NULL
 };
 
-int
+static int linux_dlopen(lua_State *L);
+static int linux_dlerror(lua_State *L);
+static int linux_dlsym(lua_State *L);
+static int linux_dlclose(lua_State *L);
+
+static int
 linux_dlopen(lua_State *L)
 {
 	void *p, **u;
@@ -75,14 +80,14 @@ linux_dlopen(lua_State *L)
 	return 1;
 }
 
-int
+static int
 linux_dlerror(lua_State *L)
 {
 	lua_pushstring(L, dlerror());
 	return 1;
 }
 
-int
+static int
 linux_dlsym(lua_State *L)
 {
 	void **p, **s, *symbol;
@@ -100,7 +105,7 @@ linux_dlsym(lua_State *L)
 	return 1;
 }
 
-int
+static int
 linux_dlclose(lua_State *L)
 {
 	void **p = luaL_checkudata(L, 1, DL_METATABLE);

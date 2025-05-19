@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Micro Systems Marc Balmer, CH-5073 Gipf-Oberfrick
+ * Copyright (c) 2023 - 2025 Micro Systems Marc Balmer, CH-5073 Gipf-Oberfrick
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -28,10 +28,5 @@
 
 #define DL_METATABLE	"dynamic linker handle"
 #define DLSYM_METATABLE	"dynamic linker symbol"
-
-extern int linux_dlopen(lua_State *L);
-extern int linux_dlerror(lua_State *L);
-extern int linux_dlsym(lua_State *L);
-extern int linux_dlclose(lua_State *L);
 
 #endif /* __LUADL_H__ */
