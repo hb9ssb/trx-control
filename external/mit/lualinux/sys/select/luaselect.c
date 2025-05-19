@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Micro Systems Marc Balmer, CH-5073 Gipf-Oberfrick
+ * Copyright (c) 2023 - 2025 Micro Systems Marc Balmer, CH-5073 Gipf-Oberfrick
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -33,7 +33,7 @@
 #include "luaselect.h"
 
 /* fd_set handling functions */
-int
+static int
 linux_fd_set(lua_State *L)
 {
 	fd_set *fdset;
@@ -45,7 +45,7 @@ linux_fd_set(lua_State *L)
 	return 1;
 }
 
-int
+static int
 linux_fd_set_clr(lua_State *L)
 {
 	fd_set *fdset;
@@ -55,7 +55,7 @@ linux_fd_set_clr(lua_State *L)
 	return 0;
 }
 
-int
+static int
 linux_fd_set_isset(lua_State *L)
 {
 	fd_set *fdset;
@@ -65,7 +65,7 @@ linux_fd_set_isset(lua_State *L)
 	return 1;
 }
 
-int
+static int
 linux_fd_set_set(lua_State *L)
 {
 	fd_set *fdset;
@@ -75,7 +75,7 @@ linux_fd_set_set(lua_State *L)
 	return 0;
 }
 
-int
+static int
 linux_fd_set_zero(lua_State *L)
 {
 	fd_set *fdset;
@@ -86,7 +86,7 @@ linux_fd_set_zero(lua_State *L)
 }
 
 /* select itself */
-int
+static int
 linux_select(lua_State *L)
 {
 	struct timeval *tv, tval;
@@ -120,7 +120,6 @@ linux_select(lua_State *L)
 	}
 
 	lua_pushinteger(L, select(nfds, readfds, writefds, errorfds, tv));
-
 	return 1;
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Micro Systems Marc Balmer, CH-5073 Gipf-Oberfrick
+ * Copyright (c) 2023 - 2025 Micro Systems Marc Balmer, CH-5073 Gipf-Oberfrick
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -27,13 +27,5 @@
 #define __LUASELECT_H__
 
 #define FD_SET_METATABLE	"fdset methods"
-
-extern int linux_fd_set(lua_State *);
-extern int linux_fd_set_clr(lua_State *);
-extern int linux_fd_set_isset(lua_State *);
-extern int linux_fd_set_set(lua_State *);
-extern int linux_fd_set_zero(lua_State *);
-
-extern int linux_select(lua_State *);
 
 #endif /* __LUASELECT_H__ */
