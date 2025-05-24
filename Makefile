@@ -91,8 +91,6 @@ REPOPATH=	$(REPOBASE)/rhel-$(RELEASEVER)-$(ARCH)
 REDHAT_BASED=	alma-10-kitten \
 		alma-9 \
 		alma-8 \
-		rocky-9 \
-		rocky-8 \
 		fedora-rawhide \
 		fedora-42 \
 		fedora-41
