@@ -95,8 +95,7 @@ REDHAT_BASED=	alma-10-kitten \
 		rocky-8 \
 		fedora-rawhide \
 		fedora-42 \
-		fedora-41 \
-		fedora-40
+		fedora-41
 
 SUSE_BASED=	opensuse-leap-15.6 \
 		opensuse-tumbleweed
