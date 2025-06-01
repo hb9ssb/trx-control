@@ -89,6 +89,7 @@ REPOUSER=	root
 REPOPATH=	$(REPOBASE)/rhel-$(RELEASEVER)-$(ARCH)
 
 REDHAT_BASED=	alma-10-kitten \
+		alma-10 \
 		alma-9 \
 		alma-8 \
 		fedora-rawhide \
