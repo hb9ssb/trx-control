@@ -558,6 +558,9 @@ remove_sender(dispatcher_tag_t *d, destination_t *dst)
 	}
 
 	if (n == 0) {
+		if (verbose > 1)
+			printf("stopping status updates from trx\n");
+
 		t = dst->tag.trx;
 
 		if (t->poller_running) {
@@ -569,10 +572,10 @@ remove_sender(dispatcher_tag_t *d, destination_t *dst)
 			t->handler_running = 0;
 			if (verbose > 1)
 				printf("dispatcher: stopping the handler\n");
-			lua_geti(t->L, LUA_REGISTRYINDEX, t->ref);
+
+			lua_getglobal(t->L, "_protocol");
 			lua_getfield(t->L, -1, "stopStatusUpdates");
 			lua_pcall(t->L, 0, 1, 0);
-			pthread_cancel(t->trx_handler);
 		}
 	}
 	pthread_mutex_unlock(&dst->tag.trx->mutex);
