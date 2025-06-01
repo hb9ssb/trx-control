@@ -22,20 +22,91 @@
 
 -- Internal functions
 
-local internalMode = {}
-
-local internalBand = {
-	['0'] = 'A',
-	['1'] = 'B'
+local modeToInternalCode = {
+	fm = {
+		displayName = 'FM',
+		internalCode = '0'
+	},
+	dv = {
+		displayName = 'DV',
+		internalCode = '1'
+	},
+	am = {
+		displayName = 'AM',
+		internalCode = '2'
+	},
+	lsb = {
+		displayName = 'LSB',
+		internalCode = '3'
+	},
+	usb = {
+		displayName = 'USB',
+		internalCode = '4'
+	},
+	cw = {
+		displayName = 'CW',
+		internalCode = '5'
+	},
+	nfm = {
+		displayName = 'NFM',
+		internalCode = '6'
+	},
+	dr = {
+		displayName = 'DR',
+		internalCode = '7'
+	},
+	wfm = {
+		displayName = 'WFM',
+		internalCode = '8'
+	},
+	['r-cw'] = {
+		displayName = 'R-CW',
+		internalCode = '9'
+	}
 }
+local internalCodeToMode = {}
+
+local vfoToInternalCode = {
+	['vfo-1'] = {
+		displayName = 'Band A',
+		internalCode = '0'
+	},
+	['vfo-2'] = {
+		displayName = 'Band B',
+		internalCode = '1'
+	}
+}
+local internalCodeToVfo = {}
+local lastVfo = 'vfo-1'
 
 local internalState = {
 	['0'] = 'off',
 	['1'] = 'on'
 }
 
--- Handling auto information
+local vfoMode = {
+	['0'] = 'VFO mode',
+	['1'] = 'Memory mode',
+	['2'] = 'Call mode',
+	['3'] = 'DV mode'
+}
 
+local internalStepSize = {
+	['0'] = '5 kHz',
+	['1'] = '6.25 kHz',
+	['2'] = '8.33 kHz',
+	['3'] = '9 kHz',
+	['4'] = '10 kHz',
+	['5'] = '12.5 kHz',
+	['6'] = '15 kHz',
+	['7'] = '20 kHz',
+	['8'] = '25 kHz',
+	['9'] = '30 kHz',
+	['A'] = '50 kHz',
+	['B'] = '100 Khz'
+}
+
+-- Handling auto information
 local function startStatusUpdates(driver)
 	print('start status updates')
 	trx.write('AI 1\r')
@@ -53,31 +124,88 @@ local function stopStatusUpdates(driver)
 end
 
 -- Decoders for auto information
+local function afGain(data)
+	local gain = tonumber(string.sub(data, 4, 6))
+
+	return { afGain = gain / 200 * 100 }
+end
+
+local function activeBand(data)
+	local band = string.sub(data, 4, 4)
+
+	return { activeBand = band == '0' and 'Band A' or 'Band B' }
+end
+
 local function squelch(data)
-	local band = internalBand[string.sub(data, 4, 4)]
+	local vfo = internalCodeToVfo[string.sub(data, 4, 4)]
 	local state = internalState[string.sub(data, 6, 6)]
 
-	return { ['squelch'] = { band = band, state = state } }
+	return { ['squelch'] = { vfo = vfo, state = state } }
+end
+
+local function dualBand(data)
+	local mode = string.sub(data, 4, 4)
+
+	return { dualBandMode = mode == '0' and 'dualBand' or 'singleBand' }
 end
 
 local function frequency(data)
-	local band = internalBand[string.sub(data, 4, 4)]
+	local vfo = internalCodeToVfo[string.sub(data, 4, 4)]
 	local hz = tonumber(string.sub(data, 6, -1))
 
-	return { frequency = { band = band, hz = hz } }
+	return { frequency = { vfo = vfo, hz = hz } }
+end
+
+local function mode(data)
+	local vfo = internalCodeToVfo[string.sub(data, 4, 4)]
+	local mode = internalCodeToMode[string.sub(data, 6, 6)]
+
+	return { ['mode'] = { vfo = vfo, mode = mode } }
+end
+
+local function stepSize(data)
+	local vfo = internalCodeToVfo[string.sub(data, 4, 4)]
+	local stepSize = internalStepSize[string.sub(data, 6, 6)] or 'unknown'
+
+	return { ['stepSize'] = { vfo = vfo, stepSize = stepSize } }
 end
 
 local function sMeterSquelch(data)
-	local band = internalBand[string.sub(data, 4, 4)]
+	local vfo = internalCodeToVfo[string.sub(data, 4, 4)]
 	local state = internalState[string.sub(data, 6, 6)]
 
-	return { ['S-meter squelch'] = { band = band, state = state } }
+	return { ['S-meter squelch'] = { vfo = vfo, state = state } }
+end
+
+local function receive(data)
+	return { receive = true }
+end
+
+local function transmit(data)
+	local vfo = internalCodeToVfo[string.sub(data, 4, 4)]
+
+	return { transmit = { vfo = vfo } }
+end
+
+local function vfoMode(data)
+	local vfo = internalCodeToVfo[string.sub(data, 4, 4)]
+	local mode = vfoMode[string.sub(data, 6, 6)]
+
+	return { ['vfoMode'] = { vfo = vfo, mode = mode } }
 end
 
 local decoders = {
+	AG = afGain,
+	BC = activeBand,
 	BY = squelch,
+	DL = dualBand,
 	FQ = frequency,
+	MD = mode,
+	SF = stepSize,
 	SM = sMeterSquelch,
+	RX = receive,
+	TX = transmit,
+	VM = vfoMode
 }
 
 local function handleStatusUpdates(driver, data)
@@ -98,8 +226,18 @@ end
 local function initialize(driver)
 	print (driver.name .. ': initialize')
 
-	for k, v in pairs(driver.validModes) do
-		internalMode[v] = k
+	for k, v in pairs(modeToInternalCode) do
+		internalCodeToMode[v.internalCode] = {
+			mode = k,
+			displayName = v.displayName
+		}
+	end
+
+	for k, v in pairs(vfoToInternalCode) do
+		internalCodeToVfo[v.internalCode] = {
+			vfo = k,
+			displayName = v.displayName
+		}
 	end
 end
 
@@ -121,43 +259,83 @@ local function setFrequency(driver, request, response)
 end
 
 local function getFrequency(driver, request, response)
-	trx.write('FQ 0\r')
+	local vfo = request.vfo or lastVfo
+
+	local vfoData = vfoToInternalCode[vfo]
+	if vfoData == nil then
+		response.status = 'Failure'
+		response.reason = 'Unknown VFO'
+		return
+	end
+
+	trx.write(string.format('FQ %s\r', vfoData.internalCode))
 	local reply = trx.read(16)
 	local freq = string.sub(reply, 6, -1)
 	response.frequency = tonumber(freq)
 
-	trx.write('MD 0\r')
-        reply = trx.read(7)
-        local mode = string.sub(reply, 6, -2)
+	trx.write(string.format('MD %s\r', vfoData.internalCode))
+    reply = trx.read(7)
+    local mode = string.sub(reply, 6, -2)
 
-	response.mode = internalMode[mode] or '??'
+	response.mode = internalCodeToMode[mode] or 'unknown'
+
+	response.vfo = {
+		vfo = vfo,
+		displayName = vfoData.displayName
+	}
+	lastVfo = vfo
 end
 
 local function setMode(driver, request, response, band, mode)
+	local vfo = request.vfo or lastVfo
 
-	response.mode = request
-
-	if driver.validModes[mode] == nil then
+	local vfoData = vfoToInternalCode[vfo]
+	if vfoData == nil then
 		response.status = 'Failure'
-		response.reason = 'Invalid mode'
+		response.reason = 'Unknown VFO'
 		return
 	end
 
-	trx.write(string.format('MD 0,%s\r', driver.validModes[mode]))
+	response.mode = request
+
+	local code = modeToInternalCode[request.mode]
+
+	if code == nil then
+		response.status = 'Failure'
+		response.reason = 'Unknown mode'
+		return
+	end
+
+	trx.write(string.format('MD %s,%s\r', vfoData.internalCode, code))
+
+	response.vfo = {
+		vfo = vfo,
+		displayName = vfoData.displayName
+	}
+	lastVfo = vfo
 end
 
 local function getMode(driver, request, response)
-	trx.write('MD 0\r')
-	reply = trx.read(7)
-        local mode = string.sub(reply, 6, -2)
+	local vfo = request.vfo or lastVfo
 
-	response.mode = '??'
-	for k, v in pairs(driver.validModes) do
-		if v == mode then
-			response.mode = k
-			break
-		end
+	local vfoData = vfoToInternalCode[vfo]
+	if vfoData == nil then
+		response.status = 'Failure'
+		response.reason = 'Unknown VFO'
+		return
 	end
+
+	trx.write(string.format('MD %s\r', vfoData.internalCode))
+	reply = trx.read(7)
+    local mode = string.sub(reply, 6, -2)
+
+	response.mode = internalCodeToMode[mode] or 'unknown'
+
+	response.vfo = {
+		vfo = vfo,
+		displayName = vfoData.displayName
+	}
+	lastVfo = vfo
 end
 
 return {

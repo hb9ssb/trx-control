@@ -36,7 +36,6 @@ local function initialize(driver)
 end
 
 -- Handling auto information
-
 local function startStatusUpdates(driver)
 	trx.write('AI1;')
 	return string.byte(';')

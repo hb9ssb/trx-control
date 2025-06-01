@@ -1,6 +1,6 @@
-# Kenwood TH-D75 handheld transceiver definitions
+# Kenwood TH-D75A handheld transceiver definitions (american version)
 
-name: Kenwood TH-D75
+name: Kenwood TH-D75A
 protocol: kenwood-th-d-series
 
 validModes:

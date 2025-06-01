@@ -1,0 +1,39 @@
+# Kenwood TH-D75E handheld transceiver definitions (european version)
+
+name: Kenwood TH-D75E (european version)
+protocol: kenwood-th-d-series
+
+vfo:
+  vfo-1:
+    displayName: Band A
+    tx:
+      -
+        min: 144000000
+        max: 146000000
+      -
+        min: 430000000
+        max: 440000000
+    rx:
+      -
+        min: 136000000
+        max: 174000000
+      -
+        min: 410000000
+        max: 470000000
+  vfo-2:
+    displayName: Band B
+    tx:
+      -
+        min: 144000000
+        max: 146000000
+      -
+        min: 430000000
+        max: 440000000
+    rx:
+      -
+        min: 100000
+        max: 76000000
+      -
+        min: 76000000
+        max: 108000000
+        mode: wfm

@@ -1,6 +1,7 @@
 TRX=		csi-cs7000-m17.yaml \
 		icom-ic-705.yaml \
-		kenwood-th-d75.yaml \
+		kenwood-th-d75a.yaml \
+		kenwood-th-d75e.yaml \
 		openrtx.yaml \
 		simulator.yaml \
 		yaesu-ft-710.yaml \
