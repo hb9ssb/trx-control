@@ -1,4 +1,4 @@
--- Copyright (c) 2023 - 2024 Marc Balmer HB9SSB
+-- Copyright (c) 2023 - 2025 Marc Balmer HB9SSB
 --
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to
@@ -29,6 +29,25 @@ local device = ''
 local statusUpdates = false
 local lastFrequency = 0
 local lastMode = ''
+
+local function getInfo(driver, request, response)
+	response.name = driver.name or 'unspecified'
+	response.frequencyRange = driver.frequencyRange or {
+		min = 0,
+		max = 0
+	}
+	if driver.validModes ~= nil then
+		response.operatingModes = {}
+		for k, v in pairs(driver.validModes) do
+			response.operatingModes[#response.operatingModes + 1]
+			    = k
+		end
+	end
+	if driver.capabilities ~= nil then
+		response.capabilities = driver.capabilities
+	end
+	response.audio = driver.audio
+end
 
 local function registerDriver(destination, dev, newDriver)
 	name = destination
@@ -66,25 +85,6 @@ local function registerDriver(destination, dev, newDriver)
 	if type(driver.initialize) == 'function' then
 		driver:initialize()
 	end
-end
-
-local function getInfo(driver, request, response)
-	response.name = driver.name or 'unspecified'
-	response.frequencyRange = driver.frequencyRange or {
-		min = 0,
-		max = 0
-	}
-	if driver.validModes ~= nil then
-		response.operatingModes = {}
-		for k, v in pairs(driver.validModes) do
-			response.operatingModes[#response.operatingModes + 1]
-			    = k
-		end
-	end
-	if driver.capabilities ~= nil then
-		response.capabilities = driver.capabilities
-	end
-	response.audio = driver.audio
 end
 
 local function notImplemented(response)
