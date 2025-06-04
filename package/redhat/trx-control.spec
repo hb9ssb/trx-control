@@ -142,6 +142,10 @@ rm -rf $RPM_BUILD_ROOT
 %{__make} clean
 
 %changelog
+* Wed Jun 4 2025 Marc Balmer HB9SSB <info@hb9ssb.ch>
+
+ - Update Lua to version 5.4.8.
+
 * Tue May 13 2025 Marc Balmer HB9SSB <info@hb9ssb.ch>
 
  - Add the Kenwood TH-D series protocol and the Kenwood TH-D75 HT.
