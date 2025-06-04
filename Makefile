@@ -88,6 +88,11 @@ ZYPPDEST=	$(PKGDEST)/zypp
 REPOUSER=	root
 REPOPATH=	$(REPOBASE)/rhel-$(RELEASEVER)-$(ARCH)
 
+ALPINE_BASED=	alpine-22 \
+		alpine-21 \
+		alpine-20 \
+		alpine-19
+
 REDHAT_BASED=	alma-10-kitten \
 		alma-10 \
 		alma-9 \
