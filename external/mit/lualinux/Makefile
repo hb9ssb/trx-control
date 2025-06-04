@@ -7,6 +7,11 @@ LUADIR?=	/usr/share/trxd/lua
 OBJS=		${SRCS:.c=.o}
 
 CFLAGS+=	-I${VPATH} -D_GNU_SOURCE
+
+ifeq ($(ALPINE_LINUX), 1)
+CFLAGS+=	-DALPINE_LINUX
+endif
+
 LDADD+=		-lbsd -lcrypt
 
 all:		linux.so

@@ -35,7 +35,7 @@ build:		subdir
 subdir: $(SUBDIR)
 
 $(SUBDIR):
-	VERSION=$(VERSION) $(MAKE) -C $@ $(TARGET)
+	VERSION=$(VERSION) ALPINE_LINUX=$(ALPINE_LINUX) $(MAKE) -C $@ $(TARGET)
 
 # Recursive targets
 .PHONY: clean
@@ -81,6 +81,7 @@ REPOHOST=	trx-control.msys.ch
 REPOBASE=	/var/www/trx-control/pub/repos
 PKGDEST=	/tmp/trx-control
 
+APKDEST=	$(PKGDEST)/apk
 YUMDEST=	$(PKGDEST)/yum
 APTDEST=	$(PKGDEST)/apt
 ZYPPDEST=	$(PKGDEST)/zypp
@@ -88,10 +89,10 @@ ZYPPDEST=	$(PKGDEST)/zypp
 REPOUSER=	root
 REPOPATH=	$(REPOBASE)/rhel-$(RELEASEVER)-$(ARCH)
 
-ALPINE_BASED=	alpine-22 \
-		alpine-21 \
-		alpine-20 \
-		alpine-19
+ALPINE_BASED=	alpine-3.22 \
+		alpine-3.21 \
+		alpine-3.20 \
+		alpine-3.19
 
 REDHAT_BASED=	alma-10-kitten \
 		alma-10 \
@@ -131,8 +132,17 @@ prepare:
 	mkdir /build
 	cp -a /dist/* /build/
 
+alpine-packages:
+	mkdir -p /tmp/build
+	cp -pr /dist/. /tmp/build
+	cd /tmp/build && \
+	ALPINE_LINUX=1 make -j 8 && \
+	mkdir -p /tmp/alpine && \
+	DESTDIR=/tmp/alpine make -j 8 install && \
+	VERSION=$(VERSION) RELEASE=$(RELEASE) make -j 8 -C package/alpine
+	cp -ar /var/apks/* /apk
+
 redhat-packages: prepare
-	rm -f ~/rpmbuild/RPMS/*/trx-control-*
 	(cd /build && \
 		VERSION=$(VERSION) RELEASE=$(RELEASE) PG_VERSION=$(PG_VERSION) \
 		DISTRIBUTION=$@ make -C package/redhat)
@@ -165,8 +175,10 @@ debian-packages: prepare
 		--local-user "info@hb9ssb.ch" \
 		--detach-sign $(DEBBASE)/Release
 
-packages:	$(REDHAT_BASED) $(SUSE_BASED) $(DEBIAN_BASED)
+packages:	$(ALPINE_BASED) $(REDHAT_BASED) $(SUSE_BASED) $(DEBIAN_BASED)
 	@echo All packages built
+
+alpine:	$(ALPINE_BASED)
 
 redhat:	$(REDHAT_BASED)
 
@@ -185,10 +197,11 @@ packages-clean:
 UID=	$(shell id -u)
 SOCK=	/tmp/.trx-control.$(UID)
 
-repos:	connect fetch-debian packages redhat-repo suse-repo debian-repo \
-	pubkey fix-permissions remove-old-packages disconnect
+repos:	connect fetch-debian packages alpine-repo redhat-repo suse-repo \
+	debian-repo pubkey fix-permissions remove-old-packages disconnect
 
-repos-nb:	connect redhat-repo suse-repo debian-repo pubkey disconnect
+repos-nb:	connect alpine-repo redhat-repo suse-repo debian-repo pubkey \
+		disconnect
 
 connect:
 	ssh -S $(SOCK) -M -N -o ControlMaster=yes -f root@trx-control.msys.ch
@@ -213,6 +226,11 @@ remove-old-packages:
 disconnect:
 	ssh -S $(SOCK) -O exit trx-control.msys.ch
 	@echo disconnected
+
+alpine-repo:
+	ssh -S $(SOCK) trx-control.msys.ch mkdir -p $(REPOBASE)/apk
+	rsync -avz -e "ssh -o ControlPath=$(SOCK)" \
+		$(APKDEST) root@trx-control.msys.ch:$(REPOBASE)
 
 redhat-repo:
 	ssh -S $(SOCK) trx-control.msys.ch mkdir -p $(REPOBASE)/yum
@@ -254,6 +272,17 @@ keys:
 		--export info@hb9ssb.ch
 	-gpg -q --output $(PKGDEST)/private.asc --armor \
 		--export-secret-key info@hb9ssb.ch
+
+$(ALPINE_BASED): keys
+	-mkdir -p $(APKDEST)/$@
+	docker run --rm \
+		-e REPO=$@ \
+		-v `pwd`:/dist \
+		-v $(APKDEST)/$@:/apk \
+		-v $(PKGDEST):/keys \
+		--name $@ \
+		pkg-builder/$@ \
+		/usr/bin/make -C /dist alpine-packages
 
 $(REDHAT_BASED): keys
 	-mkdir -p $(YUMDEST)/$@

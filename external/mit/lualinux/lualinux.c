@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Micro Systems Marc Balmer, CH-5073 Gipf-Oberfrick
+ * Copyright (c) 2023 - 2025 Micro Systems Marc Balmer, CH-5073 Gipf-Oberfrick
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -34,7 +34,11 @@
 #include <lua.h>
 #include <lauxlib.h>
 #include <signal.h>
+#ifdef ALPINE_LINUX
+#include <bsd/stdlib.h>
+#else
 #include <stdlib.h>
+#endif
 #include <unistd.h>
 #include <string.h>
 #include <time.h>
