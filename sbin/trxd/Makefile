@@ -53,6 +53,12 @@ ifeq ($(ID), alpine)
 USE_SDDM=	no
 endif
 
+ifeq ($(ID), debian)
+ifeq ($(VERSION_ID), "11")
+USE_SDDM=	no
+endif
+endif
+
 CFLAGS+=	-I../../lib/libtrx-control -I../../external/mit/lua/src \
 		-I../../external/mit/luayaml \
 		-I../../external/mit/luajson -pthread -D_GNU_SOURCE \
