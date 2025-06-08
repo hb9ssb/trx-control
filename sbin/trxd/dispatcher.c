@@ -50,6 +50,8 @@ extern void *extension(void *);
 
 extern char *private_extensions;
 extern destination_t *destination;
+extern pthread_mutex_t destination_mutex;
+
 extern int verbose;
 
 extern __thread int cat_device;
@@ -496,6 +498,7 @@ add_sender(dispatcher_tag_t *d, destination_t *dst)
 {
 	sender_list_t *p, *l;
 
+	pthread_mutex_lock(&destination_mutex);
 	pthread_mutex_lock(&dst->tag.trx->mutex);
 
 	if (dst->tag.trx->senders != NULL) {
@@ -524,6 +527,7 @@ add_sender(dispatcher_tag_t *d, destination_t *dst)
 		start_updater_if_not_running(d, dst->tag.trx);
 	}
 	pthread_mutex_unlock(&dst->tag.trx->mutex);
+	pthread_mutex_unlock(&destination_mutex);
 }
 
 static void
@@ -533,6 +537,7 @@ remove_sender(dispatcher_tag_t *d, destination_t *dst)
 	trx_controller_tag_t *t;
 	int n;
 
+	pthread_mutex_lock(&destination_mutex);
 	pthread_mutex_lock(&dst->tag.trx->mutex);
 
 	for (l = dst->tag.trx->senders, p = NULL; l; p = l, l = l->next) {
@@ -579,6 +584,7 @@ remove_sender(dispatcher_tag_t *d, destination_t *dst)
 		}
 	}
 	pthread_mutex_unlock(&dst->tag.trx->mutex);
+	pthread_mutex_unlock(&destination_mutex);
 }
 
 static void
@@ -586,6 +592,7 @@ add_listener(dispatcher_tag_t *d, destination_t *dst)
 {
 	sender_list_t *p, *l;
 
+	pthread_mutex_lock(&destination_mutex);
 	pthread_mutex_lock(&dst->tag.extension->mutex);
 	pthread_mutex_lock(&dst->tag.extension->mutex2);
 
@@ -614,6 +621,7 @@ add_listener(dispatcher_tag_t *d, destination_t *dst)
 	}
 	pthread_mutex_unlock(&dst->tag.extension->mutex);
 	pthread_mutex_unlock(&dst->tag.extension->mutex2);
+	pthread_mutex_unlock(&destination_mutex);
 }
 
 static void
@@ -622,6 +630,7 @@ remove_listener(dispatcher_tag_t *d, destination_t *dst)
 	sender_list_t *p, *l;
 	extension_tag_t * t;
 
+	pthread_mutex_lock(&destination_mutex);
 	pthread_mutex_lock(&dst->tag.extension->mutex);
 	pthread_mutex_lock(&dst->tag.extension->mutex2);
 
@@ -641,6 +650,7 @@ remove_listener(dispatcher_tag_t *d, destination_t *dst)
 	}
 	pthread_mutex_unlock(&dst->tag.extension->mutex);
 	pthread_mutex_unlock(&dst->tag.extension->mutex2);
+	pthread_mutex_unlock(&destination_mutex);
 }
 
 static void
@@ -773,6 +783,8 @@ list_destination(dispatcher_tag_t *d)
 	buf_addstring(&buf,
 	    "{\"status\":\"Ok\",\"response\":\"list-destination\","
 	    "\"destination\":[");
+
+	pthread_mutex_lock(&destination_mutex);
 	for (dest = destination; dest != NULL; dest = dest->next) {
 		if (dest != destination)
 			buf_addchar(&buf, ',');
@@ -819,6 +831,8 @@ list_destination(dispatcher_tag_t *d)
 
 		buf_addchar(&buf, '}');
 	}
+	pthread_mutex_unlock(&destination_mutex);
+
 	buf_addstring(&buf, "]}");
 
 	d->sender->data = buf.data;
