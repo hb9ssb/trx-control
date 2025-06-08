@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 - 2024 Marc Balmer HB9SSB
+ * Copyright (c) 2023 - 2025 Marc Balmer HB9SSB
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -227,7 +227,7 @@ enum DestinationType {
 };
 
 typedef struct destination {
-	const char		*name;
+	char			*name;
 	enum DestinationType	 type;
 
 	union {
@@ -239,6 +239,7 @@ typedef struct destination {
 		extension_tag_t		*extension;
 	} tag;
 
+	struct destination	*previous;
 	struct destination	*next;
 } destination_t;
 

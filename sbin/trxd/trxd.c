@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 - 2024 Marc Balmer HB9SSB
+ * Copyright (c) 2023 - 2025 Marc Balmer HB9SSB
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -79,6 +79,7 @@ extern void *extension(void *);
 extern int trx_control_running;
 
 destination_t *destination = NULL;
+pthread_mutex_t destination_mutex;
 
 /*
  * privat,, i.e. per connection extensions configuration.  This is in
@@ -100,10 +101,17 @@ add_destination(const char *name, enum DestinationType type, void *arg)
 {
 	destination_t *d;
 
+	if (pthread_mutex_lock(&destination_mutex)) {
+		syslog(LOG_ERR, "pthread_mutex_lock");
+		exit(1);
+	}
+
 	/* Destination names must be unique */
 	for (d = destination; d != NULL; d = d->next)
-		if (d->name == name)
+		if (!strcmp(d->name, name)) {
+			pthread_mutex_unlock(&destination_mutex);
 			return -1;
+	}
 
 	d = malloc(sizeof(destination_t));
 	if (d == NULL) {
@@ -111,7 +119,7 @@ add_destination(const char *name, enum DestinationType type, void *arg)
 		exit(1);
 	}
 
-	d->next = NULL;
+	d->next = d->previous = NULL;
 	d->name = strdup(name);
 	d->type = type;
 	switch (type) {
@@ -149,8 +157,47 @@ add_destination(const char *name, enum DestinationType type, void *arg)
 		while (n->next != NULL)
 			n = n->next;
 		n->next = d;
+		d->previous = n;
 	}
+	pthread_mutex_unlock(&destination_mutex);
 	return 0;
+}
+
+int
+remove_destination(const char *name)
+{
+	destination_t *d;
+	int rv = -1;
+
+	if (destination == NULL)
+		return -1;
+
+	if (pthread_mutex_lock(&destination_mutex)) {
+		syslog(LOG_ERR, "pthread_mutex_lock");
+		exit(1);
+	}
+
+	for (d = destination; d != NULL; d = d->next) {
+		if (!strcmp(d->name, name)) {
+			rv = 0;
+			if (d == destination) {
+				d->previous = NULL;
+				destination = d->next;
+				free(d->name);
+				free(d);
+				break;
+			} else {
+				if (d->next)
+					d->next->previous = d->previous;
+				d->previous->next = d->next;
+				free(d->name);
+				free(d);
+				break;
+			}
+		}
+	}
+	pthread_mutex_unlock(&destination_mutex);
+	return rv;
 }
 
 int
@@ -246,6 +293,11 @@ main(int argc, char *argv[])
 	openlog("trxd", nodaemon == 1 ?
 		LOG_PERROR | LOG_CONS | LOG_PID | LOG_NDELAY
 		: LOG_CONS | LOG_PID | LOG_NDELAY, LOG_USER);
+
+	if (pthread_mutex_init(&destination_mutex, NULL)) {
+		syslog(LOG_ERR, "pthread_mutex_init");
+		exit(1);
+	}
 
 	/* Setup Lua */
 	L = luaL_newstate();
