@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 - 2024 Micro Systems Marc Balmer, CH-5073 Gipf-Oberfrick
+ * Copyright (c) 2013 - 2025 Micro Systems Marc Balmer, CH-5073 Gipf-Oberfrick
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -115,6 +115,7 @@ extern struct int_constant curl_int[];
 	C_OPT(TIMEVALUE, number) \
 	C_OPT(CUSTOMREQUEST, string) \
 	C_OPT_SL(POSTQUOTE) \
+	C_OPT(WRITEINFO, string) \
 	C_OPT(VERBOSE, boolean) \
 	C_OPT(HEADER, boolean) \
 	C_OPT(NOPROGRESS, boolean) \
@@ -253,6 +254,7 @@ ALL_CURL_OPT
  *	CURLOPT_SSL_CTX_FUNCTION (TODO, this will make sense only if openssl is
  *	available in Lua)
  *	CURLOPT_SSL_CTX_DATA
+ *	CURLOPT_CLOSEPOLICY
  */
 
 /* push correctly luaValue to Lua stack */
@@ -1117,14 +1119,14 @@ luaopen_curl(lua_State *L)
 	luaL_newlib(L, luacurl_funcs);
 
 	lua_pushliteral(L, "_COPYRIGHT");
-	lua_pushliteral(L, "Copyright (c) 2013 - 2024 "
+	lua_pushliteral(L, "Copyright (c) 2013 - 2020 "
 	    "micro systems marc balmer");
 	lua_settable(L, -3);
 	lua_pushliteral(L, "_DESCRIPTION");
 	lua_pushliteral(L,  "CURL for Lua");
 	lua_settable(L, -3);
 	lua_pushliteral(L, "_VERSION");
-	lua_pushliteral(L,  "1.2.1");
+	lua_pushliteral(L,  "1.2.0");
 	lua_settable(L, -3);
 
 	for (n = 0; n < num_curl_int(); n++) {
