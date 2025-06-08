@@ -9,6 +9,7 @@ SRCS=		trxd.c \
 		luagpio-controller.c \
 		luagpio.c \
 		relay-controller.c \
+		sd-event-handler.c \
 		socket-handler.c \
 		socket-sender.c \
 		trx-handler.c \
@@ -38,10 +39,12 @@ CFLAGS+=	-I../../lib/libtrx-control -I../../external/mit/lua/src \
 		-I../../external/mit/luayaml \
 		-I../../external/mit/luajson -pthread -D_GNU_SOURCE \
 		-DTRXD_VERSION=\"${VERSION}\" \
-		-export-dynamic
+		-export-dynamic \
+		`pkg-config --cflags libsystemd`
 LDFLAGS+=	-L../../lib/libtrx-control -ltrx-control \
 		../../lib/liblua/liblua.a -ldl -lyaml -lm -lssl -lcrypto \
-		-lavahi-client -lavahi-common -lbluetooth
+		-lavahi-client -lavahi-common -lbluetooth \
+		`pkg-config --libs libsystemd`
 VPATH=		../../external/mit/luayaml ../../external/mit/luajson \
 		../../lib/libtrx-control
 

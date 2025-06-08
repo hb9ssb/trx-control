@@ -18,14 +18,14 @@
 .\" FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 .\" IN THE SOFTWARE.
 .\"
-.TH TRXD 8 "13 May 2025" "trx-control"
+.TH TRXD 8 "8 June 2025" "trx-control"
 .
 .SH NAME
 trxd
 .
 .
 .SH SYNOPSIS
-trxd [-adlvV] [-b address] [-c path] [-g group] [-p port] [-u user] [-P path]
+trxd [-adlmvV] [-b address] [-c path] [-g group] [-p port] [-u user] [-P path]
 .
 .
 .SH DESCRIPTION
@@ -72,6 +72,9 @@ Do not daemonize (run in foreground).
 .TP
 .BR \-l \fR,\ \fB\-\-log\-connections
 Log connection attempts.
+.TP
+.BR \-m \fR,\ \fB\-\-monitor\-systemd
+Monitor systemd for USB device attachments or removals.
 .TP
 .BR \-v \fR,\ \fB\-\-verbose
 Increase verbosity.
