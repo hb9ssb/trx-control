@@ -92,8 +92,13 @@ char *private_extensions = NULL;
 static void
 usage(void)
 {
+#ifdef USE_SDDM
 	(void)fprintf(stderr, "usage: trxd [-adlmvV] [-b address] [-c path] "
 	    "[-g group] [-p port] [-u user] [-P path]\n");
+#else
+	(void)fprintf(stderr, "usage: trxd [-adlvV] [-b address] [-c path] "
+	    "[-g group] [-p port] [-u user] [-P path]\n");
+#endif
 	exit(1);
 }
 
@@ -211,9 +216,14 @@ main(int argc, char *argv[])
 	struct stat sb;
 	struct addrinfo hints, *res, *res0;
 	lua_State *L;
-	pthread_t trx_control_thread, thread, sd_event_handler_thread;
+	pthread_t trx_control_thread, thread;
 	int fd, listen_fd[MAXLISTEN], i, ch, noannounce = 0, nodaemon = 0;
-	int monitor_systemd = 0, error, val, top;
+	int error, val, top;
+#ifdef USE_SDDM
+	pthread_t sd_event_handler_thread;
+	int monitor_systemd = 0;
+#endif
+
 	const char *bind_addr, *listen_port, *user, *group, *homedir, *pidfile;
 	const char *cfg_file;
 
@@ -229,7 +239,9 @@ main(int argc, char *argv[])
 			{ "group",		required_argument, 0, 'g' },
 			{ "bind-address",	required_argument, 0, 'b' },
 			{ "listen-port",	required_argument, 0, 'l' },
+#ifdef USE_SDDM
 			{ "monitor-systemd",	no_argument, 0, 'm' },
+#endif
 			{ "pid-file",		required_argument, 0, 'P' },
 			{ "user",		required_argument, 0, 'u' },
 			{ "verbose",		no_argument, 0, 'v' },
@@ -237,9 +249,13 @@ main(int argc, char *argv[])
 			{ 0, 0, 0, 0 }
 		};
 
+#ifdef USE_SDDM
 		ch = getopt_long(argc, argv, "ac:dlb:g:mp:u:vVP:", long_options,
 		    &option_index);
-
+#else
+		ch = getopt_long(argc, argv, "ac:dlb:g:p:u:vVP:", long_options,
+		    &option_index);
+#endif
 		if (ch == -1)
 			break;
 
@@ -264,9 +280,11 @@ main(int argc, char *argv[])
 		case 'b':
 			bind_addr = optarg;
 			break;
+#ifdef USE_SDDM
 		case 'm':
 			monitor_systemd = 1;
 			break;
+#endif
 		case 'p':
 			listen_port = optarg;
 			break;
@@ -1133,10 +1151,12 @@ main(int argc, char *argv[])
 	}
 	lua_pop(L, 1);
 
+#ifdef USE_SDDM
 	/* Setup systemd events handler */
 	if (monitor_systemd)
 		pthread_create(&sd_event_handler_thread, NULL,
 		    sd_event_handler, NULL);
+#endif
 
 	/* Setup network listening */
 	for (i = 0; i < MAXLISTEN; i++)

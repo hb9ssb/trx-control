@@ -9,7 +9,6 @@ SRCS=		trxd.c \
 		luagpio-controller.c \
 		luagpio.c \
 		relay-controller.c \
-		sd-event-handler.c \
 		socket-handler.c \
 		socket-sender.c \
 		trx-handler.c \
@@ -35,16 +34,40 @@ MANDIR?=	/usr/share/man
 SBINDIR?=	/usr/sbin
 TRXDDIR?=	/usr/share/trxd
 
+# Determine if the systemd device monitor can be used
+USE_SDDM?=	yes
+ID=		none
+-include	/etc/os-release
+ifeq ($ID), none)
+ID=		$(shell lsb_release -si)
+endif
+
+ifeq ($(ID), "almalinux")
+RELEASEVER=	$(shell echo $(VERSION_ID) | cut -d . -f 1)
+ifeq ($(RELEASEVER), 8)
+USE_SDDM=	no
+endif
+endif
+
+ifeq ($(ID), alpine)
+USE_SDDM=	no
+endif
+
 CFLAGS+=	-I../../lib/libtrx-control -I../../external/mit/lua/src \
 		-I../../external/mit/luayaml \
 		-I../../external/mit/luajson -pthread -D_GNU_SOURCE \
 		-DTRXD_VERSION=\"${VERSION}\" \
-		-export-dynamic \
-		`pkg-config --cflags libsystemd`
+		-export-dynamic
 LDFLAGS+=	-L../../lib/libtrx-control -ltrx-control \
 		../../lib/liblua/liblua.a -ldl -lyaml -lm -lssl -lcrypto \
-		-lavahi-client -lavahi-common -lbluetooth \
-		`pkg-config --libs libsystemd`
+		-lavahi-client -lavahi-common -lbluetooth
+
+ifeq ($(USE_SDDM), yes)
+CFLAGS+=	-DUSE_SDDM `pkg-config --cflags libsystemd`
+LDFLAGS+=	`pkg-config --libs libsystemd`
+SRCS+=		sd-event-handler.c
+endif
+
 VPATH=		../../external/mit/luayaml ../../external/mit/luajson \
 		../../lib/libtrx-control
 
