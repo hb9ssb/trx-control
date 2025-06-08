@@ -1,3 +1,9 @@
+trx-control (1.2.8-1) stable; urgency=low
+
+  * Add a systemd device monitor thread.
+
+ -- Marc Balmer HB9SSB (trx-control package signing) <info@hb9ssb.ch>  Sun, 8 Jun 2025 12:00:00 +0100
+
 trx-control (1.2.7-1) stable; urgency=low
 
   * Update Lua to version 5.4.8.
