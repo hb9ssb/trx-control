@@ -35,7 +35,7 @@ build:		subdir
 subdir: $(SUBDIR)
 
 $(SUBDIR):
-	VERSION=$(VERSION) ALPINE_LINUX=$(ALPINE_LINUX) $(MAKE) -C $@ $(TARGET)
+	VERSION=$(VERSION) $(MAKE) -C $@ $(TARGET)
 
 # Recursive targets
 .PHONY: clean
@@ -136,7 +136,7 @@ alpine-packages:
 	mkdir -p /tmp/build
 	cp -pr /dist/. /tmp/build
 	cd /tmp/build && \
-	ALPINE_LINUX=1 make -j 8 && \
+	make -j 8 && \
 	mkdir -p /tmp/alpine && \
 	DESTDIR=/tmp/alpine make -j 8 install && \
 	VERSION=$(VERSION) RELEASE=$(RELEASE) make -j 8 -C package/alpine

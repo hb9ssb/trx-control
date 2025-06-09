@@ -118,13 +118,13 @@ websocket-handler.o:	Makefile websocket-handler.c trxd.h trx-control.h \
 websocket.o:		Makefile websocket.c websocket.h
 base64.o:		Makefile base64.c base64.h
 
-luatrx.o:	Makefile luatrx.c trxd.h
+luatrx.o:		Makefile luatrx.c trxd.h
 
-luatrxd.o:	Makefile luatrxd.c trxd.h trx-control.h
+luatrxd.o:		Makefile luatrxd.c trxd.h trx-control.h
 
 luatrx-controller.o:	Makefile luatrx-controller.c trxd.h trx-control.h
 
-proxy.o:	Makefile proxy.c trx-control.h
+proxy.o:		Makefile proxy.c trx-control.h
 
 extension.o:		Makefile extension.c pathnames.h trxd.h
 
@@ -136,10 +136,10 @@ gpio-controller.o:	Makefile gpio-controller.c pathnames.h trxd.h
 
 relay-controller.o:	Makefile relay-controller.c pathnames.h trxd.h
 
-trx-handler.o:	Makefile trx-handler.c trxd.h
+trx-handler.o:		Makefile trx-handler.c trxd.h
 
-nmea-handler.o:	Makefile nmea-handler.c trxd.h
+nmea-handler.o:		Makefile nmea-handler.c trxd.h
 
-trx-poller.o:	Makefile trx-poller.c trxd.h
+trx-poller.o:		Makefile trx-poller.c trxd.h
 
-trxd.o:		Makefile trxd.c trxd.h trx-control.h
+trxd.o:			Makefile trxd.c trxd.h trx-control.h

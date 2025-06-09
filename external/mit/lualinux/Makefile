@@ -8,8 +8,9 @@ OBJS=		${SRCS:.c=.o}
 
 CFLAGS+=	-I${VPATH} -D_GNU_SOURCE
 
-ifeq ($(ALPINE_LINUX), 1)
-CFLAGS+=	-DALPINE_LINUX
+ID=		$(shell lsb_release -si)
+ifeq ($(ID), Alpine)
+CFLAGS+=	-DALPINE
 endif
 
 LDADD+=		-lbsd -lcrypt

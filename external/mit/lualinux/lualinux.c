@@ -34,7 +34,7 @@
 #include <lua.h>
 #include <lauxlib.h>
 #include <signal.h>
-#ifdef ALPINE_LINUX
+#ifdef ALPINE
 #include <bsd/stdlib.h>
 #else
 #include <stdlib.h>
