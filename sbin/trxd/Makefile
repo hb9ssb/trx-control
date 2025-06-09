@@ -36,25 +36,21 @@ TRXDDIR?=	/usr/share/trxd
 
 # Determine if the systemd device monitor can be used
 USE_SDDM?=	yes
-ID=		none
--include	/etc/os-release
-ifeq ($ID), none)
 ID=		$(shell lsb_release -si)
-endif
+RELEASEVER=	$(shell lsb_release -sr | cut -d . -f 1)
 
-ifeq ($(ID), "almalinux")
-RELEASEVER=	$(shell echo $(VERSION_ID) | cut -d . -f 1)
+ifeq ($(ID), AlmaLinux)
 ifeq ($(RELEASEVER), 8)
 USE_SDDM=	no
 endif
 endif
 
-ifeq ($(ID), alpine)
+ifeq ($(ID), Alpine)
 USE_SDDM=	no
 endif
 
-ifeq ($(ID), debian)
-ifeq ($(VERSION_ID), "11")
+ifeq ($(ID), Debian)
+ifeq ($(RELEASEVER, 11)
 USE_SDDM=	no
 endif
 endif
