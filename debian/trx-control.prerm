@@ -1,4 +1,0 @@
-#!/bin/sh
-
-systemctl disable --now trxd
-exit 0
