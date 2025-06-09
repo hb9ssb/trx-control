@@ -86,9 +86,6 @@ YUMDEST=	$(PKGDEST)/yum
 APTDEST=	$(PKGDEST)/apt
 ZYPPDEST=	$(PKGDEST)/zypp
 
-REPOUSER=	root
-REPOPATH=	$(REPOBASE)/rhel-$(RELEASEVER)-$(ARCH)
-
 ALPINE_BASED=	alpine-3.22 \
 		alpine-3.21 \
 		alpine-3.20 \
