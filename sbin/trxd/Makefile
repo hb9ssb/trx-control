@@ -50,7 +50,7 @@ USE_SDDM=	no
 endif
 
 ifeq ($(ID), Debian)
-ifeq ($(RELEASEVER, 11)
+ifeq ($(RELEASEVER), 11)
 USE_SDDM=	no
 endif
 endif
