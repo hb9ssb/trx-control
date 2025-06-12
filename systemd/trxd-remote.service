@@ -1,0 +1,15 @@
+[Unit]
+Description=trxd-remote
+After=network.target
+
+[Service]
+EnvironmentFile=/etc/trxd-remote.conf
+ExecStart=/usr/bin/autossh -M 0 -N -R ${PORT}:${DEST}:${DEST_PORT} \
+        -o "ServerAliveInterval 60" \
+        -o "ServerAliveCountMax 3" -o "StrictHostKeyChecking=no" \
+        -o "BatchMode=yes" -i ${IDENTITY} ${USER}@${HOST}
+Type=simple
+Restart=always
+
+[Install]
+WantedBy=default.target
