@@ -23,58 +23,22 @@
 -- Internal functions
 
 local modeToInternalCode = {
-	fm = {
-		displayName = 'FM',
-		internalCode = '0'
-	},
-	dv = {
-		displayName = 'DV',
-		internalCode = '1'
-	},
-	am = {
-		displayName = 'AM',
-		internalCode = '2'
-	},
-	lsb = {
-		displayName = 'LSB',
-		internalCode = '3'
-	},
-	usb = {
-		displayName = 'USB',
-		internalCode = '4'
-	},
-	cw = {
-		displayName = 'CW',
-		internalCode = '5'
-	},
-	nfm = {
-		displayName = 'NFM',
-		internalCode = '6'
-	},
-	dr = {
-		displayName = 'DR',
-		internalCode = '7'
-	},
-	wfm = {
-		displayName = 'WFM',
-		internalCode = '8'
-	},
-	['r-cw'] = {
-		displayName = 'R-CW',
-		internalCode = '9'
-	}
+	fm = '0',
+	dv = '1',
+	am = '2',
+	lsb = '3',
+	usb = '4',
+	cw = '5',
+	nfm = '6',
+	dr = '7',
+	wfm = '8',
+	['r-cw'] = '9'
 }
 local internalCodeToMode = {}
 
 local vfoToInternalCode = {
-	['vfo-1'] = {
-		displayName = 'Band A',
-		internalCode = '0'
-	},
-	['vfo-2'] = {
-		displayName = 'Band B',
-		internalCode = '1'
-	}
+	['vfo-1'] = '0',
+	['vfo-2'] = '1'
 }
 local internalCodeToVfo = {}
 local lastVfo = 'vfo-1'
@@ -227,17 +191,11 @@ local function initialize(driver)
 	print (driver.name .. ': initialize')
 
 	for k, v in pairs(modeToInternalCode) do
-		internalCodeToMode[v.internalCode] = {
-			mode = k,
-			displayName = v.displayName
-		}
+		internalCodeToMode[v] = k
 	end
 
 	for k, v in pairs(vfoToInternalCode) do
-		internalCodeToVfo[v.internalCode] = {
-			vfo = k,
-			displayName = v.displayName
-		}
+		internalCodeToVfo[v] = k
 	end
 end
 
