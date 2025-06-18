@@ -1,21 +1,51 @@
 # Yaesu FT-897 Transceiver Definitions
 
-# XXX: Needs conversion to the new format
-
 name: Yaesu FT-897
 protocol: cat-5-byte
 
-validModes:
-  lsb: 0x00
-  usb: 0x01
-  cw: 0x02
-  cwr: 0x03
-  am: 0x04
-  wfm: 0x06
-  fm: 0x08
-  dig: 0x0a
-  pkt: 0x0c
-  fmn: 0x88
+vfo:
+  vfo-1:
+    displayName: VFOa
+
+    tx:
+      -
+        min: 100000
+        max: 470000000
+
+    rx:
+      -
+        min: 100000
+        max: 470000000
+
+    operatingModes:
+      lsb:
+        displayName: LSB
+      usb: 0x01
+        displayName: USB
+      cw: 0x02
+        displayName: CW
+      cwr: 0x03
+        displayName: CWR
+      am: 0x04
+        displayName: AM
+      wfm: 0x06
+        displayName: WFM
+      fm: 0x08
+        displayName: FM
+      dig: 0x0a
+        displayName: DIG
+      pkt: 0x0c
+        displayName: PKT
+      fmn: 0x88
+        displayName: FMN
+
+  vfo-2:
+    displayName: VFOb
+
+    operatingModes:
+      same-as: vfo-1
+
+# CTCSS modes are not yet defined
 
 ctcssModes:
   dcsOn: 0x0a
@@ -25,6 +55,3 @@ ctcssModes:
   encoderOn: 0x4a
   off: 0x8a
 
-frequencyRange:
-  min: 100000
-  max: 470000000

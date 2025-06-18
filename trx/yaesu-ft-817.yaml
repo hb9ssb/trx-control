@@ -1,27 +1,46 @@
 # Yaesu FT-817 Transceiver Definitions
 
-# XXX: Needs conversion to the new format
-
 name: Yaesu FT-817
 protocol: cat-5-byte
 
-validModes:
-  lsb: 0x00
-  usb: 0x01
-  cw: 0x02
-  cwr: 0x03
-  am: 0x04
-  wfm: 0x06
-  fm: 0x08
-  dig: 0x0a
-  pkt: 0x0c
+vfo:
+  vfo-1:
+    displayName: VFO
+
+    tx:
+      -
+        min: 100000
+        max: 450000000
+
+    rx:
+      -
+        min: 100000
+        max: 450000000
+
+    operatingModes:
+      lsb:
+        displayName: LSB
+      usb: 0x01
+        displayName: USB
+      cw: 0x02
+        displayName: CW
+      cwr: 0x03
+        displayName: CWR
+      am: 0x04
+        displayName: AM
+      wfm: 0x06
+        displayName: WFM
+      fm: 0x08
+        displayName: FM
+      dig: 0x0a
+        displayName: DIG
+      pkt: 0x0c
+        displayName: PKT
+
+# CTCSS modes are not yet defined
 
 ctcssModes:
   dcsOn: 0x0a
   ctcssOn: 0x2a
   encoderOn: 0x4a
   off: 0x8a
-
-frequencyRange:
-  min: 100000,
-  max: 450000000

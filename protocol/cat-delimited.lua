@@ -1,4 +1,4 @@
--- Copyright (c) 2023 - 2024 Marc Balmer HB9SSB
+-- Copyright (c) 2023 - 2025 Marc Balmer HB9SSB
 --
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to
@@ -19,6 +19,24 @@
 -- IN THE SOFTWARE.
 
 -- Yaesu character delimited CAT protocol
+
+local modeToInternalCode = {
+	lsb = '1',
+	usb = '2',
+	['cw-u'] = '3',
+	fm = '4',
+	am = '5',
+	['rtty-l'] = '6',
+	['cw-l'] = '7',
+	['data-l'] = '8',
+	['rtty-u'] = '9',
+	['data-fm'] = 'A',
+	['fm-n'] = 'B',
+	['data-u'] = 'C',
+	['am-n'] = 'D',
+	psk = 'E',
+	['data-fm-n'] = 'F'
+}
 
 local function initialize(driver)
 	trx.write('ID;')
