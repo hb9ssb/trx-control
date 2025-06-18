@@ -1,5 +1,7 @@
 # Yaesu FT-991 Transceiver Definitions
 
+# XXX: Needs conversion to the new format
+
 name: Yaesu FT-991a
 protocol: cat-delimited
 ID: '0670'

@@ -1,5 +1,7 @@
 # Connect Systems Inc. CS7000-M17 with OpenRTX firmware
 
+# XXX: Needs conversion to the new format
+
 name: Connect Systems CS7000-M17
 protocol: rtxlink
 

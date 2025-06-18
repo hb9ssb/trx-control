@@ -1,5 +1,7 @@
 # OpenRTX linux emulator definitions
 
+# XXX: Needs conversion to the new format
+
 name: OpenRTX Linux Emulator
 protocol: rtxlink
 

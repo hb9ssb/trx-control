@@ -2,25 +2,64 @@
 
 name: Yaesu FT-710
 protocol: cat-delimited
+
 ID: '0800'
 
-validModes:
-  lsb: '1'
-  usb: '2'
-  cw-u: '3'
-  fm: '4'
-  am: '5'
-  rtty-l: '6'
-  cw-l: '7'
-  data-l: '8'
-  rtty-u: '9'
-  data-fm: 'A'
-  fm-n: 'B'
-  data-u: 'C'
-  am-n: 'D'
-  psk: 'E'
-  data-fm-n: 'F'
+vfo:
+  vfo-1:
+    displayName: VFO-A
+    tx:
+      -
+        min: 3000
+        max: 75000000
+    rx:
+      -
+        min: 3000
+        max: 75000000
 
-frequencyRange:
-  min: 30000
-  max: 75000000
+    operatingModes:
+      lsb:
+        displayName: LSB
+      usb:
+        displayName: USB
+      cw-u:
+        displayName: CW-U
+      fm:
+        displayName: FM
+      am:
+        displayName: AM
+      rtty-l:
+        displayName: RTTY-L
+      cw-l:
+        displayName: CW-L
+      data-l:
+        displayName: DATA-L
+      rtty-u:
+        displayName: RTTY-U
+      data-fm:
+        displayName: DATA-FM
+      fm-n:
+        displayName: FM-N
+      data-u:
+        displayName: DATA-U
+      am-n:
+        displayName: AM-N
+      psk:
+        displayName: PSK
+      data-fm-n:
+        displayName: DATA-FM-N
+
+  vfo-2:
+    displayName: VFO-B
+
+    tx:
+      -
+        min: 3000
+        max: 75000000
+    rx:
+      -
+        min: 3000
+        max: 75000000
+
+    operatingModes:
+      same-as: vfo-1

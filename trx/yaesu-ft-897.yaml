@@ -1,5 +1,7 @@
 # Yaesu FT-897 Transceiver Definitions
 
+# XXX: Needs conversion to the new format
+
 name: Yaesu FT-897
 protocol: cat-5-byte
 
