@@ -1,16 +1,77 @@
 # Kenwood TH-D75A handheld transceiver definitions (american version)
 
 name: Kenwood TH-D75A
+description: American version of the TH-D75
 protocol: kenwood-th-d-series
 
-validModes:
-  fm: '0'
-  dv: '1'
-  am: '2'
-  lsb: '3'
-  usb: '4'
-  cw: '5'
-  nfm: '6'
-  dr: '7'
-  wfm: '8'
-  r-cw: '9'
+vfo:
+  vfo-1:
+    displayName: Band A
+    tx:
+      -
+        min: 144000000
+        max: 146000000
+      -
+        min: 430000000
+        max: 440000000
+    rx:
+      -
+        min: 136000000
+        max: 174000000
+      -
+        min: 410000000
+        max: 470000000
+    vfoModes:
+      vfo:
+        displayName: VFO mode
+      memory:
+        displayName: Memory mode
+      call:
+        displayName: Call mode
+      dv:
+        displayName: VFO mode
+
+    operatingModes:
+      fm:
+        displayName: FM
+      dv:
+        displayName: DV
+      am:
+        displayName: AM
+      lsb:
+        displayName: LSB
+      usb:
+        displayName: USB
+      cw:
+        displayName: CW
+      nfm:
+        displayName: NFM
+      dr:
+        displayName: DR
+      wfm:
+        displayName: WFM
+      r-cw:
+        displayName: R-CW
+
+  vfo-2:
+    displayName: Band B
+    tx:
+      -
+        min: 144000000
+        max: 146000000
+      -
+        min: 430000000
+        max: 440000000
+    rx:
+      -
+        min: 100000
+        max: 76000000
+      -
+        min: 76000000
+        max: 108000000
+
+    vfoModes:
+      same-as: vfo-1
+
+    operatingModes:
+      same-as: vfo-1

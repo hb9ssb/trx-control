@@ -1,6 +1,7 @@
 # Kenwood TH-D75E handheld transceiver definitions (european version)
 
-name: Kenwood TH-D75E (european version)
+name: Kenwood TH-D75E
+description: European version of the TH-D75
 protocol: kenwood-th-d-series
 
 vfo:
@@ -20,6 +21,38 @@ vfo:
       -
         min: 410000000
         max: 470000000
+    vfoModes:
+      vfo:
+        displayName: VFO mode
+      memory:
+        displayName: Memory mode
+      call:
+        displayName: Call mode
+      dv:
+        displayName: VFO mode
+
+    operatingModes:
+      fm:
+        displayName: FM
+      dv:
+        displayName: DV
+      am:
+        displayName: AM
+      lsb:
+        displayName: LSB
+      usb:
+        displayName: USB
+      cw:
+        displayName: CW
+      nfm:
+        displayName: NFM
+      dr:
+        displayName: DR
+      wfm:
+        displayName: WFM
+      r-cw:
+        displayName: R-CW
+
   vfo-2:
     displayName: Band B
     tx:
@@ -36,4 +69,9 @@ vfo:
       -
         min: 76000000
         max: 108000000
-        mode: wfm
+
+    vfoModes:
+      same-as: vfo-1
+
+    operatingModes:
+      same-as: vfo-1
