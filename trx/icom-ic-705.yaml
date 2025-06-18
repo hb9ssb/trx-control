@@ -3,23 +3,43 @@
 name: ICOM IC-705
 protocol: ci-v
 
-validModes:
-  lsb: 0x00
-  usb: 0x01
-  am: 0x02
-  cw: 0x03
-  rtty: 0x04
-  fm: 0x05
-  wfm: 0x06
-  cw-r: 0x07
-  rtty-r: 0x08
-  dv: 0x17
+vfo:
+  vfo-1:
+    displayName: VFO
+    tx:
+      -
+        min: 30000
+        max: 470000000
+   rx:
+      -
+        min: 30000
+        max: 470000000
 
+  operatingModes:
+    lsb:
+      displayName: LSB
+    usb:
+      displayName: USB
+    am:
+      displayName: AM
+    cw:
+      displayName: CW
+    rtty:
+      displayName: RTTY
+    fm:
+      displayName: FM
+    wfm:
+      displayName: WFM
+    cw-r:
+      displayName: CW-R
+    rtty-r:
+      displayName: RTTY-R
+    dv:
+      displayName: DV
+
+# Filters have not yet been defined
 filterSetting:
   fil1: 0x01
   fil2: 0x02
   fil3: 0x03
 
-frequencyRange:
-  min: 3000
-  max: 470000000
