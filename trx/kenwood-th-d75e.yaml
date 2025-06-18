@@ -21,6 +21,7 @@ vfo:
       -
         min: 410000000
         max: 470000000
+
     vfoModes:
       vfo:
         displayName: VFO mode
