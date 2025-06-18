@@ -1,4 +1,4 @@
--- Copyright (c) 2023 - 2024 Marc Balmer HB9SSB
+-- Copyright (c) 2023 - 2025 Marc Balmer HB9SSB
 --
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to
@@ -22,7 +22,20 @@
 
 -- Internal functions
 
-local internalMode = {}
+local modeTointernalCode = {
+	lsb = 0x00,
+    usb = 0x01,
+    am = 0x02,
+    cw = 0x03,
+    rtty = 0x04,
+    fm = 0x05,
+    wfm = 0x06,
+    ['cw-r'] = 0x07,
+    ['rtty-r'] = 0x08,
+    dv = 0x17
+}
+local internalCodeToMode = {}
+
 local controllerAddress = 0xe0
 local transceiverAddress = 0xa4
 
@@ -60,8 +73,8 @@ local function initialize(driver)
 	controllerAddress = driver.controllerAddress
 	transceiverAddress = driver.transceiverAddress
 
-	for k, v in pairs(driver.validModes) do
-		internalMode[v] = k
+	for k, v in pairs(modeToInternalCode) do
+		internalCodeToMode[v] = k
 	end
 end
 
