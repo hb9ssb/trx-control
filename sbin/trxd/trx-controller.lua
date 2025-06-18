@@ -31,21 +31,9 @@ local lastFrequency = 0
 local lastMode = ''
 
 local function getInfo(driver, request, response)
-	response.name = driver.name or 'unspecified'
-	response.frequencyRange = driver.frequencyRange or {
-		min = 0,
-		max = 0
-	}
-	if driver.validModes ~= nil then
-		response.operatingModes = {}
-		for k, v in pairs(driver.validModes) do
-			response.operatingModes[#response.operatingModes + 1]
-			    = k
-		end
-	end
-	if driver.capabilities ~= nil then
-		response.capabilities = driver.capabilities
-	end
+	response.name = driver.name
+	response.description = driver.description
+	response.vfo = driver.vfo
 	response.audio = driver.audio
 end
 
