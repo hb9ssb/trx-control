@@ -32,6 +32,7 @@ local lastMode = ''
 
 local function getInfo(driver, request, response)
 	response.name = driver.name
+	response.shortName = driver.shortName
 	response.description = driver.description
 	response.vfo = driver.vfo
 	response.audio = driver.audio

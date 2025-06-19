@@ -1,6 +1,8 @@
 # Yaesu FT-817 Transceiver Definitions
 
 name: Yaesu FT-817
+shortName: FT-817
+
 protocol: cat-5-byte
 
 vfo:

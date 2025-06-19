@@ -3,6 +3,7 @@
 # XXX: Needs conversion to the new format
 
 name: Connect Systems CS7000-M17
+shortName: CS7000-m17
 protocol: rtxlink
 
 validModes:

@@ -1,6 +1,7 @@
 # ICOM IC-705 Transceiver Definitions
 
 name: ICOM IC-705
+shortName: IC-705
 protocol: ci-v
 
 vfo:

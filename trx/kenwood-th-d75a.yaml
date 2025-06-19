@@ -1,6 +1,7 @@
 # Kenwood TH-D75A handheld transceiver definitions (american version)
 
 name: Kenwood TH-D75A
+shortName: TH-D75A
 description: American version of the TH-D75
 protocol: kenwood-th-d-series
 

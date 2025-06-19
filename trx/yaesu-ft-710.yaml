@@ -1,6 +1,7 @@
 # Yaesu FT-710 Transceiver Definitions
 
 name: Yaesu FT-710
+shortName: FT-710
 protocol: cat-delimited
 
 ID: '0800'
