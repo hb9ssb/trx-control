@@ -219,36 +219,34 @@ end
 local function getFrequency(driver, request, response)
 	local vfo = request.vfo or lastVfo
 
-	local vfoData = vfoToInternalCode[vfo]
-	if vfoData == nil then
+	local vfoCode = vfoToInternalCode[vfo]
+	if vfoCode == nil then
 		response.status = 'Failure'
 		response.reason = 'Unknown VFO'
 		return
 	end
 
-	trx.write(string.format('FQ %s\r', vfoData.internalCode))
+	trx.write(string.format('FQ %s\r', vfoCode))
 	local reply = trx.read(16)
 	local freq = string.sub(reply, 6, -1)
 	response.frequency = tonumber(freq)
 
-	trx.write(string.format('MD %s\r', vfoData.internalCode))
+	trx.write(string.format('MD %s\r', vfoCode))
     reply = trx.read(7)
     local mode = string.sub(reply, 6, -2)
 
 	response.mode = internalCodeToMode[mode] or 'unknown'
 
-	response.vfo = {
-		vfo = vfo,
-		displayName = vfoData.displayName
-	}
+	response.vfo = vfo
+
 	lastVfo = vfo
 end
 
 local function setMode(driver, request, response, band, mode)
 	local vfo = request.vfo or lastVfo
 
-	local vfoData = vfoToInternalCode[vfo]
-	if vfoData == nil then
+	local vfoCode = vfoToInternalCode[vfo]
+	if vfoCode == nil then
 		response.status = 'Failure'
 		response.reason = 'Unknown VFO'
 		return
@@ -264,35 +262,29 @@ local function setMode(driver, request, response, band, mode)
 		return
 	end
 
-	trx.write(string.format('MD %s,%s\r', vfoData.internalCode, code))
+	trx.write(string.format('MD %s,%s\r', vfoCode, code))
 
-	response.vfo = {
-		vfo = vfo,
-		displayName = vfoData.displayName
-	}
+	response.vfo = vfo
 	lastVfo = vfo
 end
 
 local function getMode(driver, request, response)
 	local vfo = request.vfo or lastVfo
 
-	local vfoData = vfoToInternalCode[vfo]
-	if vfoData == nil then
+	local vfoCode = vfoToInternalCode[vfo]
+	if vfoCode == nil then
 		response.status = 'Failure'
 		response.reason = 'Unknown VFO'
 		return
 	end
 
-	trx.write(string.format('MD %s\r', vfoData.internalCode))
+	trx.write(string.format('MD %s\r', vfoCode))
 	reply = trx.read(7)
     local mode = string.sub(reply, 6, -2)
 
 	response.mode = internalCodeToMode[mode] or 'unknown'
 
-	response.vfo = {
-		vfo = vfo,
-		displayName = vfoData.displayName
-	}
+	response.vfo = vfo
 	lastVfo = vfo
 end
 
