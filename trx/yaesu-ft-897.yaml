@@ -20,23 +20,23 @@ vfo:
     operatingModes:
       lsb:
         displayName: LSB
-      usb: 0x01
+      usb:
         displayName: USB
-      cw: 0x02
+      cw:
         displayName: CW
-      cwr: 0x03
+      cwr:
         displayName: CWR
-      am: 0x04
+      am:
         displayName: AM
-      wfm: 0x06
+      wfm:
         displayName: WFM
-      fm: 0x08
+      fm:
         displayName: FM
-      dig: 0x0a
+      dig:
         displayName: DIG
-      pkt: 0x0c
+      pkt:
         displayName: PKT
-      fmn: 0x88
+      fmn:
         displayName: FMN
 
   vfo-2:
