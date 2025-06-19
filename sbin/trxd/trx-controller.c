@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 - 2024 Marc Balmer HB9SSB
+ * Copyright (c) 2023 - 2025 Marc Balmer HB9SSB
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -135,16 +135,29 @@ trx_controller(void *arg)
 		struct sockaddr_rc addr = { 0 };
 
 		fd = socket(AF_BLUETOOTH, SOCK_STREAM, BTPROTO_RFCOMM);
+		if (fd == -1) {
+			syslog(LOG_ERR, "trx-controller: can't get bluetooth socket"
+			    ": %s", t->device, strerror(errno));
+			exit(1);
+		}
 
 		addr.rc_family = AF_BLUETOOTH;
 		addr.rc_channel = (uint8_t) t->channel;
 		str2ba(t->device, &addr.rc_bdaddr);
 
+		if (verbose)
+			syslog(LOG_INFO, "trx-controller: attempting to "
+			    "connect to %s", t->device);
+
 		if (connect(fd, (struct sockaddr *)&addr, sizeof(addr))) {
-			syslog(LOG_ERR, "trx-controller: can't connect to %s",
-				t->device);
+			syslog(LOG_ERR, "trx-controller: can't connect to %s"
+			    ": %s", t->device, strerror(errno));
 			exit(1);
 		}
+
+		if (verbose)
+			syslog(LOG_INFO, "trx-controller: connected to %s",
+			    t->device);
 	} else {
 		syslog(LOG_ERR, "trx-controller: unknown device %s", t->device);
 		exit(1);
