@@ -77,7 +77,7 @@ local function registerDriver(destination, dev, newDriver)
 end
 
 local function notImplemented(response)
-	response.status = 'Failure'
+	response.status = 'Error'
 	response.reason = 'Function unknown or not implemented'
 	return json.encode(response)
 end
