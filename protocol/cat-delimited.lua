@@ -157,7 +157,7 @@ local function setUnlock(driver, request, response)
 end
 
 local function setFrequency(driver, request, response)
-	trx.write(string.format('FA%s;', request.frequency))
+	trx.write(string.format('FA%09d;', tonumber(request.frequency)))
 	response.frequency = request.frequency
 end
 
