@@ -418,6 +418,27 @@ request_ok(dispatcher_tag_t *d)
 }
 
 static void
+version(dispatcher_tag_t *d)
+{
+	/* The sender mutex is already locked */
+	d->sender->data = "{\"status\":\"Ok\",\"response\":"
+	    "\"version\",\"version\":\"" TRXD_VERSION "\"}";
+
+	if (pthread_cond_signal(&d->sender->cond)) {
+		syslog(LOG_ERR, "dispatcher: pthread_cond_signal");
+		exit(1);
+	}
+
+	while (d->sender->data != NULL) {
+		if (pthread_cond_wait(&d->sender->cond2, &d->sender->mutex)) {
+			syslog(LOG_ERR, "dispatcher: pthread_cond_wait");
+			exit(1);
+		}
+	}
+	pthread_mutex_unlock(&d->sender->mutex);
+}
+
+static void
 status_updates_not_supported(dispatcher_tag_t *d)
 {
 	if (pthread_mutex_lock(&d->sender->mutex)) {
@@ -1211,7 +1232,9 @@ dispatcher(void *arg)
 				type = lua_tostring(L, -1);
 				lua_pop(L, 2);
 				list_destination(d, type);
-			} else if (req) {
+			} else if (req && !strcmp(req, "version"))
+				version(d);
+			else if (req) {
 				dispatch(L, d, dst, req);
 				/* XXX check stack depth */
 				/* lua_pop(L, 4); */
