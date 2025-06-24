@@ -59,6 +59,7 @@ CFLAGS+=	-I../../lib/libtrx-control -I../../external/mit/lua/src \
 		-I../../external/mit/luayaml \
 		-I../../external/mit/luajson -pthread -D_GNU_SOURCE \
 		-DTRXD_VERSION=\"${VERSION}\" \
+		-DTRXD_RELEASE=\"${RELEASE}\" \
 		-export-dynamic
 LDFLAGS+=	-L../../lib/libtrx-control -ltrx-control \
 		../../lib/liblua/liblua.a -ldl -lyaml -lm -lssl -lcrypto \

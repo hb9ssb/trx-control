@@ -422,7 +422,8 @@ version(dispatcher_tag_t *d)
 {
 	/* The sender mutex is already locked */
 	d->sender->data = "{\"status\":\"Ok\",\"response\":"
-	    "\"version\",\"version\":\"" TRXD_VERSION "\"}";
+	    "\"version\",\"version\":{\"version\":\"" TRXD_VERSION "\","
+	    "\"release\":\"" TRXD_RELEASE "\"}}";
 
 	if (pthread_cond_signal(&d->sender->cond)) {
 		syslog(LOG_ERR, "dispatcher: pthread_cond_signal");
