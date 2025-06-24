@@ -768,8 +768,38 @@ dispatch(lua_State *L, dispatcher_tag_t *d, destination_t *to, const char *req)
 	}
 }
 
+static const char *
+type2name(int type)
+{
+	switch (type) {
+	case DEST_TRX:
+		return "transceiver";
+		break;
+	case DEST_SDR:
+		return "sdr";
+		break;
+	case DEST_ROTOR:
+		return "rotor";
+		break;
+	case DEST_RELAY:
+		return "relay";
+		break;
+	case DEST_GPIO:
+		return "gpio";
+		break;
+	case DEST_INTERNAL:
+		return "internal";
+		break;
+	case DEST_EXTENSION:
+		return "extension";
+		break;
+	default:
+		return "unknown";
+	}
+}
+
 void
-list_destination(dispatcher_tag_t *d)
+list_destination(dispatcher_tag_t *d, const char *type)
 {
 	struct buffer buf;
 	destination_t *dest;
@@ -781,41 +811,25 @@ list_destination(dispatcher_tag_t *d)
 
 	buf_init(&buf);
 	buf_addstring(&buf,
-	    "{\"status\":\"Ok\",\"response\":\"list-destination\","
-	    "\"destination\":[");
+	    "{\"status\":\"Ok\",\"response\":\"list-destination\",");
+	if (type)
+		buf_printf(&buf, "\"type\":\"%s\",", type);
+	buf_addstring(&buf, "\"destination\":[");
 
 	pthread_mutex_lock(&destination_mutex);
 	for (dest = destination; dest != NULL; dest = dest->next) {
+		if (type && strcmp(type, type2name(dest->type)))
+			break;
+
 		if (dest != destination)
 			buf_addchar(&buf, ',');
+
 		buf_addstring(&buf, "{\"name\":\"");
 		buf_addstring(&buf, dest->name);
 		buf_addstring(&buf, "\",");
 
 		buf_addstring(&buf, "\"type\":\"");
-		switch (dest->type) {
-		case DEST_TRX:
-			buf_addstring(&buf, "transceiver");
-			break;
-		case DEST_SDR:
-			buf_addstring(&buf, "sdr");
-			break;
-		case DEST_ROTOR:
-			buf_addstring(&buf, "rotor");
-			break;
-		case DEST_RELAY:
-			buf_addstring(&buf, "relay");
-			break;
-		case DEST_GPIO:
-			buf_addstring(&buf, "gpio");
-			break;
-		case DEST_INTERNAL:
-			buf_addstring(&buf, "internal");
-			break;
-		case DEST_EXTENSION:
-			buf_addstring(&buf, "extension");
-			break;
-		}
+		buf_addstring(&buf, type2name(dest->type));
 		buf_addchar(&buf, '"');
 
 		if (dest->type == DEST_TRX) {
@@ -1188,9 +1202,13 @@ dispatcher(void *arg)
 					request_ok(d);
 				} else
 					listen_not_supported(d);
-			} else if (req && !strcmp(req, "list-destination"))
-				list_destination(d);
-			else if (req) {
+			} else if (req && !strcmp(req, "list-destination")) {
+				const char *type = NULL;
+				lua_getfield(L, request, "type");
+				type = lua_tostring(L, -1);
+				lua_pop(L, 2);
+				list_destination(d, type);
+			} else if (req) {
 				dispatch(L, d, dst, req);
 				/* XXX check stack depth */
 				/* lua_pop(L, 4); */
