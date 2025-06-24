@@ -803,6 +803,7 @@ list_destination(dispatcher_tag_t *d, const char *type)
 {
 	struct buffer buf;
 	destination_t *dest;
+	int first;
 
 	if (pthread_mutex_lock(&d->sender->mutex)) {
 		syslog(LOG_ERR, "dispatcher: pthread_mutex_lock");
@@ -817,12 +818,14 @@ list_destination(dispatcher_tag_t *d, const char *type)
 	buf_addstring(&buf, "\"destination\":[");
 
 	pthread_mutex_lock(&destination_mutex);
-	for (dest = destination; dest != NULL; dest = dest->next) {
+	for (first = 1, dest = destination; dest != NULL; dest = dest->next) {
 		if (type && strcmp(type, type2name(dest->type)))
-			break;
+			continue;
 
-		if (dest != destination)
+		if (!first)
 			buf_addchar(&buf, ',');
+		else
+			first = 0;
 
 		buf_addstring(&buf, "{\"name\":\"");
 		buf_addstring(&buf, dest->name);
