@@ -22,7 +22,7 @@
 
 -- Internal functions
 
-local modeTointernalCode = {
+local modeToInternalCode = {
 	lsb = 0x00,
     usb = 0x01,
     am = 0x02,
