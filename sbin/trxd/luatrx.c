@@ -129,6 +129,7 @@ luatrx_write(lua_State *L)
 			printf("%02X ", data[i]);
 		printf("\n");
 	}
+	write(cat_device, data, len);
 	tcdrain(cat_device);
 	return 0;
 }
