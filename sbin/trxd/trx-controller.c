@@ -119,8 +119,7 @@ trx_controller(void *arg)
 			if (tcgetattr(fd, &tty) < 0) {
 				syslog(LOG_ERR, "trx-controller: tcgetattr");
 				exit(1);
-			}
-			else {
+			} else {
 				cfmakeraw(&tty);
 				tty.c_cflag |= CLOCAL;
 				cfsetspeed(&tty, t->speed);

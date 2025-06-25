@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 - 2024 Marc Balmer HB9SSB
+ * Copyright (c) 2023 - 2025 Marc Balmer HB9SSB
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -80,13 +80,13 @@ luatrx_read(lua_State *L)
 	pfd.events = POLLIN;
 
 	nread = 0;
-	if (verbose > 1)
+	if (verbose > 2)
 		printf("<- (read %d bytes from %d)\n", len, cat_device);
 	while (nread < len) {
 		nfds = poll(&pfd, 1, 1000);
 		if (nfds == -1)
 			return luaL_error(L, "poll error");
-		if (nfds == 1) {
+		if (nfds == 1 && pfd.revents == POLLIN) {
 			nread += read(cat_device, &buf[nread], len - nread);
 		} else {
 			if (verbose > 1)
@@ -95,7 +95,7 @@ luatrx_read(lua_State *L)
 		}
 	}
 
-	if (nread > 0 && verbose > 1) {
+	if (nread > 0 && verbose > 2) {
 		int i;
 
 		for (i = 0; i < nread; i++)
@@ -108,7 +108,7 @@ luatrx_read(lua_State *L)
 	else
 		lua_pushnil(L);
 
-	if (verbose > 1)
+	if (verbose > 2)
 		printf("\n");
 	return 1;
 }
@@ -121,7 +121,7 @@ luatrx_write(lua_State *L)
 
 	data = luaL_checklstring(L, 1, &len);
 	tcflush(cat_device, TCIFLUSH);
-	if (verbose > 1) {
+	if (verbose > 2) {
 		int i;
 
 		printf("-> ");
@@ -129,7 +129,6 @@ luatrx_write(lua_State *L)
 			printf("%02X ", data[i]);
 		printf("\n");
 	}
-	write(cat_device, data, len);
 	tcdrain(cat_device);
 	return 0;
 }
