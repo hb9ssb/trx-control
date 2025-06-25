@@ -42,14 +42,16 @@ local function initialize(driver)
 	trx.write('ID;')
 	local reply = trx.read(7)
 
-	if trx.verbose() > 0 then
-		print('transceiver ID:', reply:sub(3, -2))
-	end
+	if reply ~= nil then
+		if trx.verbose() > 0 then
+			print('transceiver ID:', reply:sub(3, -2))
+		end
 
-	if reply ~= 'ID' .. driver.ID .. ';' then
-		print ('this is not a ' .. driver.name .. ' transceiver')
-	else
-		print ('this is a ' .. driver.name .. ' transceiver')
+		if reply ~= 'ID' .. driver.ID .. ';' then
+			print ('this is not a ' .. driver.name .. ' transceiver')
+		else
+			print ('this is a ' .. driver.name .. ' transceiver')
+		end
 	end
 end
 
