@@ -32,6 +32,11 @@ local modeToInternalCode = {
 	pkt = 0x0c,
 	fmn = 0x88
 }
+
+local function initialize(driver)
+	trx.read(1)
+end
+
 local function setLock(driver, request, response)
 	trx.write('\x00\x00\x00\x00\x00')
 	response.state = 'locked'
