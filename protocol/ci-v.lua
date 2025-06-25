@@ -116,7 +116,7 @@ local function getFrequency(driver, request, response)
 	reply = trx.read(8)
 
 	local mode = string.byte(reply, 6)
-	response.mode = internalMode[mode] or '??'
+	response.mode = internalCodeToMode[mode] or '??'
 end
 
 local function setMode(driver, request, response)
@@ -130,7 +130,7 @@ local function setMode(driver, request, response)
 		response.reason = 'Unknown mode'
 	end
 
-	local data = string.char(driver.validModes[mode])
+	local data = string.char(driver.internalModeToCode[mode])
 	sendMessage('\x01', nil, data)
 	if (recvReply == true) then
 		response.state = 'mode set'
@@ -147,7 +147,7 @@ local function getMode(driver, request, response)
 
 	local mode = string.byte(reply, 6)
 
-	response.mode = internalMode[mode] or '??'
+	response.mode = internalCodeToMode[mode] or '??'
 end
 
 return {
