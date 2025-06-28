@@ -210,10 +210,22 @@ local function setUnlock(driver, request, response)
 end
 
 local function setFrequency(driver, request, response)
-	response.frequency = request.frequency
+	local vfo = request.vfo or lastVfo
 
-	local data = string.format('FA%011d', request.frequency)
-	sendMessage(data)
+	local vfoCode = vfoToInternalCode[vfo]
+	if vfoCode == nil then
+		response.status = 'Failure'
+		response.reason = 'Unknown VFO'
+		return
+	end
+
+	response.frequency = request.frequency
+	print(string.format('FQ %s,%010d', vfoCode, request.frequency))
+
+	trx.write(string.format('FQ %s,%010d', vfoCode, request.frequency))
+	response.vfo = vfo
+
+	lastVfo = vfo
 end
 
 local function getFrequency(driver, request, response)
