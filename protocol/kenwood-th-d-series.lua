@@ -218,11 +218,9 @@ local function setFrequency(driver, request, response)
 		response.reason = 'Unknown VFO'
 		return
 	end
-
 	response.frequency = request.frequency
-	print(string.format('FQ %s,%010d', vfoCode, request.frequency))
 
-	trx.write(string.format('FQ %s,%010d', vfoCode, request.frequency))
+	trx.write(string.format('FQ %s,%010d\r', vfoCode, request.frequency))
 	response.vfo = vfo
 
 	lastVfo = vfo
