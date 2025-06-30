@@ -173,13 +173,11 @@ local decoders = {
 }
 
 local function handleStatusUpdates(driver, data)
-	print('status update, got:', data)
 	local command = string.sub(data, 1, 2)
 
 	local decoder = decoders[command]
 	if decoder ~= nil then
 		local reply = decoder(data)
-		print(reply.lock)
 		return reply
 	end
 

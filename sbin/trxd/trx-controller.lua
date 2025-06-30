@@ -137,7 +137,6 @@ local function pollHandler(data, fd)
 		}
 
 		local jsonData = json.encode(status)
-		print('notify listeners')
 		trxController.notifyListeners(jsonData)
 		lastFrequency = response.frequency
 		lastMode = response.mode
