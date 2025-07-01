@@ -67,6 +67,12 @@ local function stopStatusUpdates(driver)
 end
 
 -- Decoders for auto information
+local function afGain(data)
+	print('afGain', data)
+	local gain = tonumber(string.sub(data, 4, 6))
+
+	return { afGain = string.format('%.f', gain / 255 * 100) }
+end
 
 local function frequencyVfoA(data)
 	local hz = tonumber(string.sub(data, 3, 11))
@@ -127,6 +133,7 @@ local function mode(data)
 end
 
 local decoders = {
+	AG = afGain,
 	FA = frequencyVfoA,
 	FB = frequencyVfoB,
 	IF = informationVfoA,

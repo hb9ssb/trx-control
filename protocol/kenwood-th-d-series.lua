@@ -91,7 +91,7 @@ end
 local function afGain(data)
 	local gain = tonumber(string.sub(data, 4, 6))
 
-	return { afGain = gain / 200 * 100 }
+	return { afGain = string.format('%.f', gain / 200 * 100) }
 end
 
 local function activeBand(data)
