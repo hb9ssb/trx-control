@@ -585,9 +585,6 @@ remove_sender(dispatcher_tag_t *d, destination_t *dst)
 	}
 
 	if (n == 0) {
-		if (verbose > 1)
-			printf("stopping status updates from trx\n");
-
 		t = dst->tag.trx;
 
 		if (t->poller_running) {
