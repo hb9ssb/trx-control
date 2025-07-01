@@ -190,7 +190,8 @@ trx_controller(void *arg)
 	 */
 
 	if (verbose)
-		printf("trx-controller: ready to control trx %s\n", t->name);
+		syslog(LOG_INFO, "trx-controller: ready to control %s",
+		    t->name);
 
 	if (pthread_mutex_unlock(&t->mutex)) {
 		syslog(LOG_ERR, "trx-controller: pthread_mutex_unlock");
