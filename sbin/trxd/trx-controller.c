@@ -165,9 +165,6 @@ trx_controller(void *arg)
 	cat_device = fd;
 	t->cat_device = fd;
 
-	if (verbose)
-		printf("trx_controller: registering the driver\n");
-
 	/*
 	 * Call the registerDriver function which had been setup in the
 	 * main thread.
