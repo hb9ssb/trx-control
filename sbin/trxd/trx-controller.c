@@ -125,7 +125,8 @@ trx_controller(void *arg)
 				cfsetspeed(&tty, t->speed);
 
 				if (tcsetattr(fd, TCSADRAIN, &tty) < 0) {
-					syslog(LOG_ERR, "trx-controller: tcsetattr");
+					syslog(LOG_ERR, "trx-controller: "
+					    "tcsetattr");
 					exit(1);
 				}
 			}
@@ -135,8 +136,8 @@ trx_controller(void *arg)
 
 		fd = socket(AF_BLUETOOTH, SOCK_STREAM, BTPROTO_RFCOMM);
 		if (fd == -1) {
-			syslog(LOG_ERR, "trx-controller: can't get bluetooth socket"
-			    ": %s", t->device, strerror(errno));
+			syslog(LOG_ERR, "trx-controller: can't get bluetooth "
+			    "socket: %s", t->device, strerror(errno));
 			exit(1);
 		}
 
