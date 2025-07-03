@@ -1,27 +1,47 @@
 # Yaesu FT-991 Transceiver Definitions
 
-# XXX: Needs conversion to the new format
-
 name: Yaesu FT-991a
 protocol: cat-delimited
-ID: '0670'
+ID: "0670"
 
-validModes:
-  lsb: '1'
-  usb: '2'
-  cw-u: '3'
-  fm: '4'
-  am: '5'
-  rtty-lsb: '6'
-  cw-l: '7'
-  data-lsb: '8'
-  rtty-usb: '9'
-  data-fm: 'A'
-  fm-n: 'B'
-  data-usb: 'C'
-  am-n: 'D'
-  c4fm: 'E'
+vfo:
+  vfo-1: &vfo
+    displayName: VFO-A
+    tx: &frequencyRange
+      - min: 30000
+        max: 470000000
+    rx: *frequencyRange
 
-frequencyRange:
-  min: 30000
-  max: 470000000
+    operatingModes:
+      lsb:
+        displayName: LSB
+      usb:
+        displayName: USB
+      cw-u:
+        displayName: CW USB
+      fm:
+        displayName: FM
+      am:
+        displayName: AM
+      rtty-l:
+        displayName: RTTY LSB
+      cw-l:
+        displayName: CW LSB
+      data-lsb:
+        displayName: DATA LSB
+      rtty-u:
+        displayName: RTTY USB
+      data-fm:
+        displayName: DATA FM
+      fm-n:
+        displayName: Narrow FM
+      data-u:
+        displayName: DATA USB
+      am-n:
+        displayName: Narrow AM
+      c4fm:
+        displayName: C4FM
+
+  vfo-2:
+    <<: *vfo
+    displayName: VFO-B
