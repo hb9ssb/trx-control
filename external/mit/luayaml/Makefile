@@ -1,6 +1,6 @@
 VPATH=		../../mit/lua/src
 
-SRCS=		luayaml.c
+SRCS=		luayaml.c anchor.c
 
 LUADIR?=	/usr/share/trxd/lua
 

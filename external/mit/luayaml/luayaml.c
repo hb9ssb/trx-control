@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 - 2024 Micro Systems Marc Balmer, CH-5073 Gipf-Oberfrick.
+ * Copyright (C) 2018 - 2025 Micro Systems Marc Balmer, CH-5073 Gipf-Oberfrick.
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -36,6 +36,7 @@
 #include <yaml.h>
 
 #include "luayaml.h"
+#include "anchor.h"
 
 #ifdef DEBUG
 static int verbose = 0;
@@ -66,12 +67,13 @@ static const char *events[] = {
 #endif
 
 static int parse_error(lua_State *, yaml_parser_t *);
-static int parse_mapping(lua_State *, yaml_parser_t *, int);
-static int parse_sequence(lua_State *, yaml_parser_t *, int);
-static int parse_node(lua_State *, yaml_parser_t *, yaml_event_t, int, int);
-static int parse_document(lua_State *, yaml_parser_t *, int);
-static int parse_stream(lua_State *, yaml_parser_t *, int);
-static int parse(lua_State *, yaml_parser_t *, int);
+static int parse_mapping(lua_State *, yaml_parser_t *, anchor_t *, int);
+static int parse_sequence(lua_State *, yaml_parser_t *, anchor_t *, int);
+static int parse_node(lua_State *, yaml_parser_t *, anchor_t *, yaml_event_t,
+    int, int);
+static int parse_document(lua_State *, yaml_parser_t *, anchor_t *, int);
+static int parse_stream(lua_State *, yaml_parser_t *, anchor_t *, int);
+static int parse(lua_State *, yaml_parser_t *, anchor_t *, int);
 
 static int
 push_boolean(lua_State *L, char *v, int l) {
@@ -220,52 +222,109 @@ parse_error(lua_State *L, yaml_parser_t *parser)
 }
 
 static int
-parse_node(lua_State *L, yaml_parser_t *parser, yaml_event_t event, int value,
-    int env)
+parse_node(lua_State *L, yaml_parser_t *parser, anchor_t *anchors,
+    yaml_event_t event, int value, int env)
 {
-	int rv = 0;
-
-	lua_checkstack(L, 1);
+	lua_checkstack(L, 16);
 
 	/* Process event */
 	switch (event.type) {
 	case YAML_ALIAS_EVENT:
+		int ref;
+
+		ref = anchor_get(anchors, event.data.alias.anchor);
+		lua_rawgeti(L, LUA_REGISTRYINDEX, ref);
+		if (lua_type(L, -1) != LUA_TTABLE) {
+			/* The value is already on the top of the stack */
+			return 0;
+		} else {
+			/* Copy the table */
+			int t = lua_gettop(L);
+			lua_pushnil(L);
+			while (lua_next(L, t) != 0) {
+				lua_pushvalue(L, -2);
+				lua_pushvalue(L, -2);
+				lua_settable(L, -6);
+				lua_pop(L, 1);
+			}
+			lua_pop(L, 1);
+		}
+		return 2;
 		break;
 	case YAML_SCALAR_EVENT:
-		if (value)
+		if (!strcmp((char *)event.data.scalar.value, "<<")) {
+			/* push nothing on the stack */
+			return 1;
+		}
+		if (value) {
 			push_scalar(L, (char *)event.data.scalar.value,
 			    event.data.scalar.style,
 			    event.data.scalar.length,
 			    (char *)event.data.scalar.tag, env);
-		else
+		} else {
 			lua_pushlstring(L,
 			    (char *)event.data.scalar.value,
 			    event.data.scalar.length);
+		}
 		dprintf(1, "value: %s", event.data.scalar.value);
+		if (event.data.scalar.anchor) {
+			int ref;
+
+			dprintf(1, "scalar, anchor: %s\n",
+			    event.data.scalar.anchor);
+			lua_pushvalue(L, -1);
+			ref = luaL_ref(L, LUA_REGISTRYINDEX);
+			anchor_set(L, anchors, event.data.sequence_start.anchor,
+			    ref);
+		}
 		if (event.data.scalar.tag)
 			dprintf(1, "tag: %s\n", event.data.scalar.tag);
 		dprintf(1, "\n");
 		break;
 	case YAML_SEQUENCE_START_EVENT:
 		lua_newtable(L);
-		parse_sequence(L, parser, env);
+		if (event.data.sequence_start.anchor) {
+			int ref;
+
+			dprintf(1, "sequence start, anchor: %s\n",
+			     event.data.sequence_start.anchor);
+
+			lua_pushvalue(L, -1);
+			ref = luaL_ref(L, LUA_REGISTRYINDEX);
+			printf("set ref %d\n", ref);
+			anchor_set(L, anchors, event.data.sequence_start.anchor,
+			    ref);
+		}
+		parse_sequence(L, parser, anchors, env);
 		break;
 	case YAML_MAPPING_START_EVENT:
 		lua_newtable(L);
-		parse_mapping(L, parser, env);
+		if (event.data.mapping_start.anchor) {
+			int ref;
+
+			dprintf(1, "mapping start, anchor: %s\n",
+				event.data.mapping_start.anchor);
+
+			lua_pushvalue(L, -1);
+			ref = luaL_ref(L, LUA_REGISTRYINDEX);
+			anchor_set(L, anchors, event.data.mapping_start.anchor,
+			    ref);
+		}
+		parse_mapping(L, parser, anchors, env);
 		break;
 	default:
 		return parse_error(L, parser);
 	}
-	return rv;
+	return 0;
 }
 
 static int
-parse_mapping(lua_State *L, yaml_parser_t *parser, int env)
+parse_mapping(lua_State *L, yaml_parser_t *parser, anchor_t *anchors, int env)
 {
 	yaml_event_t event;
 	int done = 0;
 	int value = 0;
+	int rv;
 
 	while (!done) {
 		if (!yaml_parser_parse(parser, &event))
@@ -276,10 +335,14 @@ parse_mapping(lua_State *L, yaml_parser_t *parser, int env)
 		if (event.type == YAML_MAPPING_END_EVENT)
 			done = 1;
 		else {
-			parse_node(L, parser, event, value, env);
-			if (value)
-				lua_settable(L, -3);
-			value = 1 - value;
+			rv = parse_node(L, parser, anchors, event, value, env);
+			if (!rv) {
+				if (value)
+					lua_settable(L, -3);
+				value = 1 - value;
+			} else if (rv == 2) {
+				value = 0;
+			}
 		}
 		yaml_event_delete(&event);
 	}
@@ -287,7 +350,7 @@ parse_mapping(lua_State *L, yaml_parser_t *parser, int env)
 }
 
 static int
-parse_sequence(lua_State *L, yaml_parser_t *parser, int env)
+parse_sequence(lua_State *L, yaml_parser_t *parser, anchor_t *anchors, int env)
 {
 	yaml_event_t event;
 	int done = 0;
@@ -305,7 +368,7 @@ parse_sequence(lua_State *L, yaml_parser_t *parser, int env)
 			done = 1;
 		else {
 			lua_pushinteger(L, sequence++);
-			parse_node(L, parser, event, 0, env);
+			parse_node(L, parser, anchors, event, 0, env);
 			lua_settable(L, -3);
 		}
 		yaml_event_delete(&event);
@@ -314,7 +377,8 @@ parse_sequence(lua_State *L, yaml_parser_t *parser, int env)
 }
 
 static int
-parse_document(lua_State *L, yaml_parser_t *parser, int env)
+parse_document(lua_State *L, yaml_parser_t *parser,  anchor_t *anchors,
+    int env)
 {
 	yaml_event_t event;
 	int done = 0;
@@ -329,7 +393,7 @@ parse_document(lua_State *L, yaml_parser_t *parser, int env)
 		if (event.type == YAML_DOCUMENT_END_EVENT)
 			done = 1;
 		else
-			parse_node(L, parser, event, 0, env);
+			parse_node(L, parser, anchors, event, 0, env);
 
 		yaml_event_delete(&event);
 	}
@@ -337,7 +401,7 @@ parse_document(lua_State *L, yaml_parser_t *parser, int env)
 }
 
 static int
-parse_stream(lua_State *L, yaml_parser_t *parser, int env)
+parse_stream(lua_State *L, yaml_parser_t *parser,  anchor_t *anchors, int env)
 {
 	yaml_event_t event;
 	int done = 0;
@@ -353,7 +417,7 @@ parse_stream(lua_State *L, yaml_parser_t *parser, int env)
 		case YAML_DOCUMENT_START_EVENT:
 			lua_checkstack(L, 1);
 			lua_newtable(L);
-			parse_document(L, parser, env);
+			parse_document(L, parser,  anchors, env);
 			break;
 		case YAML_STREAM_END_EVENT:
 			done = 1;
@@ -367,7 +431,7 @@ parse_stream(lua_State *L, yaml_parser_t *parser, int env)
 }
 
 static int
-parse(lua_State *L, yaml_parser_t *parser, int env)
+parse(lua_State *L, yaml_parser_t *parser,  anchor_t *anchors, int env)
 {
 	yaml_event_t event;
 	int done = 0;
@@ -381,7 +445,7 @@ parse(lua_State *L, yaml_parser_t *parser, int env)
 		/* Process event */
 		switch (event.type) {
 		case YAML_STREAM_START_EVENT:
-			parse_stream(L, parser, env);
+			parse_stream(L, parser,  anchors, env);
 			done = 1;
 			break;
 		default:
@@ -396,9 +460,14 @@ static int
 parse_string(lua_State *L)
 {
 	yaml_parser_t parser;
+	anchor_t *anchors;
 	const unsigned char *input;
 	size_t len;
 	int env = -1;
+
+	anchors = anchor_init();
+	if (!anchors)
+		return luaL_error(L, "memory error");
 
 	input = (const unsigned char *)luaL_checklstring(L, 1, &len);
 	if (lua_gettop(L) > 1)
@@ -407,10 +476,11 @@ parse_string(lua_State *L)
 	yaml_parser_initialize(&parser);
 	yaml_parser_set_input_string(&parser, input, len);
 
-	if (parse(L, &parser, env))
+	if (parse(L, &parser, anchors, env))
 		lua_pushnil(L);
 
 	yaml_parser_delete(&parser);
+	anchor_free(L, anchors);
 	return 1;
 }
 
@@ -418,9 +488,14 @@ static int
 parse_file(lua_State *L)
 {
 	yaml_parser_t parser;
+	anchor_t *anchors;
 	const char *fnam;
 	FILE *input;
 	int env = -1;
+
+	anchors = anchor_init();
+	if (!anchors)
+		return luaL_error(L, "memory error");
 
 	fnam = luaL_checkstring(L, 1);
 	if (lua_gettop(L) > 1)
@@ -433,11 +508,12 @@ parse_file(lua_State *L)
 	yaml_parser_initialize(&parser);
 	yaml_parser_set_input_file(&parser, input);
 
-	if (parse(L, &parser, env))
+	if (parse(L, &parser, anchors, env))
 		lua_pushnil(L);
 
 	yaml_parser_delete(&parser);
 	fclose(input);
+	anchor_free(L, anchors);
 	return 1;
 }
 
@@ -465,14 +541,14 @@ luaopen_yaml(lua_State *L)
 
 	luaL_newlib(L, luayaml);
 	lua_pushliteral(L, "_COPYRIGHT");
-	lua_pushliteral(L, "Copyright (C) 2018 - 2024 "
+	lua_pushliteral(L, "Copyright (C) 2018 - 2025 "
 	    "micro systems marc balmer");
 	lua_settable(L, -3);
 	lua_pushliteral(L, "_DESCRIPTION");
 	lua_pushliteral(L, "YAML for Lua");
 	lua_settable(L, -3);
 	lua_pushliteral(L, "_VERSION");
-	lua_pushliteral(L, "yaml 1.2.3");
+	lua_pushliteral(L, "yaml 1.3.0");
 	lua_settable(L, -3);
 	return 1;
 }

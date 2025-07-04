@@ -19,6 +19,7 @@ SRCS=		trxd.c \
 		nmea-handler.c \
 		proxy.c \
 		luayaml.c \
+		anchor.c \
 		buffer.c \
 		luajson.c \
 		websocket-listener.c \
