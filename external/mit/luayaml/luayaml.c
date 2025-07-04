@@ -225,13 +225,13 @@ static int
 parse_node(lua_State *L, yaml_parser_t *parser, anchor_t *anchors,
     yaml_event_t event, int value, int env)
 {
+	int ref;
+
 	lua_checkstack(L, 16);
 
 	/* Process event */
 	switch (event.type) {
 	case YAML_ALIAS_EVENT:
-		int ref;
-
 		ref = anchor_get(anchors, event.data.alias.anchor);
 		lua_rawgeti(L, LUA_REGISTRYINDEX, ref);
 		if (lua_type(L, -1) != LUA_TTABLE) {
