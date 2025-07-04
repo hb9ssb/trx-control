@@ -23,7 +23,7 @@ vfo:
         min: 410000000
         max: 470000000
 
-    vfoModes:
+    vfoModes: &vfoModes
       vfo:
         displayName: VFO mode
       memory:
@@ -33,7 +33,7 @@ vfo:
       dv:
         displayName: VFO mode
 
-    operatingModes:
+    operatingModes: &operatingModes
       fm:
         displayName: FM
       dv:
@@ -73,7 +73,7 @@ vfo:
         max: 108000000
 
     vfoModes:
-      same-as: vfo-1
+      <<: *operatingModes
 
     operatingModes:
-      same-as: vfo-1
+      <<: *vfoModes

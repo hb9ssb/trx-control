@@ -18,7 +18,7 @@ vfo:
         min: 3000
         max: 75000000
 
-    operatingModes:
+    operatingModes: &operatingModes
       lsb:
         displayName: LSB
       usb:
@@ -63,4 +63,4 @@ vfo:
         max: 75000000
 
     operatingModes:
-      same-as: vfo-1
+      <<: *operatingModes
