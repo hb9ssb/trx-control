@@ -5,18 +5,16 @@ shortName: FT-897
 protocol: cat-5-byte
 
 vfo:
-  vfo-1:
+  vfo-1: &vfo
     displayName: VFOa
 
-    tx:
+    tx: &frequencyRange
       -
         min: 100000
         max: 470000000
 
     rx:
-      -
-        min: 100000
-        max: 470000000
+      <<: *frequencyRange
 
     operatingModes:
       lsb:
@@ -41,10 +39,8 @@ vfo:
         displayName: FMN
 
   vfo-2:
+    <<: *vfo
     displayName: VFOb
-
-    operatingModes:
-      same-as: vfo-1
 
 # CTCSS modes are not yet defined
 

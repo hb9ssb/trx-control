@@ -9,15 +9,13 @@ vfo:
   vfo-1:
     displayName: VFO
 
-    tx:
+    tx: &frequencyRange
       -
         min: 100000
         max: 450000000
 
     rx:
-      -
-        min: 100000
-        max: 450000000
+      <<: *frequencyRange
 
     operatingModes:
       lsb:
