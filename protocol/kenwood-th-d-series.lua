@@ -104,7 +104,7 @@ local function squelch(data)
 	local vfo = internalCodeToVfo[string.sub(data, 4, 4)]
 	local state = internalState[string.sub(data, 6, 6)]
 
-	return { ['squelch'] = { vfo = vfo, state = state } }
+	return { vfo = vfo, squelch = state }
 end
 
 local function dualBand(data)
@@ -117,28 +117,28 @@ local function frequency(data)
 	local vfo = internalCodeToVfo[string.sub(data, 4, 4)]
 	local hz = tonumber(string.sub(data, 6, -1))
 
-	return { frequency = { vfo = vfo, hz = hz } }
+	return { vfo = vfo, frequency = hz }
 end
 
 local function mode(data)
 	local vfo = internalCodeToVfo[string.sub(data, 4, 4)]
 	local mode = internalCodeToMode[string.sub(data, 6, 6)]
 
-	return { ['mode'] = { vfo = vfo, mode = mode } }
+	return { vfo = vfo, mode = mode }
 end
 
 local function stepSize(data)
 	local vfo = internalCodeToVfo[string.sub(data, 4, 4)]
 	local stepSize = internalStepSize[string.sub(data, 6, 6)] or 'unknown'
 
-	return { ['stepSize'] = { vfo = vfo, stepSize = stepSize } }
+	return { vfo = vfo, stepSize = stepSize }
 end
 
 local function sMeterSquelch(data)
 	local vfo = internalCodeToVfo[string.sub(data, 4, 4)]
 	local state = internalState[string.sub(data, 6, 6)]
 
-	return { ['S-meter squelch'] = { vfo = vfo, state = state } }
+	return { vfo = vfo, ['S-meter squelch'] = state }
 end
 
 local function receive(data)
@@ -148,14 +148,14 @@ end
 local function transmit(data)
 	local vfo = internalCodeToVfo[string.sub(data, 4, 4)]
 
-	return { transmit = { vfo = vfo } }
+	return { vfo = vfo }
 end
 
 local function vfoMode(data)
 	local vfo = internalCodeToVfo[string.sub(data, 4, 4)]
 	local mode = vfoMode[string.sub(data, 6, 6)]
 
-	return { ['vfoMode'] = { vfo = vfo, mode = mode } }
+	return { vfo = vfo, vfoMode = mode }
 end
 
 local decoders = {

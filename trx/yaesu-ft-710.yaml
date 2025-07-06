@@ -4,7 +4,7 @@ name: Yaesu FT-710
 shortName: FT-710
 protocol: cat-delimited
 
-ID: '0800'
+ID: !str 0800
 
 vfo:
   vfo-1: &vfo

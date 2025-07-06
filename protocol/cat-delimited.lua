@@ -39,12 +39,13 @@ local modeToInternalCode = {
 }
 
 local function initialize(driver)
+	trx.read(1)
 	trx.write('ID;')
 	local reply = trx.read(7)
 
 	if reply ~= nil then
 		if trx.verbose() > 0 then
-			print('transceiver ID:', reply:sub(3, -2))
+			print(string.format('transceiver ID (%s): %s', reply, reply:sub(3, -2)))
 		end
 
 		if reply ~= 'ID' .. driver.ID .. ';' then
@@ -76,12 +77,12 @@ end
 
 local function frequencyVfoA(data)
 	local hz = tonumber(string.sub(data, 3, 11))
-	return { frequency = { ['vfo-a'] = hz } }
+	return { vfo = 'vfo-a', frequency = hz }
 end
 
 local function frequencyVfoB(data)
 	local hz = tonumber(string.sub(data, 3, 11))
-	return { frequency = { ['vfo-b'] = hz } }
+	return { vfo = 'vfo-b', frequency = hz }
 end
 
 local function informationVfoA(data)
@@ -89,10 +90,9 @@ local function informationVfoA(data)
 	local hz = tonumber(string.sub(data, 6, 14))
 
 	return {
-		['vfo-a'] = {
-			mode = mode,
-			frequency = hz
-		}
+		vfo = 'vfo-a',
+		mode = mode,
+		frequency = hz
 	}
 end
 

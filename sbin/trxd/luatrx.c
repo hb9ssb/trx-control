@@ -83,11 +83,12 @@ luatrx_read(lua_State *L)
 	if (verbose > 2)
 		printf("<- (read %d bytes from %d)\n", len, cat_device);
 	while (nread < len) {
-		nfds = poll(&pfd, 1, 1000);
+		nfds = poll(&pfd, 1, 2000);
 		if (nfds == -1)
 			return luaL_error(L, "poll error");
 		if (nfds == 1 && pfd.revents == POLLIN) {
 			nread += read(cat_device, &buf[nread], len - nread);
+			printf("read %d bytes so far\n", nread);
 		} else {
 			if (verbose > 1)
 				printf("timeout\n");
