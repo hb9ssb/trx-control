@@ -1,0 +1,3 @@
+SUBSYSTEMS=="usb", KERNEL=="ttyUSB*", \
+	ATTRS{idVendor}=="10c4", ATTRS{idProduct}=="ea60", \
+	ENV{ID_USB_INTERFACE_NUM}=="00", MODE:="0666", SYMLINK+="ts-590-cat"
