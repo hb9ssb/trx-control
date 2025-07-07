@@ -291,7 +291,6 @@ parse_node(lua_State *L, yaml_parser_t *parser, anchor_t *anchors,
 
 			lua_pushvalue(L, -1);
 			ref = luaL_ref(L, LUA_REGISTRYINDEX);
-			printf("set ref %d\n", ref);
 			anchor_set(L, anchors, event.data.sequence_start.anchor,
 			    ref);
 		}
