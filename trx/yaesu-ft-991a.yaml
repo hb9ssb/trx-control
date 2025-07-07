@@ -10,7 +10,8 @@ vfo:
     tx: &frequencyRange
       - min: 30000
         max: 470000000
-    rx: *frequencyRange
+    rx:
+      <<: *frequencyRange
 
     operatingModes:
       lsb:
