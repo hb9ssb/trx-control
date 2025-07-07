@@ -37,6 +37,14 @@ local modeToInternalCode = {
 	psk = 'E',
 	['data-fm-n'] = 'F'
 }
+local internalCodeToMode = {}
+
+local vfoToInternalCode = {
+	['vfo-1'] = '0',
+	['vfo-2'] = '1'
+}
+local internalCodeToVfo = {}
+local lastVfo = 'vfo-1'
 
 local function initialize(driver)
 	trx.read(1)
@@ -54,6 +62,15 @@ local function initialize(driver)
 			print ('this is a ' .. driver.name .. ' transceiver')
 		end
 	end
+
+	for k, v in pairs(modeToInternalCode) do
+		internalCodeToMode[v] = k
+	end
+
+	for k, v in pairs(vfoToInternalCode) do
+		internalCodeToVfo[v] = k
+	end
+
 end
 
 -- Handling auto information
@@ -177,51 +194,38 @@ local function getFrequency(driver, request, response)
 end
 
 local function setMode(driver, request, response)
-	local band = request.band
-	local bcode
+	local vfo = request.vfo or lastVfo
 
-	response.band = band
+	response.vfo = vfo
 	response.mode = request.mode
 
-	if band == 'main' then
-		bcode = '0'
-	elseif band == 'sub' then
-		bcode = '1'
-	else
+	local vfoCode = vfoToInternalCode[vfo] or '0'
+
+	trx.write(string.format('MD%s%s;', vfoCode, modeToInternalCode[request.mode]))
+
+	lastVfo = vfo
+end
+
+local function getMode(driver, request, response)
+	local vfo = request.vfo
+
+	local vfo = request.vfo or lastVfo
+
+	local vfoCode = vfoToInternalCode[vfo]
+	if vfoCode == nil then
 		response.status = 'Failure'
-		response.reason = 'Missing or invalid band'
+		response.reason = 'Unknown VFO'
 		return
 	end
 
-	if driver.validModes[mode] ~= nil then
-		trx.write(string.format('MD%s%s;', bcode,
-		    driver.validModes[mode]))
-	else
-		response.status = 'Failure'
-		response.reason = 'Missing or invalid mode'
-	end
-end
-
-local function getMode(driver, request, response, band)
-	local band = request.band
-	local bcode = '0'
-
-	if band == 'sub' then
-		bcode = '1'
-	end
-
-	trx.write(string.format('MD%s;', bcode))
+	trx.write(string.format('MD%s;', vfoCode))
 	local reply = trx.read(5)
 	local mode = string.sub(reply, 4, 4)
 
-	for k, v in pairs(driver.validModes) do
-		if v == mode then
-			response.mode = k
-			return
-		end
-	end
-	response.status = 'Failure'
-	response.reason = 'Unknown mode from trx'
+	response.mode = internalCodeToMode[mode] or 'unknown'
+
+	response.vfo = vfo
+	lastVfo = vfo
 end
 
 return {
