@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 - 2024 Marc Balmer HB9SSB
+ * Copyright (c) 2023 - 2025 Marc Balmer HB9SSB
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -79,7 +79,7 @@ trx_handler(void *arg)
 		}
 		if (pfd.revents) {
 			for (n = 0; n < sizeof(buf) - 1; n++) {
-				read(fd, &buf[n], 1);
+				if (read(fd, &buf[n], 1) == -1)
 				if (buf[n] == t->handler_eol)
 					break;
 			}
@@ -91,17 +91,20 @@ trx_handler(void *arg)
 			t->client_fd = 0;
 
 			if (pthread_mutex_lock(&t->mutex2)) {
-				syslog(LOG_ERR, "trx-handler: pthread_mutex_lock");
+				syslog(LOG_ERR,
+				    "trx-handler: pthread_mutex_lock");
 				exit(1);
 			}
 
 			if (pthread_cond_signal(&t->cond1)) {
-				syslog(LOG_ERR, "trx-handler: pthread_cond_signal");
+				syslog(LOG_ERR,
+				    "trx-handler: pthread_cond_signal");
 				exit(1);
 			}
 
 			if (pthread_mutex_unlock(&t->mutex2)) {
-				syslog(LOG_ERR, "trx-handler: pthread_mutex_unlock");
+				syslog(LOG_ERR,
+				    "trx-handler: pthread_mutex_unlock");
 				exit(1);
 			}
 
@@ -114,7 +117,8 @@ trx_handler(void *arg)
 			}
 
 			if (pthread_mutex_unlock(&t->mutex2)) {
-				syslog(LOG_ERR, "trx-handler: pthread_mutex_unlock");
+				syslog(LOG_ERR,
+				    "trx-handler: pthread_mutex_unlock");
 				exit(1);
 			}
 

@@ -23,6 +23,7 @@
 /* Provide the 'trx' Lua module to transceiver drivers */
 
 #include <err.h>
+#include <errno.h>
 #include <poll.h>
 #include <stdlib.h>
 #include <termios.h>
@@ -72,7 +73,8 @@ luatrx_read(lua_State *L)
 {
 	struct pollfd pfd;
 	unsigned char buf[256];
-	size_t len, nread, nfds;
+	size_t rv, len, nread, nfds;
+	time_t now;
 
 	len = luaL_checkinteger(L, 1);
 
@@ -82,17 +84,19 @@ luatrx_read(lua_State *L)
 	nread = 0;
 	if (verbose > 2)
 		printf("<- (read %d bytes from %d)\n", len, cat_device);
-	while (nread < len) {
-		nfds = poll(&pfd, 1, 2000);
+	now = time(NULL);
+
+	while (nread < len && time(NULL) < now + 5) {
+		nfds = poll(&pfd, 1, 1000);
 		if (nfds == -1)
 			return luaL_error(L, "poll error");
 		if (nfds == 1 && pfd.revents == POLLIN) {
-			nread += read(cat_device, &buf[nread], len - nread);
-			printf("read %d bytes so far\n", nread);
-		} else {
-			if (verbose > 1)
-				printf("timeout\n");
-			break;
+			rv = read(cat_device, &buf[nread], len - nread);
+			if (rv == -1 && errno == EAGAIN) {
+				printf("EGAIN\n");
+				continue;
+			}
+			nread += rv;
 		}
 	}
 
@@ -221,7 +225,7 @@ luaopen_trx(lua_State *L)
 
 	luaL_newlib(L, luatrx);
 	lua_pushliteral(L, "_COPYRIGHT");
-	lua_pushliteral(L, "Copyright (c) 2023 - 2024 Marc Balmer HB9SSB");
+	lua_pushliteral(L, "Copyright (c) 2023 - 2025 Marc Balmer HB9SSB");
 	lua_settable(L, -3);
 	lua_pushliteral(L, "_DESCRIPTION");
 	lua_pushliteral(L, "trx-control for Lua");

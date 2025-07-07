@@ -162,7 +162,8 @@ trx_controller(void *arg)
 		syslog(LOG_ERR, "trx-controller: unknown device %s", t->device);
 		exit(1);
 	}
-
+	fcntl(fd, F_SETFL, fcntl(fd, F_GETFL) | O_NONBLOCK);
+	sleep(1);
 	cat_device = fd;
 	t->cat_device = fd;
 
