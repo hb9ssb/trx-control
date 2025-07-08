@@ -167,7 +167,7 @@ local function handleStatusUpdates(driver, data)
 		return reply
 	end
 
-	return { unknownCommand = command }
+	return { unknownCommand = command, ['raw-data'] = data }
 end
 
 -- direct driver commands
