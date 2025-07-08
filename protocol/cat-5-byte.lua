@@ -20,6 +20,8 @@
 
 -- Yaesu 5-byte CAT protocol
 
+local linux = require 'linux'
+
 local modeToInternalCode = {
 	lsb = 0x00,
 	usb = 0x01,
@@ -32,12 +34,19 @@ local modeToInternalCode = {
 	pkt = 0x0c,
 	fmn = 0x88
 }
+local internalCodeToMode = {}
+
+local vfo = 'vfo-1'
 
 local function initialize(driver, functions)
 	trx.read(1)
 	if driver.powerControl == false then
 		functions['power-on'] = nil
 		functions['power-off'] = nil
+	end
+
+	for k, v in pairs(modeToInternalCode) do
+		internalCodeToMode[v] = k
 	end
 end
 
@@ -51,7 +60,30 @@ local function setUnlock(driver, request, response)
 	response.state = 'unlocked'
 end
 
+local function toggleVfo()
+	trx.write('\x00\x00\x00\x00\x81')
+	if vfo == 'vfo-1' then
+		vfo = 'vfo-2'
+	else
+		vfo = 'vfo-1'
+	end
+	linux.msleep(500)
+	trx.read(1)
+end
+
 local function setFrequency(driver, request, response)
+	if request.vfo ~= nil then
+		if request.vfo ~= vfo then
+			if request.vfo == 'vfo-1' or request.vfo == 'vfo-2' then
+				toggleVfo()
+			else
+				response.status = 'Failure'
+				response.reason = 'Unknown VFO'
+				return
+			end
+		end
+	end
+
 	local freq = string.sub(string.format('%09d', request.frequency), 1, -2)
 	local bcd = trx.stringToBcd(freq)
 	trx.write(bcd .. '\x01')
@@ -59,6 +91,18 @@ local function setFrequency(driver, request, response)
 end
 
 local function getFrequency(driver, request, response)
+	if request.vfo ~= nil then
+		if request.vfo ~= vfo then
+			if request.vfo == 'vfo-1' or request.vfo == 'vfo-2' then
+				toggleVfo()
+			else
+				response.status = 'Failure'
+				response.reason = 'Unknown VFO'
+				return
+			end
+		end
+	end
+
 	trx.write('\x00\x00\x00\x00\x03')
 	local f = trx.read(5)
 	if f ~= nil then
@@ -83,6 +127,18 @@ local function getFrequency(driver, request, response)
 end
 
 local function setMode(driver, request, response)
+	if request.vfo ~= nil then
+		if request.vfo ~= vfo then
+			if request.vfo == 'vfo-1' or request.vfo == 'vfo-2' then
+				toggleVfo()
+			else
+				response.status = 'Failure'
+				response.reason = 'Unknown VFO'
+				return
+			end
+		end
+	end
+
 	local newMode = driver.validModes[request.mode]
 
 	response.mode = mode
@@ -96,19 +152,27 @@ local function setMode(driver, request, response)
 end
 
 local function getMode(driver, request, response)
+	if request.vfo ~= nil then
+		if request.vfo ~= vfo then
+			if request.vfo == 'vfo-1' or request.vfo == 'vfo-2' then
+				toggleVfo()
+			else
+				response.status = 'Failure'
+				response.reason = 'Unknown VFO'
+				return
+			end
+		end
+	end
+
 	trx.write('\x00\x00\x00\x00\x03')
 	local f = trx.read(5)
 	local m = string.byte(f, 5)
 
-	for k, v in pairs(driver.validModes) do
-		if v == m then
-			response.mode = k
-			return
-		end
+	response.mode = internalCodeToMode[m]
+	if response.mode == nil then
+		response.status = 'Failure'
+		response.reason = string.format('Unknown mode code %X', m)
 	end
-
-	response.status = 'Failure'
-	response.reason = string.format('Unknown mode code %X', m)
 end
 
 local function powerOn(driver, request, response)

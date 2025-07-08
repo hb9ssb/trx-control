@@ -486,6 +486,7 @@ main(int argc, char *argv[])
 		lua_pushnil(L);
 		while (lua_next(L, top)) {
 			trx_controller_tag_t *t;
+			const char *p;
 			char trx_path[PATH_MAX];
 			const char *protocol;
 			char proto_path[PATH_MAX];
@@ -576,6 +577,48 @@ main(int argc, char *argv[])
 			lua_setglobal(t->L, "json");
 			luaopen_yaml(t->L);
 			lua_setglobal(t->L, "yaml");
+
+			lua_getglobal(t->L, "package");
+			lua_getfield(t->L, -1, "cpath");
+			lua_pushstring(t->L, ";");
+			lua_pushstring(t->L, _PATH_LUA_CPATH);
+			lua_concat(t->L, 3);
+			lua_setfield(t->L, -2, "cpath");
+			lua_pop(t->L, 1);
+
+			lua_getglobal(t->L, "package");
+			lua_getfield(t->L, -1, "path");
+			lua_pushstring(t->L, ";");
+			lua_pushstring(t->L, _PATH_LUA_PATH);
+			lua_concat(t->L, 3);
+			lua_setfield(t->L, -2, "path");
+			lua_pop(t->L, 1);
+
+			lua_getfield(L, -1, "path");
+			if (lua_isstring(L, -1)) {
+				p = lua_tostring(L, -1);
+				lua_getglobal(t->L, "package");
+				lua_getfield(t->L, -1, "path");
+				lua_pushstring(t->L, ";");
+				lua_pushstring(t->L, p);
+				lua_concat(t->L, 3);
+				lua_setfield(t->L, -2, "path");
+				lua_pop(t->L, 1);
+			}
+			lua_pop(L, 1);
+
+			lua_getfield(L, -1, "cpath");
+			if (lua_isstring(L, -1)) {
+				p = lua_tostring(L, -1);
+				lua_getglobal(t->L, "package");
+				lua_getfield(t->L, -1, "cpath");
+				lua_pushstring(t->L, ";");
+				lua_pushstring(t->L, p);
+				lua_concat(t->L, 3);
+				lua_setfield(t->L, -2, "cpath");
+				lua_pop(t->L, 1);
+			}
+			lua_pop(L, 1);
 
 			/* Load trx description and protocol driver */
 			snprintf(trx_path, sizeof(trx_path), "%s/%s.yaml",

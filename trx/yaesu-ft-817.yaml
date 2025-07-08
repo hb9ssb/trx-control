@@ -6,8 +6,8 @@ shortName: FT-817
 protocol: cat-5-byte
 
 vfo:
-  vfo-1:
-    displayName: VFO
+  vfo-1: &vfo
+    displayName: VFOa
 
     tx: &frequencyRange
       -
@@ -36,6 +36,10 @@ vfo:
         displayName: DIG
       pkt:
         displayName: PKT
+
+  vfo-2:
+    <<: *vfo
+    displayName: VFOb
 
 # CTCSS modes are not yet defined
 
