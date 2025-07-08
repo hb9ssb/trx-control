@@ -150,6 +150,15 @@ local function getMode(driver, request, response)
 	response.mode = internalCodeToMode[mode] or '??'
 end
 
+local function powerOn(driver, request, response)
+	sendMessage('\x18\x01')
+end
+
+local function powerOff(driver, request, response)
+	sendMessage('\x18\x00')
+
+end
+
 return {
 	name = 'ICOM CI-V',
 	controllerAddress = 0xe0,
@@ -174,5 +183,8 @@ return {
 	getMode = getMode,
 	setMode = setMode,
 	getPtt = nil,
-	setPtt = nil
+	setPtt = nil,
+	powerOn = powerOn,
+	powerOff = powerOff,
+
 }
