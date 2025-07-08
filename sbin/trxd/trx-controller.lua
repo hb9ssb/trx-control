@@ -69,6 +69,10 @@ local function registerDriver(destination, dev, newDriver)
 		    and driver.setLock or nil,
 		['unlock-trx'] = type(driver.setUnlock) == 'function'
 		    and driver.setUnlock or nil,
+		['power-on'] = type(driver.powerOn) == 'function'
+		    and driver.powerOn or nil,
+		['power-off'] = type(driver.powerOff) == 'function'
+		    and driver.powerOff or nil,
 	}
 
 	if type(driver.initialize) == 'function' then

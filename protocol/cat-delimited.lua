@@ -183,13 +183,37 @@ local function setUnlock(driver, request, response)
 end
 
 local function setFrequency(driver, request, response)
-	trx.write(string.format('FA%09d;', tonumber(request.frequency)))
+	local vfo = request.vfo or lastVfo
+
+	if vfo == 'vfo-1' then
+		trx.write(string.format('FA%09d;', tonumber(request.frequency)))
+	elseif vfo == 'vfo-2' then
+		trx.write(string.format('FB%09d;', tonumber(request.frequency)))
+	else
+		response.status = 'Failure'
+		response.reason = 'Unknown VFO'
+		return
+	end
+
+	response.vfo = vfo
 	response.frequency = request.frequency
 end
 
 local function getFrequency(driver, request, response)
-	trx.write('FA;')
+	local vfo = request.vfo or lastVfo
+
+	if vfo == 'vfo-1' then
+		trx.write('FA;')
+	elseif vfo == 'vfo-2' then
+		trx.write('FB;')
+	else
+		response.status = 'Failure'
+		response.reason = 'Unknown VFO'
+		return
+	end
+
 	local reply = trx.read(12)
+	response.vfo = vfo
 	response.frequency = tonumber(string.sub(reply, 3, 11))
 end
 
@@ -207,8 +231,6 @@ local function setMode(driver, request, response)
 end
 
 local function getMode(driver, request, response)
-	local vfo = request.vfo
-
 	local vfo = request.vfo or lastVfo
 
 	local vfoCode = vfoToInternalCode[vfo]
@@ -226,6 +248,14 @@ local function getMode(driver, request, response)
 
 	response.vfo = vfo
 	lastVfo = vfo
+end
+
+local function powerOn(driver, request, response)
+	trx.write('PS1;')
+end
+
+local function powerOff(driver, request, response)
+	trx.write('PS0;')
 end
 
 return {
@@ -247,5 +277,7 @@ return {
 	setFrequency = setFrequency,
 	getFrequency = getFrequency,
 	getMode = getMode,
-	setMode = setMode
+	setMode = setMode,
+	powerOn = powerOn,
+	powerOff = powerOff,
 }
