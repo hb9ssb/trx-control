@@ -1,0 +1,55 @@
+# Yaesu FT-891 Transceiver Definitions
+
+name: Yaesu FT-891
+shortName: FT-891
+protocol: cat-delimited
+
+ID: !str 0650
+
+vfo:
+  vfo-1: &vfo
+    displayName: VFO-A
+    tx: &frequencyRange
+      -
+        min: 1800000
+        max: 54000000
+    rx:
+      -
+        min: 30000
+        max: 56000000
+
+    operatingModes:
+      lsb:
+        displayName: LSB
+      usb:
+        displayName: USB
+      cw-u:
+        displayName: CW-U
+      fm:
+        displayName: FM
+      am:
+        displayName: AM
+      rtty-l:
+        displayName: RTTY-L
+      cw-l:
+        displayName: CW-L
+      data-l:
+        displayName: DATA-L
+      rtty-u:
+        displayName: RTTY-U
+      data-fm:
+        displayName: DATA-FM
+      fm-n:
+        displayName: FM-N
+      data-u:
+        displayName: DATA-U
+      am-n:
+        displayName: AM-N
+      psk:
+        displayName: PSK
+      data-fm-n:
+        displayName: DATA-FM-N
+
+  vfo-2:
+    <<: *vfo
+    displayName: VFO-B

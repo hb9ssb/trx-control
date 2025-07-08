@@ -6,6 +6,8 @@ TRX=		csi-cs7000-m17.yaml \
 		simulator.yaml \
 		yaesu-ft-710.yaml \
 		yaesu-ft-817.yaml \
+		yaesu-ft-857.yaml \
+		yaesu-ft-891.yaml \
 		yaesu-ft-897.yaml \
 		yaesu-ft-991a.yaml
 
