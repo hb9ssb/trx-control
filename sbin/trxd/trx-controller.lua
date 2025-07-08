@@ -76,7 +76,7 @@ local function registerDriver(destination, dev, newDriver)
 	}
 
 	if type(driver.initialize) == 'function' then
-		driver:initialize()
+		driver:initialize(functions)
 	end
 end
 

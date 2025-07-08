@@ -4,6 +4,9 @@ name: Yaesu FT-897
 shortName: FT-897
 protocol: cat-5-byte
 
+# The Yaesu FT-897 has no power control commands
+powerControl: no
+
 vfo:
   vfo-1: &vfo
     displayName: VFOa

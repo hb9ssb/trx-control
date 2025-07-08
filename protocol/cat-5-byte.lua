@@ -33,8 +33,12 @@ local modeToInternalCode = {
 	fmn = 0x88
 }
 
-local function initialize(driver)
+local function initialize(driver, functions)
 	trx.read(1)
+	if driver.powerControl == false then
+		functions['power-on'] = nil
+		functions['power-off'] = nil
+	end
 end
 
 local function setLock(driver, request, response)
