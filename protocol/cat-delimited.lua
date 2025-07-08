@@ -258,6 +258,34 @@ local function powerOff(driver, request, response)
 	trx.write('PS0;')
 end
 
+local function getPtt(driver, request, response)
+	trx.write('TX;')
+	local reply = trx.read(4)
+
+	local code = string.sub(reply, 3, 3)
+
+	if code == '0' then
+		response.ptt = 'off'
+	else
+		response.ptt = 'on'
+	end
+end
+
+local function setPtt(driver, request, response)
+
+	if request.ptt == 'on' then
+		trx.write('TX1;')
+	elseif request.ptt == 'off' then
+		trx.write('TX0;')
+	else
+		response.status = 'Failure'
+		response.reason = 'Unkknown PTT mode'
+		return
+	end
+
+	response.ptt = request.ptt
+end
+
 return {
 	name = 'Yaesu character delimited CAT protocol',
 	ID = '0000',
@@ -278,6 +306,8 @@ return {
 	getFrequency = getFrequency,
 	getMode = getMode,
 	setMode = setMode,
+	getPtt = getPtt,
+	setPtt = setPtt,
 	powerOn = powerOn,
 	powerOff = powerOff,
 }
