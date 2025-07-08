@@ -107,6 +107,42 @@ local function getMode(driver, request, response)
 	response.reason = string.format('Unknown mode code %X', m)
 end
 
+local function powerOn(driver, request, response)
+	trx.write('\x00\x00\x00\x00\x00')
+	trx.write('\x00\x00\x00\x00\x0f')
+end
+
+local function powerOff(driver, request, response)
+		trx.write('\x00\x00\x00\x00\x8f')
+end
+
+local function getPtt(driver, request, response)
+	trx.write('\x00\x00\x00\x00\xf7')
+	local status = trx.read(1)
+
+	response.raw = string.format('%02x', string.byte(status))
+	if string.byte(status) & 0x80 == 0x80 then
+		response.ptt = 'off'
+	else
+		response.ptt = 'on'
+	end
+end
+
+local function setPtt(driver, request, response)
+
+	if request.ptt == 'on' then
+		trx.write('\x00\x00\x00\x00\x08')
+	elseif request.ptt == 'off' then
+		trx.write('\x00\x00\x00\x00\x88')
+	else
+		response.status = 'Failure'
+		response.reason = 'Unkknown PTT mode'
+		return
+	end
+
+	response.ptt = request.ptt
+end
+
 return {
 	name = 'Yaesu 5-byte CAT protocol',
 	capabilities = {	-- driver specific
@@ -126,5 +162,9 @@ return {
 	setFrequency = setFrequency,
 	getFrequency = getFrequency,
 	getMode = getMode,
-	setMode = setMode
+	setMode = setMode,
+	getPtt = getPtt,
+	setPtt = setPtt,
+	powerOn = powerOn,
+	powerOff = powerOff,
 }
