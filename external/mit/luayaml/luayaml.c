@@ -226,6 +226,7 @@ parse_node(lua_State *L, yaml_parser_t *parser, anchor_t *anchors,
     yaml_event_t event, int value, int env)
 {
 	int ref;
+	static int override = 0;
 
 	lua_checkstack(L, 16);
 
@@ -234,12 +235,14 @@ parse_node(lua_State *L, yaml_parser_t *parser, anchor_t *anchors,
 	case YAML_ALIAS_EVENT:
 		ref = anchor_get(anchors, event.data.alias.anchor);
 		lua_rawgeti(L, LUA_REGISTRYINDEX, ref);
-		if (lua_type(L, -1) != LUA_TTABLE) {
-			/* The value is already on the top of the stack */
-			return 0;
-		} else {
-			/* Copy the table */
-			int t = lua_gettop(L);
+
+		/* tables need special attention */
+		if (lua_type(L, -1) == LUA_TTABLE) {
+			int t;
+
+			t = lua_gettop(L);
+			if (!override)
+				lua_newtable(L);
 			lua_pushnil(L);
 			while (lua_next(L, t) != 0) {
 				lua_pushvalue(L, -2);
@@ -248,12 +251,15 @@ parse_node(lua_State *L, yaml_parser_t *parser, anchor_t *anchors,
 				lua_pop(L, 1);
 			}
 			lua_pop(L, 1);
+			if (override) {
+				override = 0;
+				return 1;
+			}
 		}
-		return 2;
 		break;
 	case YAML_SCALAR_EVENT:
 		if (!strcmp((char *)event.data.scalar.value, "<<")) {
-			/* push nothing on the stack */
+			override = 1;
 			return 1;
 		}
 		if (value) {
@@ -339,8 +345,6 @@ parse_mapping(lua_State *L, yaml_parser_t *parser, anchor_t *anchors, int env)
 				if (value)
 					lua_settable(L, -3);
 				value = 1 - value;
-			} else if (rv == 2) {
-				value = 0;
 			}
 		}
 		yaml_event_delete(&event);
