@@ -10,12 +10,10 @@ vfo:
   vfo-1: &vfo
     displayName: VFO-A
     tx: &frequencyRange
-      -
-        min: 1800000
+      - min: 1800000
         max: 54000000
     rx:
-      -
-        min: 30000
+      - min: 30000
         max: 56000000
 
     operatingModes:

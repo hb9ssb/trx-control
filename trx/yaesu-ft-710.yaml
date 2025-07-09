@@ -10,11 +10,9 @@ vfo:
   vfo-1: &vfo
     displayName: VFO-A
     tx: &frequencyRange
-      -
-        min: 3000
+      - min: 3000
         max: 75000000
-    rx:
-      <<: *frequencyRange
+    rx: *frequencyRange
 
     operatingModes:
       lsb:
