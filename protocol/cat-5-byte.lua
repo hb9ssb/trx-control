@@ -91,7 +91,7 @@ local function setFrequency(driver, request, response)
 end
 
 local function getFrequency(driver, request, response)
-	if request.vfo ~= nil then
+	if request ~= nil and request.vfo ~= nil then
 		if request.vfo ~= vfo then
 			if request.vfo == 'vfo-1' or request.vfo == 'vfo-2' then
 				toggleVfo()
@@ -152,7 +152,7 @@ local function setMode(driver, request, response)
 end
 
 local function getMode(driver, request, response)
-	if request.vfo ~= nil then
+	if request ~= nil and request.vfo ~= nil then
 		if request.vfo ~= vfo then
 			if request.vfo == 'vfo-1' or request.vfo == 'vfo-2' then
 				toggleVfo()
