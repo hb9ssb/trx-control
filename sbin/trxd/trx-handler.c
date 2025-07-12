@@ -78,10 +78,15 @@ trx_handler(void *arg)
 			exit(1);
 		}
 		if (pfd.revents) {
-			for (n = 0; n < sizeof(buf) - 1; n++) {
-				if (read(fd, &buf[n], 1) == -1)
-				if (buf[n] == t->handler_eol)
+			for (n = 0; n < sizeof(buf) - 1;) {
+				if (read(fd, &buf[n], 1) == -1) {
+					if (errno == EAGAIN)
+						continue;
+					else
+						break;
+				} else if (buf[n] == t->handler_eol)
 					break;
+				n++;
 			}
 			buf[++n] = '\0';
 
