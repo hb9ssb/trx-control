@@ -72,18 +72,14 @@ local internalStepSize = {
 
 -- Handling auto information
 local function startStatusUpdates(driver)
-	print('start status updates')
 	trx.write('AI 1\r')
 	local reply = trx.read(5)
-	print('reply:', reply)
 	return string.byte('\r')
 end
 
 local function stopStatusUpdates(driver)
-	print('stop status updates')
 	trx.write('AI 0\r')
 	local reply = trx.read(5)
-	print('reply:', reply)
 	return string.byte('\r')
 end
 
@@ -186,8 +182,6 @@ end
 
 -- Exported functions
 local function initialize(driver)
-	print (driver.name .. ': initialize')
-
 	for k, v in pairs(modeToInternalCode) do
 		internalCodeToMode[v] = k
 	end
