@@ -145,15 +145,17 @@ add_destination(const char *name, enum DestinationType type, void *arg)
 		if (!strcmp(name, "nmea"))
 			d->tag.nmea = arg;
 		else {
-			syslog(LOG_ERR, "unknown internal name '%s'\n", name);
+			syslog(LOG_ERR, "unknown internal name '%s'", name);
 			exit(1);
 		}
 		break;
 	case DEST_EXTENSION:
 		d->tag.extension = arg;
 		break;
+	case DEST_ROTOR:
+		syslog(LOG_ERR, "rotors are not yet supported");
+		exit(1);
 	}
-
 
 	if (destination == NULL)
 		destination = d;
@@ -216,7 +218,7 @@ main(int argc, char *argv[])
 	struct stat sb;
 	struct addrinfo hints, *res, *res0;
 	lua_State *L;
-	pthread_t trx_control_thread, thread;
+	pthread_t thread;
 	int fd, listen_fd[MAXLISTEN], i, ch, noannounce = 0, nodaemon = 0;
 	int error, val, top;
 #ifdef USE_SDDM
@@ -488,7 +490,7 @@ main(int argc, char *argv[])
 			trx_controller_tag_t *t;
 			const char *p;
 			char trx_path[PATH_MAX];
-			const char *protocol;
+			const char *protocol = NULL;
 			char proto_path[PATH_MAX];
 
 			t = malloc(sizeof(trx_controller_tag_t));
@@ -653,6 +655,12 @@ main(int argc, char *argv[])
 				    lua_tostring(t->L, -1));
 				exit(1);
 				break;
+			}
+
+			if (protocol == NULL) {
+				syslog(LOG_ERR, "%s: no protocol defined",
+				    trx_path);
+				exit(1);
 			}
 
 			snprintf(proto_path, sizeof(proto_path), "%s/%s.lua",

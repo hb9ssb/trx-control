@@ -73,9 +73,7 @@ trx_controller(void *arg)
 {
 	trx_controller_tag_t *t = (trx_controller_tag_t *)arg;
 	struct termios tty;
-	int fd, n;
-	struct stat sb;
-	pthread_t trx_handler_thread;
+	int fd;
 
 	if (pthread_detach(pthread_self())) {
 		syslog(LOG_ERR, "trx-controller: pthread_detach");
@@ -136,7 +134,7 @@ trx_controller(void *arg)
 
 		fd = socket(AF_BLUETOOTH, SOCK_STREAM, BTPROTO_RFCOMM);
 		if (fd == -1) {
-			syslog(LOG_ERR, "trx-controller: can't get bluetooth "
+			syslog(LOG_ERR, "trx-controller: %s: can't get bluetooth "
 			    "socket: %s", t->device, strerror(errno));
 			exit(1);
 		}
@@ -201,8 +199,6 @@ trx_controller(void *arg)
 	}
 
 	for (;;) {
-		int nargs = 1;
-
 		/* Wait on cond, this releases the mutex */
 		while (t->handler == NULL) {
 			if (pthread_cond_wait(&t->cond1, &t->mutex2)) {

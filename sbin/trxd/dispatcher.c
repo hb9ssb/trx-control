@@ -647,7 +647,6 @@ static void
 remove_listener(dispatcher_tag_t *d, destination_t *dst)
 {
 	sender_list_t *p, *l;
-	extension_tag_t * t;
 
 	pthread_mutex_lock(&destination_mutex);
 	pthread_mutex_lock(&dst->tag.extension->mutex);
@@ -928,7 +927,7 @@ initialize_private_extensions(lua_State *L)
 	while (lua_next(L, top)) {
 		extension_tag_t *t;
 		const char *p;
-		char script[PATH_MAX], *name;
+		char script[PATH_MAX];
 
 		t = malloc(sizeof(extension_tag_t));
 		if (t == NULL) {
@@ -949,7 +948,6 @@ initialize_private_extensions(lua_State *L)
 		lua_setglobal(t->L, "json");
 
 		t->call = t->done = 0;
-		name = (char *)lua_tostring(L, -2);
 
 		lua_getglobal(t->L, "package");
 		lua_getfield(t->L, -1, "cpath");
@@ -1060,10 +1058,9 @@ void *
 dispatcher(void *arg)
 {
 	dispatcher_tag_t *d = (dispatcher_tag_t *)arg;
-	trx_controller_tag_t *t;
 	destination_t *to, *dst;
 	lua_State *L;
-	int status, request;
+	int request;
 	const char *dest, *req;
 
 	if (pthread_detach(pthread_self())) {

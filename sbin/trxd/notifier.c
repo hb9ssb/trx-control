@@ -39,11 +39,6 @@ void *
 notifier(void *arg)
 {
 	dispatcher_tag_t *d = (dispatcher_tag_t *)arg;
-	trx_controller_tag_t *t;
-	destination_t *to, *dst;
-	lua_State *L;
-	int status, request;
-	const char *dest, *req;
 
 	if (pthread_detach(pthread_self()))
 		err(1, "notifier: pthread_detach");

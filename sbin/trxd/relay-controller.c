@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 - 2024 Marc Balmer HB9SSB
+ * Copyright (c) 2023 - 2025 Marc Balmer HB9SSB
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -68,10 +68,6 @@ relay_controller(void *arg)
 {
 	relay_controller_tag_t *t = (relay_controller_tag_t *)arg;
 	lua_State *L;
-	int fd, n, driver_ref;
-	struct stat sb;
-	char trx_driver[PATH_MAX];
-	pthread_t relay_handler_thread;
 
 	if (pthread_detach(pthread_self())) {
 		syslog(LOG_ERR, "relay-controller: pthread_detach");
@@ -127,8 +123,6 @@ relay_controller(void *arg)
 	}
 
 	while (1) {
-		int nargs = 1;
-
 		/* Wait on cond, this releases the mutex */
 		while (t->handler == NULL) {
 			if (pthread_cond_wait(&t->cond1, &t->mutex2)) {

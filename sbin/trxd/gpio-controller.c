@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 - 2024 Marc Balmer HB9SSB
+ * Copyright (c) 2023 - 2025 Marc Balmer HB9SSB
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -68,10 +68,9 @@ gpio_controller(void *arg)
 {
 	gpio_controller_tag_t *t = (gpio_controller_tag_t *)arg;
 	struct termios tty;
-	int fd, n;
+	int fd;
 	struct stat sb;
 	char gpio_driver[PATH_MAX];
-	pthread_t gpio_handler_thread;
 
 	t->L = NULL;
 	if (pthread_detach(pthread_self())) {
@@ -213,8 +212,6 @@ gpio_controller(void *arg)
 	}
 
 	while (1) {
-		int nargs = 1;
-
 		/* Wait on cond, this releases the mutex */
 		while (t->handler == NULL) {
 			if (pthread_cond_wait(&t->cond1, &t->mutex2)) {

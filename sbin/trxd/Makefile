@@ -61,7 +61,7 @@ CFLAGS+=	-I../../lib/libtrx-control -I../../external/mit/lua/src \
 		-I../../external/mit/luajson -pthread -D_GNU_SOURCE \
 		-DTRXD_VERSION=\"${VERSION}\" \
 		-DTRXD_RELEASE=\"${RELEASE}\" \
-		-export-dynamic
+		-export-dynamic -Wall
 LDFLAGS+=	-L../../lib/libtrx-control -ltrx-control \
 		../../lib/liblua/liblua.a -ldl -lyaml -lm -lssl -lcrypto \
 		-lavahi-client -lavahi-common -lbluetooth

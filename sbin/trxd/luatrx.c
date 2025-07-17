@@ -83,7 +83,7 @@ luatrx_read(lua_State *L)
 
 	nread = 0;
 	if (verbose > 2)
-		printf("<- (read %d bytes from %d)\n", len, cat_device);
+		printf("<- (read %ld bytes from %d)\n", len, cat_device);
 	now = time(NULL);
 
 	while (nread < len && time(NULL) < now + 5) {
@@ -109,7 +109,7 @@ luatrx_read(lua_State *L)
 	}
 
 	if (nread > 0)
-		lua_pushlstring(L, buf, nread);
+		lua_pushlstring(L, (char *)buf, nread);
 	else
 		lua_pushnil(L);
 
@@ -124,7 +124,7 @@ luatrx_write(lua_State *L)
 	const unsigned char *data;
 	size_t len;
 
-	data = luaL_checklstring(L, 1, &len);
+	data = (unsigned char *)luaL_checklstring(L, 1, &len);
 	tcflush(cat_device, TCIFLUSH);
 	if (verbose > 2) {
 		int i;
@@ -153,7 +153,7 @@ bcd_to_string(lua_State *L)
 		*p++ = '0' + (*bcd_string & 0x0f);
 	}
 	*p = '\0';
-	lua_pushstring(L, string);
+	lua_pushstring(L, (char *)string);
 	free(string);
 	return 1;
 }
@@ -161,18 +161,20 @@ bcd_to_string(lua_State *L)
 static int
 string_to_bcd(lua_State *L)
 {
-	unsigned char *bcd_string, *string, *p;
+	unsigned char *bcd_string, *p;
+	const char *string;
 	size_t len;
 	int n;
 
-	string = (unsigned char *)luaL_checklstring(L, 1, &len);
+	string = luaL_checklstring(L, 1, &len);
 	bcd_string = p = malloc(len);
 	for (n = 0; n < len / 2; n++)
-		*p++ = *string++ - '0' << 4 | *string++ & 0x0f;
+		*p++ = *string++ - '0' << 4 | (*string++ & 0x0f);
 	*p = '\0';
 
-	lua_pushlstring(L, bcd_string, len / 2);
+	lua_pushlstring(L, (char *)bcd_string, len / 2);
 	free(bcd_string);
+
 	return 1;
 }
 
@@ -197,7 +199,7 @@ crc16(lua_State *L)
 	}
 	crc_out[0] = crc & 0xff;
 	crc_out[1] = (crc >> 8) & 0xff;
-	lua_pushlstring(L, crc_out, 2);
+	lua_pushlstring(L, (char *)crc_out, 2);
 	return 1;
 }
 
