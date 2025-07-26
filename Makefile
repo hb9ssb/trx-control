@@ -21,6 +21,7 @@ SUBDIR+=	bin/bluecat \
 		external/mit/lualinux \
 		external/mit/luanode \
 		external/mit/luayaml \
+		external/mit/luazmq \
 		yum \
 		zypp \
 		systemd
