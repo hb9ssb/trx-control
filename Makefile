@@ -15,11 +15,11 @@ SUBDIR+=	bin/bluecat \
 		sbin/trxd \
 		udev \
 		external/bsd/luacurl \
+		external/bsd/luapgsql \
+		external/bsd/luasqlite \
 		external/mit/luaexpat \
 		external/mit/lualinux \
 		external/mit/luanode \
-		external/bsd/luapgsql \
-		external/bsd/luasqlite \
 		external/mit/luayaml \
 		yum \
 		zypp \
