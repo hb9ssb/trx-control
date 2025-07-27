@@ -314,12 +314,27 @@ main(int argc, char *argv[])
 	if (argc)
 		usage();
 
-	if (cfg_file == NULL)
-		cfg_file = _PATH_CFG;
-
 	openlog("trxd", nodaemon == 1 ?
 		LOG_PERROR | LOG_CONS | LOG_PID | LOG_NDELAY
 		: LOG_CONS | LOG_PID | LOG_NDELAY, LOG_USER);
+
+	if (cfg_file == NULL) {
+		cfg_file = _PATH_CFG;
+		if (stat(cfg_file, &sb)) {
+			if (asprintf(&cfg_file, "%s/.local/%s",
+			    getenv("HOME"), _PATH_CFG_LOCAL) == -1) {
+				syslog(LOG_ERR,
+				    "can not create local config path");
+				exit(1);
+			}
+		}
+	}
+
+	if (stat(cfg_file, &sb)) {
+		syslog(LOG_ERR, "can't stat config file %s: %s", cfg_file,
+		    strerror(errno));
+		exit(1);
+	}
 
 	if (pthread_mutex_init(&destination_mutex, NULL)) {
 		syslog(LOG_ERR, "pthread_mutex_init");

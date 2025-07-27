@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 - 2024 Marc Balmer HB9SSB
+ * Copyright (c) 2023 - 2025 Marc Balmer HB9SSB
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -34,5 +34,6 @@
 #define _PATH_TRX_CONTROLLER	"/usr/share/trxd/trx-controller.lua"
 #define _PATH_GPIO_CONTROLLER	"/usr/share/trxd/gpio-controller.lua"
 #define _PATH_CFG		"/etc/trxd.yaml"
+#define _PATH_CFG_LOCAL		"trx-control/trxd.yaml"
 
 #endif /* __TRXD_PATHNAMES_H__ */

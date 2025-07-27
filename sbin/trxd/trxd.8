@@ -18,7 +18,7 @@
 .\" FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 .\" IN THE SOFTWARE.
 .\"
-.TH TRXD 8 "8 June 2025" "trx-control"
+.TH TRXD 8 "27 July 2025" "trx-control"
 .
 .SH NAME
 trxd
@@ -98,8 +98,14 @@ Set the path name of a pid file.
 .
 .TP
 .I /etc/trxd.yaml
-Default configuration file.
-An example configuration file can be found in /usr/share/trxd/trxd.yaml.
+The configuration file in YAML format.
+.TP
+.I $HOME/.local/trx-control/trxd.yaml
+Alternate location of the configuration file in case /etc/trxd.yaml is not
+present or readable.
+.TP
+.I /usr/share/trxd/trxd.yaml
+Example configuration file.
 .
 .TP
 .I /usr/share/trxd/trx-controller.lua
