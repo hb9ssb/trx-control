@@ -82,8 +82,10 @@ extern int trx_control_running;
 destination_t *destination = NULL;
 pthread_mutex_t destination_mutex;
 
+void *zmq_ctx;
+
 /*
- * privat,, i.e. per connection extensions configuration.  This is in
+ * private,, i.e. per connection extensions configuration.  This is in
  * JSON format, if private extensions have been defined.
  */
 
@@ -321,6 +323,12 @@ main(int argc, char *argv[])
 
 	if (pthread_mutex_init(&destination_mutex, NULL)) {
 		syslog(LOG_ERR, "pthread_mutex_init");
+		exit(1);
+	}
+
+	/* Setup ZeroMQ */
+	if ((zmq_ctx = zmq_ctx_new()) == NULL) {
+		syslog(LOG_ERR, "cannot create ZeroMQ context");
 		exit(1);
 	}
 

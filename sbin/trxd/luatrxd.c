@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 - 2024 Marc Balmer HB9SSB
+ * Copyright (c) 2023 - 2025 Marc Balmer HB9SSB
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -32,11 +32,15 @@
 #include <lua.h>
 #include <lauxlib.h>
 
+#include <zmq.h>
+
+#include "luazmq.h"
 #include "trx-control.h"
 #include "trxd.h"
 
 extern int verbose;
 extern __thread extension_tag_t	*extension_tag;
+extern void *zmq_ctx;
 
 extern void *signal_input(void *);
 
@@ -132,6 +136,18 @@ luatrxd_version(lua_State *L)
 	return 1;
 }
 
+static int
+luatrxd_zmq_context(lua_State *L)
+{
+	void **ctx;
+
+	ctx = lua_newuserdata(L, sizeof(void *));
+	*ctx = zmq_ctx;
+	luaL_getmetatable(L, ZMQ_CTX_METATABLE);
+	lua_setmetatable(L, -2);
+	return 1;
+}
+
 int
 luaopen_trxd(lua_State *L)
 {
@@ -141,12 +157,13 @@ luaopen_trxd(lua_State *L)
 		{ "locator",		luatrxd_locator },
 		{ "verbose",		luatrxd_verbose },
 		{ "version",		luatrxd_version },
+		{ "zmqContext",		luatrxd_zmq_context },
 		{ NULL, NULL }
 	};
 
 	luaL_newlib(L, luatrxd);
 	lua_pushliteral(L, "_COPYRIGHT");
-	lua_pushliteral(L, "Copyright (c) 2023 - 2024 Marc Balmer HB9SSB");
+	lua_pushliteral(L, "Copyright (c) 2023 - 2025 Marc Balmer HB9SSB");
 	lua_settable(L, -3);
 	lua_pushliteral(L, "_DESCRIPTION");
 	lua_pushliteral(L, "trx-control internal functions for Lua");
