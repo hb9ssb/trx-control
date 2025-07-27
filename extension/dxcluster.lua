@@ -1,4 +1,4 @@
--- Copyright (c) 2024 Marc Balmer HB9SSB
+-- Copyright (c) 2024 - 2025 Marc Balmer HB9SSB
 --
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to
@@ -84,7 +84,8 @@ function dataReady()
 					timestamp = os.time()
 				}
 				local notification = {
-					[config.source or 'dxcluster'] = spot
+					from = config.source or 'dxcluster',
+					spot = spot
 				}
 				trxd.notify(json.encode(notification))
 				purgeSpots()
