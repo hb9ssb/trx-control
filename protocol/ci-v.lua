@@ -130,7 +130,7 @@ local function setMode(driver, request, response)
 		response.reason = 'Unknown mode'
 	end
 
-	local data = string.char(driver.internalModeToCode[mode])
+	local data = string.char(modeToInternalCode[mode])
 	sendMessage('\x01', nil, data)
 	if (recvReply == true) then
 		response.state = 'mode set'
