@@ -58,7 +58,6 @@ local log = require 'linux.sys.log'
 
 if trxd.verbose() > 0 then
 	log.syslog('notice', 'installing the wavelog extension')
-	return
 end
 
 if config.apiKey == nil then
