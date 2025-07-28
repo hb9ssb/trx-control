@@ -113,8 +113,6 @@ sd_event_handler(void *arg)
 {
 	sd_event *event = NULL;
 	sd_device_monitor *sddm = NULL;
-	char hostname[128];
-	int error;
 
 	if (pthread_detach(pthread_self())) {
 		syslog(LOG_ERR, "sd-event-handler: pthread_detach");
