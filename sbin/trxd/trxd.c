@@ -40,6 +40,7 @@
 #include <syslog.h>
 #include <termios.h>
 #include <unistd.h>
+#include <zmq.h>
 
 #include <bluetooth/bluetooth.h>
 #include <bluetooth/rfcomm.h>
@@ -229,7 +230,7 @@ main(int argc, char *argv[])
 #endif
 
 	const char *bind_addr, *listen_port, *user, *group, *homedir, *pidfile;
-	const char *cfg_file;
+	char *cfg_file;
 
 	bind_addr = listen_port = user = group = pidfile = cfg_file = NULL;
 
