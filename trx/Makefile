@@ -9,7 +9,8 @@ TRX=		csi-cs7000-m17.yaml \
 		yaesu-ft-857.yaml \
 		yaesu-ft-891.yaml \
 		yaesu-ft-897.yaml \
-		yaesu-ft-991a.yaml
+		yaesu-ft-991a.yaml \
+		yaesu-ftx-1
 
 TRXDIR?=	/usr/share/trxd/trx
 
