@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011 - 2022 Micro Systems Marc Balmer, CH-5073 Gipf-Oberfrick.
+ * Copyright (C) 2011 - 2026 Micro Systems Marc Balmer, CH-5073 Gipf-Oberfrick.
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -224,7 +224,7 @@ decode_object(lua_State *L, char **s, int null)
 	if (**s == '}')
 		(*s)++;
 	else
-		json_error(L, "objects does not end with '}'");
+		json_error(L, "object does not end with '}'");
 }
 
 static void
