@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 - 2025 Marc Balmer HB9SSB
+ * Copyright (c) 2023 - 2026 Marc Balmer HB9SSB
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -718,7 +718,6 @@ call_extension(lua_State *L, dispatcher_tag_t* d, extension_tag_t *e,
 			exit(1);
 		}
 		proxy_map(e->L, L, lua_gettop(L));
-
 		switch (lua_pcall(L, 1, 1, 0)) {
 		case LUA_OK:
 			break;
@@ -1054,6 +1053,13 @@ terminate:
 	lua_pop(L, 1);
 }
 
+static void *
+free_external_string(void *ud, void *ptr, size_t osize, size_t nsize)
+{
+	free(ud);
+	return NULL;
+}
+
 void *
 dispatcher(void *arg)
 {
@@ -1103,7 +1109,8 @@ dispatcher(void *arg)
 
 	/* Initialize private extensions */
 	if (private_extensions) {
-		printf("initialize private extensions from:\n%s\n", private_extensions);
+		printf("initialize private extensions from:\n%s\n",
+		    private_extensions);
 		lua_getglobal(L, "json");
 		lua_getfield(L, -1, "decode");
 		lua_pushstring(L, private_extensions);
@@ -1146,6 +1153,7 @@ dispatcher(void *arg)
 				exit(1);
 			}
 		}
+
 		lua_getglobal(L, "json");
 		if (lua_type(L, -1) != LUA_TTABLE) {
 			syslog(LOG_ERR, "dispatcher: table expected");
@@ -1156,8 +1164,8 @@ dispatcher(void *arg)
 			syslog(LOG_ERR, "dispatcher: function expected");
 			exit(1);
 		}
-
-		lua_pushstring(L, d->data);
+		lua_pushexternalstring(L, d->data, strlen(d->data),
+		    free_external_string, d->data);
 		switch (lua_pcall(L, 1, 1, 0)) {
 		case LUA_OK:
 			break;
@@ -1237,7 +1245,6 @@ dispatcher(void *arg)
 				destination_set(d);
 		}
 skip_request:
-		free(d->data);
 		d->data = NULL;
 		if (pthread_cond_signal(&d->cond2)) {
 			syslog(LOG_ERR, "dispatcher: pthread_cond_signal");
