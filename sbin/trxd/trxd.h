@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 - 2025 Marc Balmer HB9SSB
+ * Copyright (c) 2023 - 2026 Marc Balmer HB9SSB
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -292,7 +292,8 @@ typedef struct dispatcher_tag {
 	pthread_cond_t		 cond;	/* data is ready to be dispatched */
 	pthread_cond_t		 cond2;	/* Request has been handled */
 
-	char			*data;
+	char			*data;	/* The data received on the socket */
+	size_t			 len;	/* Length of the data */
 
 	sender_tag_t		*sender;
 	pthread_t		 dispatcher;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 - 2024 Marc Balmer HB9SSB
+ * Copyright (c) 2023 - 2026 Marc Balmer HB9SSB
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -195,6 +195,7 @@ socket_handler(void *arg)
 			printf("socket-handler: <- %s\n", buf);
 
 		d->data = buf;
+		d->len = strlen(buf);
 
 		if (pthread_cond_signal(&d->cond)) {
 			syslog(LOG_ERR, "socket-handler: pthread_cond_signal");

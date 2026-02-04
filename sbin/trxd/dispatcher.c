@@ -1164,7 +1164,7 @@ dispatcher(void *arg)
 			syslog(LOG_ERR, "dispatcher: function expected");
 			exit(1);
 		}
-		lua_pushexternalstring(L, d->data, strlen(d->data),
+		lua_pushexternalstring(L, d->data, d->len,
 		    free_external_string, d->data);
 		switch (lua_pcall(L, 1, 1, 0)) {
 		case LUA_OK:

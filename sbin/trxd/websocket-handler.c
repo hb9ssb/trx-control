@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 - 2024 Marc Balmer HB9SSB
+ * Copyright (c) 2023 - 2026 Marc Balmer HB9SSB
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -113,6 +113,7 @@ websocket_handler(void *arg)
 	sender_tag_t *s;
 	dispatcher_tag_t *d;
 	char *buf;
+	size_t len;
 
 	if (pthread_detach(pthread_self())) {
 		syslog(LOG_ERR, "websocket-handler: pthread_detach");
@@ -237,7 +238,7 @@ websocket_handler(void *arg)
 
 	for (;;) {
 		/* buf will later be freed by the dispatcher */
-		if (wsRead(&buf, NULL, websocket_read, websocket_write, w)) {
+		if (wsRead(&buf, &len, websocket_read, websocket_write, w)) {
 			if (verbose)
 				printf("websocket-handler: short read: %s\n",
 					strerror(errno));
@@ -247,7 +248,7 @@ websocket_handler(void *arg)
 
 		if (buf != NULL) {
 			d->data = buf;
-
+			d->len = len;
 			if (pthread_cond_signal(&d->cond)) {
 				syslog(LOG_ERR,
 				    "websocket-handler: pthread_cond_signal");
