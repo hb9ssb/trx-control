@@ -46,7 +46,7 @@ luatrxctl_connect(lua_State *L)
 }
 
 static void *
-free_externalstring(void *ud, void *ptr, size_t osize, size_t nsize)
+freeexternalstring(void *ud, void *ptr, size_t osize, size_t nsize)
 {
 	free(ptr);
 	return NULL;
@@ -61,7 +61,7 @@ luatrxctl_readln(lua_State *L)
 	if (buf != NULL) {
 		if (verbose)
 			printf("< %s\n", buf);
-		lua_pushexternalstring(L, buf, strlen(buf), free_externalstring,
+		lua_pushexternalstring(L, buf, strlen(buf), freeexternalstring,
 		    NULL);
 	} else
 		lua_pushnil(L);
