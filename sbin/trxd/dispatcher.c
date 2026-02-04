@@ -1247,6 +1247,10 @@ dispatcher(void *arg)
 				destination_set(d);
 		}
 skip_request:
+		/*
+		 * If we were not using Luas externalstrings, d->data must be
+		 * freed here before setting it to NULL.
+		 */
 		d->data = NULL;
 		if (pthread_cond_signal(&d->cond2)) {
 			syslog(LOG_ERR, "dispatcher: pthread_cond_signal");
