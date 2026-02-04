@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 - 2024 Marc Balmer HB9SSB
+ * Copyright (c) 2023 - 2026 Marc Balmer HB9SSB
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -25,6 +25,7 @@
 #include <termios.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <lua.h>
 #include <lauxlib.h>
@@ -44,6 +45,13 @@ luatrxctl_connect(lua_State *L)
 	return 1;
 }
 
+static void *
+free_externalstring(void *ud, void *ptr, size_t osize, size_t nsize)
+{
+	free(ptr);
+	return NULL;
+}
+
 static int
 luatrxctl_readln(lua_State *L)
 {
@@ -53,8 +61,8 @@ luatrxctl_readln(lua_State *L)
 	if (buf != NULL) {
 		if (verbose)
 			printf("< %s\n", buf);
-		lua_pushstring(L, buf);
-		free(buf);
+		lua_pushexternalstring(L, buf, strlen(buf), free_externalstring,
+		    NULL);
 	} else
 		lua_pushnil(L);
 
@@ -91,7 +99,7 @@ luaopen_trxctl(lua_State *L)
 
 	luaL_newlib(L, luatrxctl);
 	lua_pushliteral(L, "_COPYRIGHT");
-	lua_pushliteral(L, "Copyright (c) 2023 - 2024 Marc Balmer HB9SSB");
+	lua_pushliteral(L, "Copyright (c) 2023 - 2026 Marc Balmer HB9SSB");
 	lua_settable(L, -3);
 	lua_pushliteral(L, "_DESCRIPTION");
 	lua_pushliteral(L, "trxctl for Lua");
