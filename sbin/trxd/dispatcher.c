@@ -1103,7 +1103,6 @@ dispatcher(void *arg)
 
 	pthread_cleanup_push(cleanup_lua, L);
 
-	luaL_openlibs(L);
 	luaopen_json(L);
 	lua_setglobal(L, "json");
 
