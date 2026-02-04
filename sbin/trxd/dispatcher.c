@@ -1054,9 +1054,9 @@ terminate:
 }
 
 static void *
-free_external_string(void *ud, void *ptr, size_t osize, size_t nsize)
+free_externalstring(void *ud, void *ptr, size_t osize, size_t nsize)
 {
-	free(ud);
+	free(ptr);
 	return NULL;
 }
 
@@ -1164,7 +1164,7 @@ dispatcher(void *arg)
 			exit(1);
 		}
 		lua_pushexternalstring(L, d->data, d->len,
-		    free_external_string, d->data);
+		    free_externalstring, NULL);
 		switch (lua_pcall(L, 1, 1, 0)) {
 		case LUA_OK:
 			break;
