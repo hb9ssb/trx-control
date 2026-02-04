@@ -64,6 +64,7 @@ typedef struct trx_controller_tag {
 	int			 ref;
 
 	char			*data;
+	size_t			 len;
 
 	int			 client_fd;
 	int			 cat_device;
@@ -102,6 +103,7 @@ typedef struct sdr_controller_tag {
 	int			 ref;
 
 	char			*data;
+	size_t			 len;
 
 	int			 client_fd;
 	int			 cat_device;
@@ -155,6 +157,7 @@ typedef struct gpio_controller_tag {
 	int			 ref;
 
 	char			*data;
+	size_t			 len;
 
 	int			 gpio_device;
 	pthread_t		 gpio_controller;
@@ -186,6 +189,7 @@ typedef struct relay_controller_tag {
 	int			 is_default;
 
 	char			*data;
+	size_t			 len;
 
 	pthread_t		 relay_controller;
 	pthread_t		 relay_poller;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 - 2025 Marc Balmer HB9SSB
+ * Copyright (c) 2023 - 2026 Marc Balmer HB9SSB
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -66,6 +66,13 @@ cleanup(void *arg)
 		lua_close(t->L);
 	free(t->name);
 	free(arg);
+}
+
+static void *
+freeexternalstring(void *ud, void *ptr, size_t osize, size_t nsize)
+{
+	free(ptr);
+	return NULL;
 }
 
 void *
@@ -214,7 +221,8 @@ trx_controller(void *arg)
 			t->response = "command not supported, "
 			    "please submit a bug report";
 		} else {
-			lua_pushstring(t->L, t->data);
+			lua_pushexternalstring(t->L, t->data, t->len,
+			    freeexternalstring, NULL);
 			lua_pushinteger(t->L, t->client_fd);
 			t->response = NULL;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 - 2025 Marc Balmer HB9SSB
+ * Copyright (c) 2023 - 2026 Marc Balmer HB9SSB
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -63,6 +63,13 @@ cleanup_lua(void *arg)
 	lua_close(L);
 }
 
+static void *
+freeexternalstring(void *ud, void *ptr, size_t osize, size_t nsize)
+{
+	free(ptr);
+	return NULL;
+}
+
 void *
 relay_controller(void *arg)
 {
@@ -122,7 +129,7 @@ relay_controller(void *arg)
 		exit(1);
 	}
 
-	while (1) {
+	for (;;) {
 		/* Wait on cond, this releases the mutex */
 		while (t->handler == NULL) {
 			if (pthread_cond_wait(&t->cond1, &t->mutex2)) {
@@ -132,7 +139,8 @@ relay_controller(void *arg)
 			}
 		}
 
-		lua_pushstring(L, t->data);
+		lua_pushexternalstring(L, t->data, t->len, freeexternalstring,
+		    NULL);
 
 		switch (lua_pcall(L, 1, 1, 0)) {
 		case LUA_OK:

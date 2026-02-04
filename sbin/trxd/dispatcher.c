@@ -72,6 +72,7 @@ call_trx_controller(dispatcher_tag_t *d, trx_controller_tag_t *t)
 	t->handler = "requestHandler";
 	t->response = NULL;
 	t->data = d->data;
+	t->len = d->len;
 
 	if (pthread_mutex_lock(&t->mutex2)) {
 		syslog(LOG_ERR, "dispatcher: pthread_mutex_lock");
@@ -134,6 +135,7 @@ call_sdr_controller(dispatcher_tag_t *d, sdr_controller_tag_t *t)
 	t->handler = "requestHandler";
 	t->response = NULL;
 	t->data = d->data;
+	t->len = d->len;
 
 	if (pthread_mutex_lock(&t->mutex2)) {
 		syslog(LOG_ERR, "dispatcher: pthread_mutex_lock");
@@ -196,6 +198,7 @@ call_gpio_controller(dispatcher_tag_t *d, gpio_controller_tag_t *t)
 	t->handler = "requestHandler";
 	t->response = NULL;
 	t->data = d->data;
+	t->len = d->len;
 
 	if (pthread_mutex_lock(&t->mutex2)) {
 		syslog(LOG_ERR, "dispatcher: pthread_mutex_lock");
@@ -1054,7 +1057,7 @@ terminate:
 }
 
 static void *
-free_externalstring(void *ud, void *ptr, size_t osize, size_t nsize)
+freeexternalstring(void *ud, void *ptr, size_t osize, size_t nsize)
 {
 	free(ptr);
 	return NULL;
@@ -1164,7 +1167,7 @@ dispatcher(void *arg)
 			exit(1);
 		}
 		lua_pushexternalstring(L, d->data, d->len,
-		    free_externalstring, NULL);
+		    freeexternalstring, NULL);
 		switch (lua_pcall(L, 1, 1, 0)) {
 		case LUA_OK:
 			break;
