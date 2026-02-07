@@ -1,4 +1,4 @@
--- Copyright (c) 2024 Marc Balmer HB9SSB
+-- Copyright (c) 2024 - 2026 Marc Balmer HB9SSB
 --
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to
@@ -86,7 +86,7 @@ local updateStep = {
 }
 
 local function installMemoryDatabase(db)
-	local res <close> = db:execParams(installationScript, dbVersion)
+	local res = db:execParams(installationScript, dbVersion)
 
 	if res:status() ~= pgsql.PGRES_COMMAND_OK then
 		print('memory: database installadion failed '
@@ -97,28 +97,28 @@ local function installMemoryDatabase(db)
 end
 
 local function updateMemoryDatabase(db, currentVersion)
-	local res <close> = db:exec('begin')
+	db:exec('begin')
 
 	for step = currentVersion, dbVersion - 1 do
 		print(string.format('memory: update database from version %d '
 		    .. 'to version %d ', step, step + 1))
-		local res <close> = db:exec(updateStep[step])
+		local res = db:exec(updateStep[step])
 		if res:status() ~= pgsql.PGRES_COMMAND_OK then
 			print('memory: ' .. res:errorMessage())
-			local res <close> = db:exec('rollback')
+			db:exec('rollback')
 			return false
 		end
 	end
-	local res <close> = db:exec([[
+	db:exec([[
 	update memory.version
 	   set version = $1::integer
 	]], dbVersion)
-	local res <close> = db:exec('commit')
+	db:exec('commit')
 	return true
 end
 
 local function getMemoryDatabaseVersion(db)
-	local res <close> = db:exec([[
+	local res = db:exec([[
 	select version
 	  from memory.version
 	]])
@@ -151,11 +151,10 @@ local function checkMemoryDatabase(db)
 			end
 		end
 
-		local res <close> = db:exec('vacuum analyze')
+		db:exec('vacuum analyze')
 	end
 end
 
 return {
 	checkMemoryDatabase = checkMemoryDatabase
 }
-
