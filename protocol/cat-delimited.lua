@@ -47,7 +47,6 @@ local internalCodeToVfo = {}
 local lastVfo = 'vfo-1'
 
 local function initialize(driver)
-	trx.read(1)
 	trx.write('ID;')
 	local reply = trx.read(7)
 
