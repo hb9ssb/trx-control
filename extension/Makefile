@@ -1,6 +1,6 @@
-EXTENSION?=	config.lua dxcluster.lua hello.lua logbook.lua ping.lua \
-		qrz.lua tasmota.lua memory.lua memory-db.lua hamqth.lua \
-		wavelog.lua
+EXTENSION?=	config.lua dxcluster.lua hello.lua logbook.lua logbook-db.lua \
+		ping.lua qrz.lua tasmota.lua memory.lua memory-db.lua \
+		hamqth.lua
 
 EXTDIR?=	/usr/share/trxd/extension
 

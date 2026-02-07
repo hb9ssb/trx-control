@@ -1,4 +1,4 @@
--- Copyright (c) 2024 Marc Balmer HB9SSB
+-- Copyright (c) 2025 Marc Balmer HB9SSB
 --
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to
@@ -20,64 +20,39 @@
 
 local pgsql = require 'pgsql'
 
-local dbVersion = 1
+local dbVersion = 2
 
 local installationScript = [[
-create extension if not exists "uuid-ossp";
+create schema if not exists logbook;
 
-create schema if not exists memory;
-
-create table if not exists memory.version (
+create table if not exists logbook.version (
 	version		integer not null
 );
-create unique index if not exists
-	memory_single_row on memory.version((1));
+create unique index if not exists logbook_single_row on logbook.version((1));
 
-create table if not exists memory.grp (
-	id 		uuid primary key default uuid_generate_v4(),
-	name		text,
-	supplement	text,
-	descr		text,
-	sort_order	integer
-);
+create table if not exists logbook.logbook (
+	call		text not null,
+	name		text not null,
+	qth		text,
+	locator		text,
+	operator_call	text not null,
 
-create table if not exists memory.mem (
-	id		uuid primary key default uuid_generate_v4(),
-	name		text,
-	supplement	text,
-	descr		text,
-	type		text,
-
-	rx		numeric,
-	tx		numeric,
-	shift		numeric,
-
+	qso_start	timestamptz,
+	qso_end		timestamptz,
+	frequency	bigint,
 	mode		text,
-
-	sort_order	integer,
-
-	check		(type in ('quick', 'call',
-				'channel', 'repeater'))
+	remarks		text
 );
-
-create table if not exists memory.entry (
-	this		uuid references memory.grp(id),
-	grp		uuid references memory.grp(id),
-	mem		uuid references memory.mem(id),
-	sort_order	integer,
-
-	check		(grp is null or mem is null)
-);
-create index entry_this_idx on memory.entry(this);
-create index entry_grp_idx on memory.entry(grp);
-create index entry_memory_idx on memory.entry(mem);
-
-insert into memory.version values($1) on conflict do nothing;
+create index logbook_call_idx on logbook.logbook(call);
 ]]
 
 local updateStep = {
 -- update step from 1 to 2
 [[
+alter table logbook.logbook
+	add column report_given text,
+	add column report_received text,
+	add column serial text;
 ]],
 
 -- update step from 2 to 3
@@ -85,42 +60,43 @@ local updateStep = {
 ]]
 }
 
-local function installMemoryDatabase(db)
+local function installLogbookDatabase(db)
 	local res <close> = db:execParams(installationScript, dbVersion)
 
 	if res:status() ~= pgsql.PGRES_COMMAND_OK then
-		print('memory: database installadion failed '
+		print('logbook: database installadion failed '
 		    .. res:errorMessage())
 		os.exit(1)
 	end
-	print 'memory: database successfully installed'
+	print 'logbook: database successfully installed'
 end
 
-local function updateMemoryDatabase(db, currentVersion)
+local function updateLogbookDatabase(db, currentVersion)
 	local res <close> = db:exec('begin')
 
 	for step = currentVersion, dbVersion - 1 do
-		print(string.format('memory: update database from version %d '
+		print(string.format('logbook: update database from version %d '
 		    .. 'to version %d ', step, step + 1))
 		local res <close> = db:exec(updateStep[step])
 		if res:status() ~= pgsql.PGRES_COMMAND_OK then
-			print('memory: ' .. res:errorMessage())
+			print('logbook: ' .. res:errorMessage())
 			local res <close> = db:exec('rollback')
 			return false
 		end
 	end
 	local res <close> = db:exec([[
-	update memory.version
+	update logbook.version
 	   set version = $1::integer
 	]], dbVersion)
+
 	local res <close> = db:exec('commit')
 	return true
 end
 
-local function getMemoryDatabaseVersion(db)
+local function getLogbookDatabaseVersion(db)
 	local res <close> = db:exec([[
 	select version
-	  from memory.version
+	  from logbook.version
 	]])
 
 	if #res == 0 then
@@ -130,24 +106,24 @@ local function getMemoryDatabaseVersion(db)
 	end
 end
 
-local function checkMemoryDatabase(db)
-	local version = getMemoryDatabaseVersion(db)
+local function checkLogbookDatabase(db)
+	local version = getLogbookDatabaseVersion(db)
 
 	if version == nil then
-		print 'memory: database is not installed, installing it ...'
-		installMemoryDatabase(db)
+		print 'logbook: database is not installed, installing it ...'
+		installLogbookDatabase(db)
 	else
-		print(string.format('memory: database version is %d', version))
+		print(string.format('logbook: database version is %d', version))
 
 		if version == dbVersion then
-			print 'memory: this is the latest version'
+			print 'logbook: this is the latest version'
 		else
-			print('memory: update database to version '
+			print('logbook: update database to version '
 			    .. dbVersion)
-			if updateMemoryDatabase(db, version) == true then
-				print('memory: database update succeeded')
+			if updateLogbookDatabase(db, version) == true then
+				print('logbook: database update succeeded')
 			else
-				print('memory: database update failed')
+				print('logbook: database update failed')
 			end
 		end
 
@@ -156,6 +132,6 @@ local function checkMemoryDatabase(db)
 end
 
 return {
-	checkMemoryDatabase = checkMemoryDatabase
+	checkLogbookDatabase = checkLogbookDatabase
 }
 

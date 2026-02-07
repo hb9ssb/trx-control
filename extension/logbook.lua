@@ -1,4 +1,4 @@
--- Copyright (c) 2023 - 2024 Marc Balmer HB9SSB
+-- Copyright (c) 2023 - 2025 Marc Balmer HB9SSB
 --
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to
@@ -23,6 +23,7 @@
 
 local log = require 'linux.sys.log'
 local pgsql = require 'pgsql'
+local logbookdb = require 'logbook-db'
 
 -- The configuration is stored in trxd.yaml under the extension.  The following
 -- configuration parameters are used:
@@ -72,6 +73,7 @@ local function checkDatabase()
 end
 
 connectDatabase()
+logbookdb.checkLogbookDatabase(db)
 
 -- Public functions
 function logQSO(request)
@@ -99,13 +101,14 @@ function logQSO(request)
 
 	local res <close> = db:execParams([[
 	insert
-	  into logbook.logbook (call, name, qso_start, qso_end, qth, locator,
+	  into logbook.logbook (call, name, qso_start, qso_end, report_given,
+				report_received, serial, qth, locator,
 				frequency, mode, operator_call, remarks)
 	values ($1, $2, $3::timestamptz, $4::timestamptz, $5, $6, $7::bigint,
 		$8, $9, $10)
-	]], data.call, data.name, data.qsoStart, data.qsoEnd, data.qth,
-	    data.locator, data.frequency, data.mode, data.operatorCall,
-	    data.remarks)
+	]], data.call, data.name, data.qsoStart, data.qsoEnd, data.reportGiven,
+		data.reportReceived, data.qth, data.locator, data.frequency, data.mode,
+		data.operatorCall, data.remarks)
 
 	if res:status() == pgsql.PGRES_COMMAND_OK then
 		return {
@@ -144,9 +147,10 @@ function lookupCallsign(request)
 	end
 
 	local res <close> = db:execParams([[
-	  select call, name, qso_start as qsoStart, qso_end as qsoEnd, qth,
-		 locator, frequency, mode, operator_call as operatorCall,
-		 remarks
+	  select call, name, qso_start as qsoStart, qso_end as qsoEnd,
+			 report_given as reportGive, report_received as reportReceived,
+			 serial, qth, locator, frequency, mode,
+			 operator_call as operatorCall, remarks
 	    from logbook.logbook
 	   where call ilike $1
 	order by qso_start
