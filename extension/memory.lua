@@ -1,4 +1,4 @@
--- Copyright (c) 2024 - 2026 Marc Balmer HB9SSB
+-- Copyright (c) 2024 Marc Balmer HB9SSB
 --
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to
@@ -42,8 +42,8 @@ end
 
 local function setupDatabase()
 	if config.datestyle ~= nil then
-		db:exec(string.format("set datestyle to '%s'",
-		    db:escapeString(config.datestyle)))
+		local res <close> = db:exec(string.format(
+		    "set datestyle to '%s'", db:escapeString(config.datestyle)))
 	end
 end
 
@@ -85,7 +85,7 @@ function getToplevel(request)
 
 	local entries = {}
 
-	local res = db:exec([[
+	local res <close> = db:exec([[
 	  select 'group' as entry, id, name, supplement, descr
 	    from memory.grp
 	   where id not in (select grp from memory.entry)
@@ -103,7 +103,7 @@ function getToplevel(request)
 		entries[#entries + 1] = tuple:copy()
 	end
 
-	local res = db:exec([[
+	local res <close> = db:exec([[
 	  select 'memory' as entry, id, name, supplement, descr, type,
 		 tx, rx, shift, mode
 	    from memory.mem
@@ -146,7 +146,7 @@ function getMemoryGroup(request)
 		}
 	end
 
-	local res = db:execParams([[
+	local res <close> = db:execParams([[
 	  select grp, mem, b.name as grp_name,
 		 b.supplement as grp_supplement, b.descr as grp_descr,
 		 m.name as mem_name, m.supplement as mem_supplement,
@@ -233,7 +233,7 @@ function addMemoryGroup(request)
 		descr = nil
 	end
 
-	local res = db:execParams([[
+	local res <close> = db:execParams([[
 	   insert
 	     into memory.grp (name, supplement, descr)
 	   values ($1, $2, $3)
@@ -297,7 +297,7 @@ function addMemory(request)
 		descr = nil
 	end
 
-	local res = db:execParams([[
+	local res <close> = db:execParams([[
 	   insert
 	     into memory.mem (name, supplement, descr, rx)
 	   values ($1, $2, $3, $4::numeric)
@@ -318,3 +318,4 @@ function addMemory(request)
 		id = res[1].id
 	}
 end
+

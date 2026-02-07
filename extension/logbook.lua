@@ -1,4 +1,4 @@
--- Copyright (c) 2023 - 2026 Marc Balmer HB9SSB
+-- Copyright (c) 2023 - 2025 Marc Balmer HB9SSB
 --
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to
@@ -46,7 +46,8 @@ end
 
 local function setupDatabase()
 	if config.datestyle ~= nil then
-		db:exec(string.format("set datestyle to '%s'", config.datestyle))
+		local res <close> = db:exec(string.format(
+		    "set datestyle to '%s'", config.datestyle))
 	end
 end
 
@@ -98,7 +99,7 @@ function logQSO(request)
 		}
 	end
 
-	local res = db:execParams([[
+	local res <close> = db:execParams([[
 	insert
 	  into logbook.logbook (call, name, qso_start, qso_end, report_given,
 				report_received, serial, qth, locator,
@@ -145,7 +146,7 @@ function lookupCallsign(request)
 		}
 	end
 
-	local res = db:execParams([[
+	local res <close> = db:execParams([[
 	  select call, name, qso_start as qsoStart, qso_end as qsoEnd,
 			 report_given as reportGive, report_received as reportReceived,
 			 serial, qth, locator, frequency, mode,
